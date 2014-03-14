@@ -25,13 +25,13 @@
   "write-SMT-file: writes the translated formula into a python file, it opens and closes the channel and write the including of Z3 inteface"
   (mv-let
    (channel state)
-   (open-output-channel filename :character state)
+   (open-output-channel! filename :character state)
    (let ((state (princ$-list-of-strings 
 		 (coerce (append
 			  (append
 			    (append (coerce "import sys" 'LIST)
 				    (list #\Newline))
-			    (append (coerce "sys.path.insert(0,\"../z3\_interface\")" 'LIST)
+			    (append (coerce "sys.path.insert(0,\"z3\_interface\")" 'LIST)
 				    (list #\Newline)))
 			  (append (coerce "from ACL2\_translator import *" 'LIST)
 				  (list #\Newline))) 

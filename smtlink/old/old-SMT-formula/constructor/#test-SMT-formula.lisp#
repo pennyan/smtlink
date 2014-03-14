@@ -33,30 +33,3 @@
 		 :concl-list		 
         	 (<= (* x x) (* x y simpleconst)))
 
-;; calling translator
-(translate-SMT-formula (SMT-formula-top
-			:const-list
-			((simpleconst 1))
-			:decl-list
-			((RATIONALP x)
-			 (INTEGERP y))
-			:hyp-list
-			(and (and (not (<= x 0))) (> x y))
-			:concl-list		 
-			(<= (* x x) (* x y simpleconst))))
-
-
-;; calling write
-(write-SMT-file "test.py" (translate-SMT-formula (SMT-formula-top
-			:const-list
-			((simpleconst 1))
-			:decl-list
-			((RATIONALP x)
-			 (INTEGERP y))
-			:hyp-list
-			(and (and (not (<= x 0))) (> x y))
-			:concl-list		 
-			(<= (* x x) (* x y simpleconst))))
-		state)
-(tshell-ensure)
-(SMT-run "python" "test.py")

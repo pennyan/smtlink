@@ -4,7 +4,7 @@
 
 ;; SMT-interpreter
 (defun SMT-interpreter (z3-cmd filename)
-  "SMT-run-encap: get the result returned from calling SMT procedure"
+  "SMT-intepreter: get the result returned from calling SMT procedure"
   (mv-let (finishedp exit-status lines)
           (SMT-run z3-cmd filename)
 	  (cond ((equal finishedp nil) 

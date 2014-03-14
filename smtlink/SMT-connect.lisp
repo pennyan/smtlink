@@ -22,11 +22,12 @@
   (defun my-clause-processor (cl hint)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
+    (prog2$ (cw "The clause: ~q0" cl)
     (if (acl2-my-prove (disjoin cl) hint)
       (list (list hint))
       (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")
-              (list cl))))
+              (list cl)))))
 
   (push-untouchable acl2-my-prove t)
   )
