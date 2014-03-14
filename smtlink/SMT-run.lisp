@@ -1,6 +1,4 @@
-;; SMT-run contains functions for 1. writing a translated formula into a python file
-;;                                2. calling Z3 procedure from ACL2 on the python file and fetch the result
-;;                                3. formatting the result into some format we need
+;; SMT-run writes to Z3, invoke Z3 and gets the result
 (in-package "ACL2")
 (include-book "std/strings/top" :dir :system)
 (include-book "centaur/misc/tshell" :dir :system)
@@ -30,10 +28,10 @@
    (open-output-channel filename :character state)
    (let ((state (princ$-list-of-strings 
 		 (coerce (append
-			  (append 
+			  (append
 			    (append (coerce "import sys" 'LIST)
 				    (list #\Newline))
-			    (append (coerce "sys.path.insert(0,\"../../z3\_interface\")" 'LIST)
+			    (append (coerce "sys.path.insert(0,\"../z3\_interface\")" 'LIST)
 				    (list #\Newline)))
 			  (append (coerce "from ACL2\_translator import *" 'LIST)
 				  (list #\Newline))) 
@@ -51,5 +49,3 @@
                         :save t)
            :msg "; Z3: `~s0`: ~st sec, ~sa bytes~%"
            :args (list cmd))))
-
-
