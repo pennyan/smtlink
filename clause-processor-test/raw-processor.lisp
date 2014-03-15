@@ -1,4 +1,4 @@
-(defstub acl2-my-prove (term hint) t)
+(defstub acl2-my-prove (term) t)
 
 (program)
 
@@ -16,13 +16,13 @@
 
    (load "my-hint-raw.lsp") ; defines my-prove in raw Lisp
 
-   (defun acl2-my-prove (term hint)
-     (my-prove term hint)))
+   (defun acl2-my-prove (term)
+     (my-prove term)))
 
-  (defun my-clause-processor (cl hint)
+  (defun my-clause-processor (cl)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (if (acl2-my-prove (disjoin cl) hint)
+    (if (acl2-my-prove (disjoin cl))
       (prog2$ (cw "Success!") nil)
       (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")
