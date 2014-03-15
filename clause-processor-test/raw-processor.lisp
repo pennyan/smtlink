@@ -23,7 +23,7 @@
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
     (if (acl2-my-prove (disjoin cl) hint)
-      (list (list hint))
+      (prog2$ (cw "Success!") nil)
       (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")
               (list cl))))
