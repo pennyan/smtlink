@@ -1,0 +1,7 @@
+Todo list:
+1. merge code in SMT-formula and translate-SMT-formula for basic operators into associated lists
+2. change translate-SMT-formula file into a version that translate below operators:
+   a. binary-+ binary-- binary-* binary-/
+   b. if statement translation
+   c. > < >= <= equal
+3. Change Z3 interface files to include if functions

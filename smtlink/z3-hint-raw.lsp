@@ -35,7 +35,7 @@
 		   (my-prove-SMT-formula term))
 		  state))
 
-(defun my-prove (term hint)
+(defun my-prove (term)
   (prog2$ (my-prove-write-file term)
 	  (if (equal (car (SMT-interpreter "python" "z3_files/test.py")) t)
 	      t
