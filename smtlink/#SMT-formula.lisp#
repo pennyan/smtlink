@@ -456,8 +456,9 @@
 				hyp-list
 				concl-list)
   "SMT-formula-top: This is a macro for fetching parameters of a SMT formula"
+  (prog2
   (list 'quote (SMT-formula const-list
 			    decl-list 
 			    hyp-list 
-			    concl-list))
+			    concl-list)))
   )

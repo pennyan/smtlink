@@ -2,6 +2,25 @@
 (in-package "ACL2")
 (include-book "SMT-formula")
 
+;; -------------- operator associate list  -----------:
+;; translate-operator-asso
+(defun translate-operator-asso (opr)
+  "translate-operator-asso: given an operator in ACL2 format, translate into its Z3 format by looking up the associated list"
+  (let ((result (assoc opr '((binary-+ "acl2_plus")
+			     (binary-- "acl2_minus")
+			     (binary-* "acl2_multiply")
+			     (binary-/ "acl2_divide")
+			     (equal "acl2_equal")
+			     (> "acl2_gt")
+			     (>= "acl2_get")
+			     (< "acl2_st")
+			     (<= "acl2_set")
+			     (if "acl2_if")))))
+    (if (equal result nil)
+	(prog2$ nil
+		(cw "Operator ~q0 does not exist!" opr))
+	(cadr result))))
+  
 ;; ---------------------- translate-arithmetic -----------------------:
 
 ;; translate-plus 
@@ -195,14 +214,16 @@
 ;; translate-expression
 (defun translate-expression (expression)
   "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
-  (if (consp expression)
-      (cond ((is-SMT-operator (car expression)) 
-	     (list (translate-operator (car expression))
+  (if (and (not (equal expression 'nil))
+	   (consp expression))
+      (cond ((is-SMT-operator-asso (car expression)) 
+	     (list (translate-operator-asso (car expression))
 		   '\(
 		   (translate-expression-long (cdr expression))
 		   '\)))
 	    (t (cw "Error: This is not a valid function: ~q0" (car expression))))
     (cond ((is-SMT-number expression) (translate-number expression))
+	  ((equal expression 'nil) "False")
 	  ((is-SMT-variable expression) (translate-variable expression))
 	  (t (cw "Error: Invalid number or variable: ~q0" expression)))))
 )
@@ -226,7 +247,7 @@
 ;; translate-theorem
 (defun translate-theorem ()
   "translate-theorem: construct a theorem statement for Z3"
-  (list "prove(Implies(hypothesis, conclusion))" #\Newline))
+  (list "prove(Implies(And(hypothesis,if_constraint_bool), conclusion))" #\Newline))
 
 ;; ----------------------- translate-SMT-formula --------------------------:
 

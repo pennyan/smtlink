@@ -64,15 +64,15 @@ acl2_if_int = Function('acl2_if_int', \
                        IntSort())
 
 if_constraint_bool = And((acl2_if_bool(True, x_bool, y_bool) \
-                     == x_bool) \
+                     == x_bool), \
                     (acl2_if_bool(False, x_bool, y_bool) \
                      == y_bool))
 if_constraint_real = And((acl2_if_real(True, x_real, y_real) \
-                     == x_real) \
+                     == x_real), \
                     (acl2_if_real(False, x_real, y_real) \
                      == y_real))
 if_constraint_int = And((acl2_if_int(True, x_int, y_int) \
-                         == x_int) \
+                         == x_int), \
                     (acl2_if_int(False, x_int, y_int) \
                      == y_int))
 

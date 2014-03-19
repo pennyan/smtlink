@@ -1,6 +1,6 @@
 ;; test-SMT-formula is a file for testing SMT formula construction
 (in-package "ACL2")
-(include-book "../translate-SMT-formula")
+(include-book "../../translate-SMT-formula")
 
 ;; const-list
 (SMT-constant-list '((simpleconst 1)))
