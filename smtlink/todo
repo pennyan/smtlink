@@ -1,7 +1,6 @@
 Todo list:
-1. merge code in SMT-formula and translate-SMT-formula for basic operators into associated lists
-2. change translate-SMT-formula file into a version that translate below operators:
-   a. binary-+ binary-- binary-* binary-/
-   b. if statement translation
-   c. > < >= <= equal
-3. Change Z3 interface files to include if functions
+  2 1. minor changes to translation and see if it will work - hot
+  3 2. reform the SMT-formula and translate-SMT-formula programs into cleaner version
+  4 3. check if there's a type mismatch in if-statement in ACL2
+  5 4. add argument length to my associated list
+  6 5. generate a bunch of test cases and run them -- good if there are function definitions
