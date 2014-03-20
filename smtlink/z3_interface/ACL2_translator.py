@@ -33,9 +33,9 @@ def acl2_or(*args):
 def acl2_minus(x,y): return x-y
 def acl2_divide(x,y): return x/y
 def acl2_gt(x,y): return x>y
-def acl2_st(x,y): return x<y
-def acl2_get(x,y): return x>=y
-def acl2_set(x,y): return x<=y
+def acl2_lt(x,y): return x<y
+def acl2_ge(x,y): return x>=y
+def acl2_le(x,y): return x<=y
 def acl2_equal(x,y): return x==y
 def acl2_not(x): return Not(x)
 

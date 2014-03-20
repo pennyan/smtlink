@@ -5,6 +5,6 @@ CONST1=1
 X=Real("X")
 Y=Real("Y")
 Z=Real("Z")
-hypothesis=acl2_if(acl2_st(0,X),acl2_if(acl2_equal(Z,acl2_plus(2,4)),acl2_if(acl2_st(Y,X),acl2_st(Y,X),acl2_st(acl2_plus(Y,1),X)),False),False)
-conclusion=acl2_st(acl2_multiply(X,Y),acl2_multiply(X,acl2_multiply(X,Z)))
+hypothesis=acl2_if(False,acl2_if(acl2_equal(Z,acl2_plus(2,4)),acl2_if(acl2_lt(Y,X),acl2_lt(Y,X),acl2_lt(acl2_plus(Y,1),X)),False),False)
+conclusion=acl2_lt(acl2_multiply(X,Y),acl2_multiply(X,acl2_multiply(X,Z)))
 prove(Implies(And(hypothesis,if_constraint_bool), conclusion))
