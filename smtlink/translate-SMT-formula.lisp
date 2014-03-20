@@ -6,16 +6,17 @@
 ;; translate-operator-asso
 (defun translate-operator-asso (opr)
   "translate-operator-asso: given an operator in ACL2 format, translate into its Z3 format by looking up the associated list"
-  (let ((result (assoc opr '((binary-+ "acl2_plus")
-			     (binary-- "acl2_minus")
-			     (binary-* "acl2_multiply")
-			     (binary-/ "acl2_divide")
-			     (equal "acl2_equal")
-			     (> "acl2_gt")
-			     (>= "acl2_ge")
-			     (< "acl2_lt")
-			     (<= "acl2_le")
-			     (if "acl2_if")))))
+  (let ((result (assoc opr '((binary-+ "s.plus")
+			     (binary-- "s.minus")
+			     (binary-* "s.multiply")
+			     (binary-/ "s.divide")
+			     (equal "s.equal")
+			     (> "s.gt")
+			     (>= "s.ge")
+			     (< "s.lt")
+			     (<= "s.le")
+			     (if "s.ifx")
+			     (not "s.notx")))))
     (if (equal result nil)
 	(prog2$ nil
 		(cw "Operator ~q0 does not exist!" opr))
@@ -118,12 +119,12 @@
 ;; translate-real
 (defun translate-real ()
   "translate-real: translate into real type in Z3"
-  "Real")
+  "s.isReal")
 
 ;; translate-integer
 (defun translate-integer ()
   "translate-integer: translate into integer type in Z3"
-  "Int")
+  "s.isInt")
 
 ;; translate-type
 (defun translate-type (type)
@@ -248,7 +249,7 @@
 ;; translate-theorem
 (defun translate-theorem ()
   "translate-theorem: construct a theorem statement for Z3"
-  (list "prove(Implies(And(hypothesis,if_constraint_bool), conclusion))" #\Newline))
+  (list "s.prove(hypothesis, conclusion)" #\Newline))
 
 ;; ----------------------- translate-SMT-formula --------------------------:
 

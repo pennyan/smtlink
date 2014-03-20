@@ -14,7 +14,8 @@
 			     (>= >=)
 			     (< <)
 			     (<= <=)
-			     (if if)))))
+			     (if if)
+			     (not not)))))
     (if (equal result nil)
 	(prog2$ nil
 		(cw "Operator ~q0 does not exist!" opr))
@@ -31,7 +32,8 @@
 		 (equal opr '<)
 		 (equal opr '>=)
 		 (equal opr '<=)
-		 (equal opr 'if)))
+		 (equal opr 'if)
+		 (equal opr 'not)))
 	nil
       t))
 

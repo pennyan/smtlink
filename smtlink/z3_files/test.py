@@ -1,10 +1,11 @@
-import sys
-sys.path.insert(0,"z3_interface")
-from ACL2_translator import *
+from sys import path
+path.insert(0,"z3_interface")
+from ACL2_translator import to_smt
+s = to_smt()
 CONST1=1
-X=Real("X")
-Y=Real("Y")
-Z=Real("Z")
-hypothesis=acl2_if(False,acl2_if(acl2_equal(Z,acl2_plus(2,4)),acl2_if(acl2_lt(Y,X),acl2_lt(Y,X),acl2_lt(acl2_plus(Y,1),X)),False),False)
-conclusion=acl2_lt(acl2_multiply(X,Y),acl2_multiply(X,acl2_multiply(X,Z)))
-prove(Implies(And(hypothesis,if_constraint_bool), conclusion))
+X=s.isReal("X")
+Y=s.isReal("Y")
+Z=s.isReal("Z")
+hypothesis=s.ifx(s.notx(s.notx(s.lt(0,X))),s.ifx(s.equal(Z,s.plus(2,4)),s.ifx(s.lt(Y,X),s.lt(Y,X),s.lt(s.plus(Y,1),X)),False),False)
+conclusion=s.lt(s.multiply(X,Y),s.multiply(X,s.multiply(X,Z)))
+s.prove(hypothesis, conclusion)

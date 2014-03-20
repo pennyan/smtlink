@@ -29,12 +29,14 @@
    (let ((state (princ$-list-of-strings 
 		 (coerce (append
 			  (append
-			    (append (coerce "import sys" 'LIST)
+			   (append
+			    (append (coerce "from sys import path" 'LIST)
 				    (list #\Newline))
-			    (append (coerce "sys.path.insert(0,\"z3\_interface\")" 'LIST)
+			    (append (coerce "path.insert(0,\"z3\_interface\")" 'LIST)
 				    (list #\Newline)))
-			  (append (coerce "from ACL2\_translator import *" 'LIST)
-				  (list #\Newline))) 
+			   (append (coerce "from ACL2\_translator import to_smt" 'LIST)
+				   (list #\Newline)))
+			  (append (coerce "s = to_smt()" 'LIST) (list #\Newline)))
 			  'STRING) 
 			 channel state)))
      (let ((state (princ$-list-of-strings translated-formula channel state)))

@@ -1,90 +1,109 @@
-# This is a Z3 file that provides a set of python functions
-# for the translating middle code from ACL2 to Z3 code
-from z3 import *
+from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, unsat
 
-# These two functions are redundant
-# def acl2_isreal(x): return "Real(" + x + ")"
-# def acl2_isint(x): return "Int(" + x + ")"
+def boolClass():
+	x = True
+	return x.__class__
 
-def acl2_plus(*args):
-   sum = 0	
-   for a in args:
-     sum = sum + a
-   return sum	
+def intClass():
+	x = 0
+	return x.__class__
 
-def acl2_multiply(*args): 
-	product = 1
-	for a in args:
-		product = product * a
-	return product
+def realClass():
+	x = 0.0
+	return x.__class__
 
-def acl2_and(*args):
-	conjunction = True
-	for a in args:
-		conjunction = And(conjunction, a) 
-	return conjunction
+def sort(x):
+	if x.__class__ == boolClass(): return(BoolSort())
+	if x.__class__ == intClass():  return(IntSort())
+	if x.__class__ == realClass(): return(RealSort())
+	try: return x.sort() 
+	except AttributeError:
+		raise Exception('unknown sort for expression')
 
-def acl2_or(*args):
-	disjunction = False
-	for a in args:
-		disjunction = Or(disjunction, a) 
-	return disjunction
+class to_smt:
+	class status:
+		def __init__(self, value):
+			self.value = value
 
-def acl2_minus(x,y): return x-y
-def acl2_divide(x,y): return x/y
-def acl2_gt(x,y): return x>y
-def acl2_lt(x,y): return x<y
-def acl2_ge(x,y): return x>=y
-def acl2_le(x,y): return x<=y
-def acl2_equal(x,y): return x==y
-def acl2_not(x): return Not(x)
+		def __str__(self):
+			if(self.value is True): return 'QED'
+			elif(self.value.__class__ == 'msg'.__class__): return self.value
+			else: raise Exception('unknown status?')
 
-# Special treatment for if statement
-x_bool = Bool('x_bool')
-y_bool = Bool('y_bool')
-x_real = Real('x_real')
-y_real = Real('y_real')
-x_int = Int('x_int')
-y_int = Int('y_int')
+		def isThm(self):
+			return(self.value is True)
 
-acl2_if_bool = Function('acl2_if_bool', \
-                        BoolSort(), \
-                        BoolSort(), \
-                        BoolSort(), \
-                        BoolSort())
-acl2_if_real = Function('acl2_if_real', \
-                        BoolSort(), \
-                        RealSort(), \
-                        RealSort(), \
-                        RealSort())
-acl2_if_int = Function('acl2_if_int', \
-                       BoolSort(), \
-                       IntSort(), \
-                       IntSort(), \
-                       IntSort())
 
-if_constraint_bool = And((acl2_if_bool(True, x_bool, y_bool) \
-                     == x_bool), \
-                    (acl2_if_bool(False, x_bool, y_bool) \
-                     == y_bool))
-if_constraint_real = And((acl2_if_real(True, x_real, y_real) \
-                     == x_real), \
-                    (acl2_if_real(False, x_real, y_real) \
-                     == y_real))
-if_constraint_int = And((acl2_if_int(True, x_int, y_int) \
-                         == x_int), \
-                    (acl2_if_int(False, x_int, y_int) \
-                     == y_int))
+	def __init__(self, solver=0):
+		if(solver != 0): self.solver = solver
+		else: self.solver = Solver()
+		self.nameNumber = 0
 
-def acl2_if(condx, thenx, elsex):
-   try: 
-      if(thenx.sort() == BoolSort() and elsex.sort() == BoolSort()):
-         return acl2_if_bool(condx, thenx, elsex)
-      elif(thenx.sort() == RealSort() and elsex.sort() == RealSort()):
-         return acl2_if_real(condx, thenx, elsex)
-      elif(thenx.sort() == IntSort() and elsex.sort() == IntSort()):
-         return acl2_if_int(condx, thenx, elsex)
-   except:
-      print "if statement's then statement and else statement type mismatch."
+	def newVar(self):
+		varName = '$' + str(self.nameNumber)
+		self.nameNumber = self.nameNumber+1
+		return varName
 
-      
+	def plus(self, *args):
+		sum = 0
+		for a in args:
+			sum = sum + a
+		return sum
+
+	def isBool(self, who):
+		return Bool(who)
+
+	def isInt(self, who):
+		return Int(who)
+
+	def isReal(self, who):
+		return Real(who)
+
+	def multiply(self, *args):
+		product = 1
+		for a in args:
+			product = product * a
+		return product
+
+	def andx(self, *args):
+		conjunction = True
+		for a in args:
+			conjunction = And(conjunction, a)
+		return conjunction
+
+	def orx(self, *args):
+		disjunction = False
+		for a in args:
+			disjunction = Or(disjunction, a)
+		return disjunction
+
+	def minus(self, x,y): return x-y
+	def divide(self, x,y): return x/y
+	def gt(self, x,y): return x>y
+	def lt(self, x,y): return x<y
+	def ge(self, x,y): return x>=y
+	def le(self, x,y): return x<=y
+	def equal(self, x,y): return x==y
+	def notx(self, x): return Not(x)
+
+	def ifx(self, condx, thenx, elsex):
+		v = 0
+		if sort(thenx) == sort(elsex):
+			if sort(thenx) == BoolSort(): v = Bool(self.newVar())
+			if sort(thenx) == IntSort():  v = Int(self.newVar())
+			if sort(thenx) == RealSort(): v = Real(self.newVar())
+		if v is 0: raise Exception('mixed type for if-expression')
+		self.solver.add(And(Implies(condx, v == thenx), Implies(Not(condx), v == elsex)))
+		return(v)
+
+# usage prove(claim) or prove(hypotheses, conclusion)
+	def prove(self, hypotheses, conclusion=0):
+		if(conclusion is 0): claim = hypotheses
+		else: claim = Implies(hypotheses, conclusion)
+		self.solver.add(Not(claim))
+		if self.solver.check() == unsat:
+                        print "proved"
+                        return self.status(True)  # It's a theorem
+		else:
+                        print "failed to prove"
+                        return self.status(str(self.solver.model())) # provide a counter-example string
