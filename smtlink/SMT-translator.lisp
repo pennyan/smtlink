@@ -2,138 +2,48 @@
 (in-package "ACL2")
 (include-book "SMT-formula")
 
-;; -------------- operator associate list  -----------:
-;; translate-operator-asso
-(defun translate-operator-asso (opr)
-  "translate-operator-asso: given an operator in ACL2 format, translate into its Z3 format by looking up the associated list"
-  (let ((result (assoc opr '((binary-+ "s.plus")
-			     (binary-- "s.minus")
-			     (binary-* "s.multiply")
-			     (binary-/ "s.divide")
-			     (equal "s.equal")
-			     (> "s.gt")
-			     (>= "s.ge")
-			     (< "s.lt")
-			     (<= "s.le")
-			     (if "s.ifx")
-			     (not "s.notx")))))
+;; -------------- translate operator  -----------:
+
+;; translate-operator-list
+(defun translate-operator-list (opr)
+  "translate-operator-list: look up an associate list for the translation"
+  (assoc opr '((binary-+ "s.plus" 0)
+	      (binary-- "s.minus" 2)
+	      (binary-* "s.multiply" 0)
+	      (binary-/ "s.divide" 2)
+	      (equal "s.equal" 2)
+	      (> "s.gt" 2)
+	      (>= "s.ge" 2)
+	      (< "s.lt" 2)
+	      (<= "s.le" 2)
+	      (if "s.ifx" 3)
+	      (not "s.notx" 1))))
+
+;; translate-operator
+(defun translate-operator (opr)
+  "translate-operator: given an operator in ACL2 format, translate into its Z3 format by looking up the associated list"
+  (let ((result (translate-operator-list opr)))
     (if (equal result nil)
-	(prog2$ nil
-		(cw "Operator ~q0 does not exist!" opr))
-	(cadr result))))
-  
-;; ---------------------- translate-arithmetic -----------------------:
-
-;; translate-plus 
-(defun translate-plus ()
-  "translate-plus: translate a plus operator into Z3 function"
-  "acl2_plus")
-
-;; translate-minus 
-(defun translate-minus ()
-  "translate-minus: translate a minus operator into Z3 function"
-  "acl2_minus")
-
-;; translate-multiply
-(defun translate-multiply ()
-  "translate-multiply: translate a multiply operator into Z3 function"
-  "acl2_multiply")
-
-;; translate-divide
-(defun translate-divide ()
-  "translate-divide: translate a divide operator into Z3 function"
-  "acl2_divide")
-
-;; translate-arithmetic
-(defun translate-arithmetic (operator)
-  "translate-arithmetic: translates an arithmetic operator in a SMT-formula of ACL2 into Z3"
-  (cond ((is-SMT-plus operator) (translate-plus))
-	((is-SMT-minus operator) (translate-minus))
-	((is-SMT-multiply operator) (translate-multiply))
-	((is-SMT-divide operator) (translate-divide))
-	(t (cw "Error: Can not translate unrecognized operator: ~q0" operator))))
-
-;; ---------------------- translate-comparison -----------------------:
-;; translate-equal 
-(defun translate-equal ()
-  "translate-equal: translate equal operator in SMT-formula into Z3"
-  "acl2_equal")
-
-;; translate-greater-than
-(defun translate-greater-than ()
-  "translate-greater-than: translate greater than operator in SMT-formula into Z3"
-  "acl2_gt")
-
-;; translate-greater-equal 
-(defun translate-greater-equal ()
-  "translate-greater-equal: translate greater-or-equal-to operator in SMT-formula into Z3"
-  "acl2_get")
-
-;; translate-smaller-than
-(defun translate-smaller-than ()
-  "translate-smaller-than: translate smaller-than operator in SMT-formula into Z3"
-  "acl2_st")
-
-;; translate-smaller-equal
-(defun translate-smaller-equal ()
-  "translate-smaller-equal: translate smaller-or-equal-to operator in SMT-formula into Z3"
-  "acl2_set")
-
-;; transalate-comparison
-(defun translate-comparison (operator)
-  "translate-comparison: translate comparison operators in SMT-formula into Z3"
-  (cond ((is-SMT-equal operator) (translate-equal))
-	((is-SMT-greater-than operator) (translate-greater-than))
-	((is-SMT-greater-equal operator) (translate-greater-equal))
-	((is-SMT-smaller-than operator) (translate-smaller-than))
-	((is-SMT-smaller-equal operator) (translate-smaller-equal))
-	(t (cw "Error: Can not translate unrecognized operator: ~q0" operator))))
-
-;; ----------------------- translate-logic -----------------------------:
-
-;; translate-and
-(defun translate-and ()
-  "translate-and: translate an and operator in SMT-formula into Z3"
-  "acl2_and")
-
-;; translate-or
-(defun translate-or ()
-  "translate-or: translate an or operator in SMT-formula into Z3"
-  "acl2_or")
-
-;; translate-not
-(defun translate-not ()
-  "translate-not: translate a not operator in SMT-formula into Z3"
-  "acl2_not")
-
-;; translate-logic
-(defun translate-logic (operator)
-  "translate-logic: translate a logic operator in SMT-formula into Z3"
-  (cond ((is-SMT-and operator) (translate-and))
-	((is-SMT-or  operator) (translate-or))
-	((is-SMT-not operator) (translate-not))
-	(t (cw "Error: Can not translate unrecognized operator: ~q0" operator))))
+	(prog2$ (cw "Error: Operator ~q0 does not exist!" opr)
+		nil)
+      (cadr result))))
 
 ;; ----------------------- translate-type -----------------------------:
 
-;; translate-real
-(defun translate-real ()
-  "translate-real: translate into real type in Z3"
-  "s.isReal")
-
-;; translate-integer
-(defun translate-integer ()
-  "translate-integer: translate into integer type in Z3"
-  "s.isInt")
+;; translate-type-list
+(defun translate-type-list (type)
+  "translate-type-list: look up an associate list for the translation"
+  (assoc type '((RATIONALP "s.isReal")
+	       (INTEGERP "s.isReal"))))
 
 ;; translate-type
 (defun translate-type (type)
   "translate-type: translates a type in ACL2 SMT-formula into Z3 type"     ;; all using reals because Z3 is not very good at mixed types
-  (cond ((is-SMT-real type)
-	 (translate-real))
-	(t (translate-real))))
-     ;; integer case
-     ;; (t (translate-integer type))
+  (let ((result (translate-type-list type)))
+    (if (equal result nil)
+	(prog2$ (cw "Error: Type ~q0 does not exist!" opr)
+		nil)
+      (cadr result))))
 
 ;; ----------------------- translate-number -----------------------------:
 
@@ -152,16 +62,6 @@
   (if (is-SMT-variable var)
       var
     (cw "Error: Cannot translate an unrecognized variable: ~q0" var)))
-
-;; ----------------------- translate-operator ---------------------------:
-
-;; translate-operator
-(defun translate-operator (opr)
-  "translate-operator: translate a SMT operator into Z3 operator"
-  (cond ((is-SMT-arithmetic opr) (translate-arithmetic opr))
-	((is-SMT-logic opr) (translate-logic opr))
-	((is-SMT-comparison opr) (translate-comparison opr))
-	(t (cw "Error: Cannot translate unrecognized operator: ~q0" opr))))
 
 ;; ----------------------- translate-constant ---------------------------:
 
@@ -217,8 +117,8 @@
   "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
   (if (and (not (equal expression 'nil))
 	   (consp expression))
-      (cond ((is-SMT-operator-asso (car expression)) 
-	     (list (translate-operator-asso (car expression))
+      (cond ((is-SMT-operator (car expression)) 
+	     (list (translate-operator (car expression))
 		   '\(
 		   (translate-expression-long (cdr expression))
 		   '\)))

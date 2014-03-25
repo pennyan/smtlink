@@ -1,5 +1,5 @@
 (include-book "./SMT-formula")
-(include-book "./translate-SMT-formula")
+(include-book "./SMT-translator")
 (include-book "./SMT-run")
 (include-book "./SMT-interpreter")
 
@@ -14,14 +14,19 @@
 		 hypo-list
 		 concl-list)))
 
-(defun my-prove-write-file (term)
-  (write-SMT-file "z3_files/test.py"
+(defun my-prove-write-file (term fdir)
+  (write-SMT-file fdir
 		  (translate-SMT-formula
 		   (my-prove-SMT-formula term))
 		  state))
 
-(defun my-prove (term)
-  (prog2$ (my-prove-write-file term)
-	  (if (car (SMT-interpreter "python" "z3_files/test.py"))
-	      t
-	    nil)))
+(defun my-prove (term fname)
+  (let ((file-dir (concatenate 'string
+			       *dir-files*
+			       "/"
+			       fname
+			       ".py")))
+    (prog2$ (my-prove-write-file term file-dir)
+	    (if (car (SMT-interpreter file-dir))
+		t
+	      nil))))

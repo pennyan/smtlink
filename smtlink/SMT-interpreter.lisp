@@ -3,10 +3,10 @@
 (in-package "ACL2")
 
 ;; SMT-interpreter
-(defun SMT-interpreter (z3-cmd filename)
+(defun SMT-interpreter (filename)
   "SMT-intepreter: get the result returned from calling SMT procedure"
   (mv-let (finishedp exit-status lines)
-          (SMT-run z3-cmd filename)
+          (SMT-run filename)
 	  (cond ((equal finishedp nil) 
 		 (cw "Warning: the command was interrupted."))
 		((not (equal exit-status 0)) 

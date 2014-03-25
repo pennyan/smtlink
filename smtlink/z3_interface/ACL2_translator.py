@@ -1,4 +1,4 @@
-from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, unsat
+from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat
 
 def boolClass():
 	x = True
@@ -101,9 +101,15 @@ class to_smt:
 		if(conclusion is 0): claim = hypotheses
 		else: claim = Implies(hypotheses, conclusion)
 		self.solver.add(Not(claim))
-		if self.solver.check() == unsat:
+                res = self.solver.check()
+		if res == unsat:
                         print "proved"
                         return self.status(True)  # It's a theorem
-		else:
+		elif res == sat:
+                        print "counterexample"
+                        m = self.solver.model()
+                        print m
+                        return self.status(False) # provide a counter-example string
+                else:
                         print "failed to prove"
-                        return self.status(str(self.solver.model())) # provide a counter-example string
+                        return self.status(False)

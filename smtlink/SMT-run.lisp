@@ -1,8 +1,8 @@
 ;; SMT-run writes to Z3, invoke Z3 and gets the result
 (in-package "ACL2")
-(include-book "std/strings/top" :dir :system)
 (include-book "centaur/misc/tshell" :dir :system)
 (include-book "std/io/top" :dir :system)
+(include-book "config")
 
 :set-state-ok t
 (set-print-case :downcase state)
@@ -20,32 +20,49 @@
         (princ$ alist channel state)
         state))))
 
+;; coerce a list of strings and characters into a string
+(defun coerce-str-and-char-to-str (slist)
+  "coerce-str-and-char-to-str: coerce a list of strings and characters into a string"
+  (if (endp slist)
+      nil
+    (cond ((stringp (car slist))
+	   (concatenate 'string
+			(car slist)
+			(coerce-str-and-char-to-str (cdr slist))))
+	  ((characterp (car slist))
+	   (concatenate 'string
+			(coerce (list (car slist)) 'STRING)
+			(coerce-str-and-char-to-str (cdr slist))))
+	  (t (cw "Error: Invalid list ~q0." (car slist))))))
+
+;; write-head
+(defun write-head ()
+  "write-head: writes the head of a z3 file"
+  (coerce-str-and-char-to-str
+   (list "from sys import path"
+	 #\Newline
+	 "path.insert(0,\"" *dir-interface* "\")"
+	 #\Newline
+	 "from " *z3-module* " import " *z3-class*
+	 #\Newline
+	 "s = " *z3-class* "()"
+	 #\Newline)))
+
 ;; write-SMT-file
 (defun write-SMT-file (filename translated-formula state)
   "write-SMT-file: writes the translated formula into a python file, it opens and closes the channel and write the including of Z3 inteface"
   (mv-let
    (channel state)
    (open-output-channel! filename :character state)
-   (let ((state (princ$-list-of-strings 
-		 (coerce (append
-			  (append
-			   (append
-			    (append (coerce "from sys import path" 'LIST)
-				    (list #\Newline))
-			    (append (coerce "path.insert(0,\"z3\_interface\")" 'LIST)
-				    (list #\Newline)))
-			   (append (coerce "from ACL2\_translator import to_smt" 'LIST)
-				   (list #\Newline)))
-			  (append (coerce "s = to_smt()" 'LIST) (list #\Newline)))
-			  'STRING) 
-			 channel state)))
+   (let ((state (princ$-list-of-strings
+		 (write-head) channel state)))
      (let ((state (princ$-list-of-strings translated-formula channel state)))
        (close-output-channel channel state)))))
 
 ;; SMT-run
-(defun SMT-run (z3-cmd filename)                                                   ;; should be configed
+(defun SMT-run (filename)                                     
   "SMT-run: run the external SMT procedure from ACL2"
-  (let ((cmd (str::cat z3-cmd " " filename)))
+  (let ((cmd (concatenate 'string *smt-cmd* " " filename)))
     (time$ (tshell-call cmd
                         :print t
                         :save t)
