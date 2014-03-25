@@ -1,6 +1,6 @@
 Todo list:
-  2 1. minor changes to translation and see if it will work - hot
-  3 2. reform the SMT-formula and translate-SMT-formula programs into cleaner version
-  4 3. check if there's a type mismatch in if-statement in ACL2
-  5 4. add argument length to my associated list
-  6 5. generate a bunch of test cases and run them -- good if there are function definitions
+1. generate test cases
+2. see how would constant declaration and function declarations work
+3. check if statement type mismatch
+4. check variable declarations
+5. get to use in DPLL proof
