@@ -10,7 +10,7 @@
   (assoc opr '((binary-+ "s.plus" 0)
 	      (binary-- "s.minus" 2)
 	      (binary-* "s.multiply" 0)
-	      (binary-/ "s.divide" 2)
+	      (unary-/ "s.divide" 1)
 	      (equal "s.equal" 2)
 	      (> "s.gt" 2)
 	      (>= "s.ge" 2)

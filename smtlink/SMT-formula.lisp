@@ -7,7 +7,7 @@
   (assoc opr '((binary-+ binary-+ 0)
 	       (binary-- binary-- 2)
 	       (binary-* binary-* 0)
-	       (binary-/ binary-/ 2)
+	       (unary-/ unary-/ 1)
 	       (equal equal 2)
 	       (> > 2)
 	       (>= >= 2)

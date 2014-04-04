@@ -78,7 +78,7 @@ class to_smt:
 		return disjunction
 
 	def minus(self, x,y): return x-y
-	def divide(self, x,y): return x/y
+	def divide(self, x): return 1/x
 	def gt(self, x,y): return x>y
 	def lt(self, x,y): return x<y
 	def ge(self, x,y): return x>=y
