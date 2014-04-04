@@ -31,18 +31,3 @@
 		t
 	      nil))))
 
-;; functions to deal with function definitions in
-;;the clause
-
-;; create-var-name
-(defun create-var-name (number)
-  "create-var-name: create a variable name using number"
-  (concatenate string "let-arg-" number))
-
-;; flatten
-(defun flatten (expr func-list num level)
-  "flatten: given a clause and a list of functions names,\#Newline
-return a new clause with functions flattened."
-  (if (zp level)
-      ()
-    ()))
