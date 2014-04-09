@@ -10,14 +10,15 @@
   (assoc opr '((binary-+ "s.plus" 0)
 	      (binary-- "s.minus" 2)
 	      (binary-* "s.multiply" 0)
-	      (unary-/ "s.divide" 1)
+	      (unary-/ "s.reciprocal" 1)
 	      (equal "s.equal" 2)
 	      (> "s.gt" 2)
 	      (>= "s.ge" 2)
 	      (< "s.lt" 2)
 	      (<= "s.le" 2)
 	      (if "s.ifx" 3)
-	      (not "s.notx" 1))))
+	      (not "s.notx" 1)
+	      (let "s.let" 2))))
 
 ;; translate-operator
 (defun translate-operator (opr)

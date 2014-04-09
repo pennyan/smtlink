@@ -3,6 +3,7 @@
 (include-book "str/top" :dir :system)
 
 :set-state-ok t
+:set-ignore-ok t
 
 ;; pos-int-2-str
 ;;(defun pos-int-2-str (num)
@@ -31,8 +32,9 @@
   "create-name: creates a name for a new function"
   (let ((index (str::natstr num)))
     (if (stringp index)
-	(concatenate 'string "var" (str::natstr num))
-      (cw "Error: create name failed: ~q0!" index))))
+	(mv (intern-in-package-of-symbol (concatenate 'string "var" index) 'ACL2) (1+ num))
+      (prog2$ (cw "Error: create name failed: ~q0!" index)
+	      (mv nil num)))))
 
 ;; exist
 (defun exist (elem lista)
@@ -54,9 +56,12 @@
 (defun make-var-list (formal num)
   "make-var-list: make the assoc list for formals"
   (if (endp formal)
-      nil
-    (cons (list (car formal) (create-name num))
-	  (make-var-list (cdr formal) (+ num 1)))))
+      (mv nil num)
+    (mv-let (var-name res-num1)
+	    (create-name num)
+	    (mv-let (res-expr res-num2)
+		    (make-var-list (cdr formal) res-num1)
+		    (mv (cons (list (car formal) var-name) res-expr) res-num2)))))
 
 ;; replace-var
 (defun replace-var (body var-pair)
@@ -81,9 +86,12 @@
 (defun make-exp-list (formal-expr num)
   "make-exp-list: make a list of expressions for replacement"
   (if (endp formal-expr)
-      nil
-    (cons (list (create-name num) (car formal-expr))
-	  (make-exp-list (cdr formal-expr) (1+ num)))))
+      (mv nil num)
+    (mv-let (var-name res-num1)
+	    (create-name num)
+	    (mv-let (res-expr res-num2)
+		    (make-exp-list (cdr formal-expr) res-num1)
+		    (mv (cons (list var-name (car formal-expr)) res-expr) res-num2)))))
 
 ;; expand-a-fn
 ;; e.g.(defun double (x y) (+ (* 2 x) y))
@@ -96,42 +104,49 @@
 	;; the last element is the body
 	(formal-expr (cdr expr))
 	)
-    (let ((var-list (make-var-list formal num)) 
-	  (expr-list (make-exp-list formal-expr num)))
-      (list 'let expr-list
-	    (set-fn-body body var-list)))))
+    (mv-let (var-list num1)
+	    (make-var-list formal num)
+	    (mv-let (expr-list num2)
+		    (make-exp-list formal-expr num)
+		    (mv (list 'let expr-list (set-fn-body body var-list)) num2)))))
 
 (mutual-recursion
 ;; expand-fn-help-list
 (defun expand-fn-help-list (expr fn-lst num flag state)
   "expand-fn-help-list"
   (if (endp expr)
-      nil
+      (mv nil num)
     (cond ((equal flag 0)
-	   (cons (expand-fn-help (car expr) fn-lst num state)
-		 (expand-fn-help-list (cdr expr) fn-lst num flag state)))
+	   (mv-let (res-expr1 res-num1)
+		   (expand-fn-help (car expr) fn-lst num state)
+		   (mv-let (res-expr2 res-num2)
+			   (expand-fn-help-list (cdr expr) fn-lst res-num1 flag state)
+			   (mv (cons res-expr1 res-expr2) res-num2))))
 	  ((equal flag 1)
-	   (cons
-	    (cons (caar expr)
-		  (list (expand-fn-help (cadr (car expr)) fn-lst num state)))
-	    (expand-fn-help-list (cdr expr) fn-lst num flag state)))
-	  (t (cw "Error: no such flag ~q0" flag)))))
+	   (mv-let (res-expr1 res-num1)
+		   (expand-fn-help (cadr (car expr)) fn-lst num state)
+		   (mv-let (res-expr2 res-num2)
+			   (expand-fn-help-list (cdr expr) fn-lst res-num1 flag state)
+			   (mv (cons (cons (caar expr) (list res-expr1)) res-expr2) res-num2))))
+	  (t (prog2$ (cw "Error: no such flag ~q0" flag)
+		     (mv nil num))))))
 
 ;; expand-fn-help
 (defun expand-fn-help (expr fn-lst num state)
   "expand-fn-help: expand an expression for one level"
   (if (atom expr)
-      expr
+      (mv expr num)
     (if (listp expr)
 	(cond ((equal (car expr) 'let)
-	       (cons (car expr)
-		     (cons (expand-fn-help-list (cadr expr) fn-lst num 1 state)
-			   (cddr expr))))
+	       (mv-let (res-expr res-num)
+		       (expand-fn-help-list (cadr expr) fn-lst num 1 state)
+		       (mv (cons (car expr) (cons res-expr (cddr expr))) res-num)))
 	      (t (cond ((exist (car expr) fn-lst)
 			(expand-a-fn expr (car expr) num state))
-		       (t (cons (car expr)
-				(expand-fn-help-list (cdr expr) fn-lst num 0 state))))))
-      expr)))
+		       (t (mv-let (res-expr res-num)
+				  (expand-fn-help-list (cdr expr) fn-lst num 0 state)
+				  (mv (cons (car expr) res-expr) res-num))))))
+      (mv expr num))))
 )
 
 ;; expand-fn
@@ -139,8 +154,14 @@
   "expand-fn: takes an expr and a list of functions, unroll the expression to a level using the function definitions. #\Newline
 level - level of unrolling; num - starts from 0, for new variables"
   (if (zp level)
-      expr
-    (let ((res-expr (expand-fn-help expr fn-lst num state)))
-      (prog2$ (cw "~q0 ~%" res-expr)
-	      (expand-fn res-expr fn-lst (1- level) num state)))))
-  
+      (mv expr num)
+    (mv-let (res-expr res-num)
+	    (expand-fn-help expr fn-lst num state)
+	    (expand-fn res-expr fn-lst (1- level) res-num state))))
+
+;; expand-fn-top
+(defun expand-fn-top (expr fn-lst level state)
+  "expand-fn-top: top function for handling expression unrolling."
+  (mv-let (res num)
+	  (expand-fn expr fn-lst level 0 state)
+	  (prog2$ (cw "The final index number: ~q0" num) res)))

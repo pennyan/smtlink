@@ -14,7 +14,8 @@
 	       (< < 2)
 	       (<= <= 2)
 	       (if if 3)
-	       (not not 1))))
+	       (not not 1)
+	       (let let 2))))
 
 (defun is-SMT-operator (opr)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"
@@ -148,6 +149,14 @@
 
 ;; --------------------- SMT-expression -------------------------:
 
+;; SMT-let-var-list
+(defun SMT-let-var-list (var-list)
+  "SMT-let-var-list: recognize a list of variables of a let expression"
+  (if (not (and (listp (car var-list))
+		(equal (length (car var-list)) 2)))
+      nil
+    t))
+
 (mutual-recursion
 ;; SMT-expression-long
 (defun SMT-expression-long (expression)
@@ -162,12 +171,16 @@
 (defun SMT-expression (expression)
   "SMT-expression: a SMT expression in ACL2"
   (if (consp expression)
-      (cond ((is-SMT-operator (car expression)) 
-	     (cons (SMT-operator (car expression))
-		   (SMT-expression-long (cdr expression))))
-	    ((equal (car expression) 'QUOTE)
-	     (SMT-expression (cadr expression)))
-	    (t (cw "Error: This is not a valid operator: ~q0" expression)))
+      (cond ((is-SMT-operator (car expression))
+	     (if (equal (car expression) 'let)
+		 (list (SMT-operator (car expression))
+		       (SMT-let-var-list (cadr expression))
+		       (SMT-expression (caddr expression)))
+	       (cons (SMT-operator (car expression))
+		     (SMT-expression-long (cdr expression)))))
+	     ((equal (car expression) 'QUOTE)
+	      (SMT-expression (cadr expression)))
+	     (t (cw "Error: This is not a valid operator: ~q0" expression)))
     (cond ((is-SMT-number expression) (SMT-number expression))
 	  ((is-SMT-variable expression) (SMT-variable expression))
 	  (t (cw "Error: Invalid number or variable: ~q0" expression)))))

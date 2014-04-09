@@ -6,9 +6,10 @@ Todo list:
 5. get to use in DPLL proof
 
 Function expansion todo list:
-1. variable creation, can it be a symbol not a string?
-2. translating let expression into? what to do in Z3?
-3. wrap up the function expansion code into the clause processor
-4. try!
+1. variable creation, can it be a symbol not a string? -- probably fixed
+2. 
+3. translating let expression into? what to do in Z3?
+4. wrap up the function expansion code into the clause processor
+5. try!
 
 
