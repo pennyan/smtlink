@@ -1,23 +1,21 @@
 from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat
 
-def boolClass():
-  x = True
-  return x.__class__
-
-def intClass():
-  x = 0
-  return x.__class__
-
-def realClass():
-  x = 0.0
-  return x.__class__
-
 def sort(x):
-  if x.__class__ == boolClass(): return(BoolSort())
-  if x.__class__ == intClass():  return(IntSort())
-  if x.__class__ == realClass(): return(RealSort())
-  try: return x.sort()
-  except AttributeError:
+  if type(x) == bool:    return BoolSort()
+  elif type(x) == int:   return IntSort()
+  elif type(x) == float: return RealSort()
+  elif (type(x) == instance) & hasattr(x, 'sort'):
+    if x.sort() == BoolSort(): return BoolSort()
+    if x.sort() == IntSort():  return IntSort()
+    if x.sort() == RealSort(): return RealSort()
+  raise Exception('unknown sort for expression')
+
+def makeOne(x):
+  s = sort(x)
+  if(s == BoolSort): return Bool
+  if(s == IntSort):  return Int
+  if(s == RealSort): return Real
+  else:
     raise Exception('unknown sort for expression')
 
 class to_smt:
@@ -34,7 +32,7 @@ class to_smt:
     def isThm(self):
       return(self.value is True)
 
-  v = {} # variables: (string : z3_variables) pairs
+  myVars = {} # variables: (string : z3_variables) pairs
   claim = None
         
   def __init__(self, solver=0):
@@ -47,39 +45,25 @@ class to_smt:
     self.nameNumber = self.nameNumber+1
     return varName
 
-  # Newly added version from Mark's acl2.py
-  def implies(self, p, q): return z3.Or(z3.Not(p),q)
-  def equals(self, p, q): return p == q
-  ####
-        
+  def isBool(self, who): self.declare(who, Bool)
+  def isInt(self, who):  self.declare(who, Int)
+  def isReal(self, who): self.declare(who, Real)
+
+  def declare(self, name, MakeOne)
+    if name in self.v:
+      raise Exception(name + ' already declared')
+    newvar = MakeOne(name)
+    self.myVars[name] = newvar
+    return newvar
+
   def plus(self, *args):
     return reduce(lambda x, y: x+y, args)
-
-  def isBool(self, who):
-    return Bool(who)
-
-  def isInt(self, who):
-    return Int(who)
-
-  def isReal(self, who):
-    return Real(who)
-
-  ## rename from multiply to times
   def times(self, *args):
     return reduce(lambda x, y: x*y, args)
-  ####
-        
   def andx(self, *args):
-    conjunction = True
-    for a in args:
-      conjunction = And(conjunction, a)
-    return conjunction
-
+    return reduce(lambda x, y: And(x,y), args)
   def orx(self, *args):
-    disjunction = False
-    for a in args:
-      disjunction = Or(disjunction, a)
-    return disjunction
+    return reduce(lambda x, y: Or(x,y), args)
 
   def minus(self, x,y): return x-y
   def reciprocal(self, x): return 1/x
@@ -92,44 +76,27 @@ class to_smt:
   def notx(self, x): return Not(x)
 
   def ifx(self, condx, thenx, elsex):
-    v = 0
+    v = None
     if sort(thenx) == sort(elsex):
-      if sort(thenx) == BoolSort(): v = Bool(self.newVar())
-      if sort(thenx) == IntSort():  v = Int(self.newVar())
-      if sort(thenx) == RealSort(): v = Real(self.newVar())
-    if v is 0: raise Exception('mixed type for if-expression')
+      v = self.declare(self.newVar(), makeOne(thenx))
+    if v is None: raise Exception('mixed type for if-expression')
     self.solver.add(And(Implies(condx, v == thenx), Implies(Not(condx), v == elsex)))
-    return(v)
+    return v
 
-  def bind(self, name, expr):
-  # create a z3 variable according to the sort of expr
-    if name in self.v:
-      raise Exception(name + ' already declared')
-    newvar = None
-    if(hasattr(expr, 'sort')):
-      if(sort(expr) == BoolSort()):
-        newvar = Bool(name)
-      elif(sort(expr) == IntSort()):
-        newvar = Int(name)
-      elif(sort(expr) == RealSort()):
-        newvar = Real(name)
-      if newvar is not None:
-        self.solver.add(newvar == expr)
-    elif(expr == BoolSort()):
-      newvar = Bool(name)
-    elif(expr == IntSort()):
-      newvar = Int(name)
-    elif(expr == RealSort()):
-      newvar = Real(name)
-    if newvar is None:
-      raise Exception('unknown sort for expression')
-    self.v[name] = newvar
-    return(self)
+  # stuff.let(['x', 2.0], ['y', v('a')*v('b') + v('c')], ['z', ...]).inn(2*v('x') - v('y'))
+  def let(self, bindingList):
+    for b in bindingList:
+      self.solver.add(self.declare(b[0], makeOne(b[1])) == b[1])
+    return self
 
-  def getvar(self, name):
-    return self.v[name]
+  def inn(self, x): return x
 
-  def val(self, x): return x
+  def getVar(self, name):
+    return self.myVars[name]
+
+  # Newly added version from Mark's acl2.py
+  def implies(self, p, q): return z3.Impies(p,q)
+  ####
 
   def claim(self, p):
     self.claim = p
