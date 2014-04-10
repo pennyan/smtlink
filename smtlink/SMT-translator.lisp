@@ -9,7 +9,7 @@
   "translate-operator-list: look up an associate list for the translation"
   (assoc opr '((binary-+ "s.plus" 0)
 	      (binary-- "s.minus" 2)
-	      (binary-* "s.multiply" 0)
+	      (binary-* "s.times" 0)
 	      (unary-/ "s.reciprocal" 1)
 	      (equal "s.equal" 2)
 	      (> "s.gt" 2)
@@ -61,7 +61,7 @@
 (defun translate-variable (var)
   "translate-variable: transalte a SMT variable into Z3 variable"
   (if (is-SMT-variable var)
-      var
+      (list "s.getVar('" var "')")
     (cw "Error: Cannot translate an unrecognized variable: ~q0" var)))
 
 ;; ----------------------- translate-constant ---------------------------:
@@ -91,7 +91,7 @@
   "translate-declaration: translate a declaration in ACL2 SMT formula into Z3 declaration"
   (let ((type (car decl))
 	(name (cadr decl)))
-    (list (translate-variable name) '= (translate-type type) '\(  '\" (translate-variable name) '\" '\))))
+    (list (translate-type type) "(\"" name "\")")))
 
 ;; translate-declaration-list
 (defun translate-declaration-list (decl-list)
@@ -103,6 +103,24 @@
 
 ;; ----------------------- translate-expression --------------------------:
 (mutual-recursion
+;; make-let-list-elem
+(defun make-let-list-elem (let-list-elem)
+  "make-let-list-elem: translating one element of a let binding list"
+  (if (symbolp (car let-list-elem))
+      (list "['" (car let-list-elem) "',"
+	    (translate-expression (cadr let-list-elem)) "]")
+    (cw "Error: first element ~q0 of a let binding expression should be a symbol!" (car let-list-elem))))
+
+;; make-let-list
+(defun make-let-list (let-list)
+  "make-let-list: translating the binding list of a let expression"
+  (if (endp (cdr let-list))
+      (make-let-list-elem (car let-list))
+    (list "["
+	  (cons (make-let-list-elem (car let-list))
+		(cons '\, (make-let-list (cdr let-list))))
+	  "]")))
+
 ;; translate-expression-long
 (defun translate-expression-long (expression)
   "translate-expression-long: translate a SMT expression's parameters in ACL2 into Z3 expression"
@@ -113,16 +131,27 @@
 	      nil))
     nil))
 
+;; stuff.let(['x', 2.0], ['y', v('a')*v('b') + v('c')], ['z', ...]).inn(2*v('x') - v('y'))
 ;; translate-expression
 (defun translate-expression (expression)
   "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
   (if (and (not (equal expression 'nil))
 	   (consp expression))
-      (cond ((is-SMT-operator (car expression)) 
+      (cond ((and (is-SMT-operator (car expression))
+		  ;; special treatment for let expression
+		  (equal (car expression) 'let))
+	     (list (translate-operator (car expression))
+		   '\(
+		   (make-let-list (cadr expression))
+		   '\). "inn" '\(
+		   (translate-expression (caddr expression))
+		   '\) ))
+	    ((is-SMT-operator (car expression)) 
 	     (list (translate-operator (car expression))
 		   '\(
 		   (translate-expression-long (cdr expression))
 		   '\)))
+	    ;; want to use unknown function instead of error message
 	    (t (cw "Error: This is not a valid function: ~q0" (car expression))))
     (cond ((is-SMT-number expression) (translate-number expression))
 	  ((equal expression 'nil) "False")

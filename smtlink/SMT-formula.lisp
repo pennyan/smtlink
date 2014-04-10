@@ -152,10 +152,13 @@
 ;; SMT-let-var-list
 (defun SMT-let-var-list (var-list)
   "SMT-let-var-list: recognize a list of variables of a let expression"
-  (if (not (and (listp (car var-list))
-		(equal (length (car var-list)) 2)))
+  (if (endp var-list)
       nil
-    t))
+    (if (not (and (listp (car var-list))
+		  (equal (length (car var-list)) 2)
+		  (symbolp (car (car var-list)))))
+	(cw "Error: Wrong format for the variable list of a let expression. ~q0" var-list)
+      (cons (car var-list) (SMT-let-var-list (cdr var-list))))))
 
 (mutual-recursion
 ;; SMT-expression-long

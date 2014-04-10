@@ -1,17 +1,20 @@
 ;; test cases
+:logic
+
+(defun foo (x y) (* x y))
 
 ;; very first piece of test case
 (thm (implies (and (and (rationalp x)
 			(integerp y)
 			(integerp z))
 		   (and (not (<= x 0))
-			(equal z (- 2 4))
+			(equal z (+ 2 4))
 			(or (> x y) (> x (+ y 1)))))
-	      (> (* x x z) (* x y)))
+	      (> (foo x (foo x z)) (foo x y)))
      :hints
             (("Goal"
               :clause-processor
-              (my-clause-processor clause "test1"))))
+              (my-clause-processor clause '((foo) 2 "test1")))))
 
 ;; Test cases:
 ;; 1. Without constant definition and function definitions:
@@ -27,6 +30,3 @@
 ;;           \
 ;;             (and cond1 cond2 cond3 ...))
 ;;         (concl)
-(defthm test2
-  (implies (and (and ())
-		(and ()))))

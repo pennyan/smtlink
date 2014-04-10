@@ -4,17 +4,18 @@ def sort(x):
   if type(x) == bool:    return BoolSort()
   elif type(x) == int:   return IntSort()
   elif type(x) == float: return RealSort()
-  elif (type(x) == instance) & hasattr(x, 'sort'):
+  elif hasattr(x, 'sort'):
     if x.sort() == BoolSort(): return BoolSort()
     if x.sort() == IntSort():  return IntSort()
     if x.sort() == RealSort(): return RealSort()
-  raise Exception('unknown sort for expression')
+  else:
+    raise Exception('unknown sort for expression')
 
 def makeOne(x):
-  s = sort(x)
-  if(s == BoolSort): return Bool
-  if(s == IntSort):  return Int
-  if(s == RealSort): return Real
+  srt = sort(x)
+  if(srt == BoolSort()): return Bool
+  if(srt == IntSort()):  return Int
+  if(srt == RealSort()): return Real
   else:
     raise Exception('unknown sort for expression')
 
@@ -49,8 +50,8 @@ class to_smt:
   def isInt(self, who):  self.declare(who, Int)
   def isReal(self, who): self.declare(who, Real)
 
-  def declare(self, name, MakeOne)
-    if name in self.v:
+  def declare(self, name, MakeOne):
+    if name in self.myVars:
       raise Exception(name + ' already declared')
     newvar = MakeOne(name)
     self.myVars[name] = newvar
@@ -118,7 +119,7 @@ class to_smt:
 
   def reset(self):
     self.solver = Solver()
-    self.v = {}
+    self.myVars = {}
     claim = None
     
   # usage prove(claim) or prove(hypotheses, conclusion)

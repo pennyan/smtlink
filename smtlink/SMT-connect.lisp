@@ -1,8 +1,10 @@
-(defstub acl2-my-prove (term fname) t)
+(defstub acl2-my-prove (term fn-lst level fname) (mv t nil))
 
 (program)
 
 (defttag :my-cl-proc)
+
+(set-ignore-ok t)
 
 (progn
 
@@ -15,18 +17,25 @@
    (set-raw-mode-on state)
 
    (load "z3-hint-raw.lsp") ; defines my-prove in raw Lisp
+   
+   (defun acl2-my-prove (term fn-lst level fname)
+     (my-prove term fn-lst level fname)))
 
-   (defun acl2-my-prove (term fname)
-     (my-prove term fname)))
-
-  (defun my-clause-processor (cl fname)
+  ;; put fn-lst level and fname into the hint list
+  (defun my-clause-processor (cl hint)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (if (acl2-my-prove (disjoin cl) fname)
-      (prog2$ (cw "Success!") nil)
-      (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
+    (let ((fn-lst (car hint))
+	  (level (cadr hint))
+	  (fname (caddr hint)))
+      (prog2$ (cw "~q0 ~% ~q1 ~% ~q2 ~%" fn-lst level fname)
+      (mv-let (res expanded-cl)
+	      (acl2-my-prove (disjoin cl) fn-lst level fname)
+	      (if res
+		  (prog2$ (cw "Success!") (list (list (equal 1 2))))
+		(prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")
-              (list cl))))
+			(list cl)))))))
 
   (push-untouchable acl2-my-prove t)
   )

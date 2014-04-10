@@ -2,6 +2,7 @@
 (include-book "./SMT-translator")
 (include-book "./SMT-run")
 (include-book "./SMT-interpreter")
+(include-book "./SMT-function")
 
 (tshell-ensure)
 
@@ -20,29 +21,16 @@
 		   (my-prove-SMT-formula term))
 		  state))
 
-(defun my-prove (term fname)
+(defun my-prove (term fn-lst level fname)
   (let ((file-dir (concatenate 'string
 			       *dir-files*
 			       "/"
 			       fname
 			       ".py")))
-    (prog2$ (my-prove-write-file term file-dir)
-	    (if (car (SMT-interpreter file-dir))
-		t
-	      nil))))
-
-;; functions to deal with function definitions in
-;;the clause
-
-;; create-var-name
-(defun create-var-name (number)
-  "create-var-name: create a variable name using number"
-  (concatenate string "let-arg-" number))
-
-;; flatten
-(defun flatten (expr func-list num level)
-  "flatten: given a clause and a list of functions names,\#Newline
-return a new clause with functions flattened."
-  (if (zp level)
-      ()
-    ()))
+    (mv-let (expanded-term num)
+	    (expand-fn-top term fn-lst level state)
+	    (prog2$ (cw "~q0 ~%" expanded-term)
+	    (prog2$ (my-prove-write-file expanded-term file-dir)
+		    (if (car (SMT-interpreter file-dir))
+			(mv t expanded-term)
+		      (mv nil expanded-term)))))))
