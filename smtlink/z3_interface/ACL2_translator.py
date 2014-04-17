@@ -68,6 +68,7 @@ class to_smt:
 
   def minus(self, x,y): return x-y
   def reciprocal(self, x): return 1/x
+  def negate(self, x): return -x
   def div(self, x, y): return times(self,x,reciprocal(self,y))
   def gt(self, x,y): return x>y
   def lt(self, x,y): return x<y

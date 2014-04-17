@@ -11,6 +11,7 @@
 	      (binary-- "s.minus" 2)
 	      (binary-* "s.times" 0)
 	      (unary-/ "s.reciprocal" 1)
+	      (unary-- "s.negate" 1)
 	      (equal "s.equal" 2)
 	      (> "s.gt" 2)
 	      (>= "s.ge" 2)
@@ -115,7 +116,9 @@
 (defun make-let-list (let-list)
   "make-let-list: translating the binding list of a let expression"
   (if (endp (cdr let-list))
-      (make-let-list-elem (car let-list))
+      (list "["
+	    (make-let-list-elem (car let-list))
+	    "]")
     (list "["
 	  (cons (make-let-list-elem (car let-list))
 		(cons '\, (make-let-list (cdr let-list))))
@@ -152,7 +155,7 @@
 		   (translate-expression-long (cdr expression))
 		   '\)))
 	    ;; want to use unknown function instead of error message
-	    (t (cw "Error: This is not a valid function: ~q0" (car expression))))
+	    (t (list "s.unknown" '\( (translate-expression-long (cdr expression)) '\))))
     (cond ((is-SMT-number expression) (translate-number expression))
 	  ((equal expression 'nil) "False")
 	  ((equal expression 't) "True")

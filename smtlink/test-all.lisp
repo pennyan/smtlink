@@ -1,6 +1,19 @@
 ;; test cases
 :logic
 
+;; test0
+(defun bar (x) (* 2 x))
+
+;; a very simple theorem
+(defthm test0
+  (implies (and (and (rationalp x)) (and))
+	   (equal (+ x x) (bar x)))
+  :hints
+            (("Goal"
+              :clause-processor
+              (my-clause-processor clause '((bar) 1 "test0")))))
+
+;; test1
 (defun foo (x y) (* x y))
 
 ;; very first piece of test case

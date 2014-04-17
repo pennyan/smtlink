@@ -32,7 +32,8 @@
       (mv-let (res expanded-cl)
 	      (acl2-my-prove (disjoin cl) fn-lst level fname)
 	      (if res
-		  (prog2$ (cw "Success!") (list (list (equal 1 2))))
+		  (prog2$ (cw "Success!~% ~q0 ~%" (list (cons (list 'not expanded-cl) cl)))
+			  (list (cons (list 'not expanded-cl) cl)))
 		(prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")
 			(list cl)))))))

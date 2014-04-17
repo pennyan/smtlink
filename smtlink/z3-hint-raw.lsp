@@ -10,7 +10,7 @@
   (let ((decl-list (cadr (cadr term)))
 	(hypo-list (caddr (cadr term)))
 	(concl-list (caddr term)))
-    (SMT-formula '((const1 1))
+    (SMT-formula '()
 		 decl-list
 		 hypo-list
 		 concl-list)))

@@ -13,3 +13,63 @@ Function expansion todo list:
 5. try!
 
 
+=============================================================
+Hi Yan,
+> I find that let expressions will be transformed to a
+lambda expression.
+Ah, that makes lots of sense.
+
+> Should I expand the function definitions instead
+into a lambda expression?
+
+That sounds like a great idea
+(i.e. I feel stupid that I suggested the other way).
+
+Let's see, if you have
+  (defun f (x y) (+ (* x x) (* x y) (* y y)))
+
+and later have an expression
+  (> (f (+ (* 2 a) b) (- c d)) 0)
+
+then your translator could produce
+  smt_gt((lambda v1, v2: smt_plus(smt_times(v1, v1), smt_times(v1, v2), smt_times(v2, v2)))(smt_plus(smt_times(smt_ratnum(2), v("a")), v("b")),smt_minus(v("c"), v("d"))),smt_ratnum(0))
+
+But wait, we don't need to do the lookup to get v1 and v2, they are python variables.  In fact, they *must* be python variables.  So, do we still want the v(name) function?  Or, could you use python variables like you orginally wanted?  You could probably just use python variables.  Note that you'll need to give them a special prefix to make sure that they don't match the names of anything in your code.  v_name should be fine (just don't use v_ as the start of the name of anything in your code).
+
+Now we might have:
+(defthm thm1
+  (implies
+    (and (rationalp a)
+         (rationalp b)
+	 (rationalp c)
+	 (rationalp d))
+    (implies (neq c d) (> (f (+ (* 2 a) b) (- c d))))))
+And the translation to python would be
+  v_a = smt_real("a")
+  v_b = smt_real("b")
+  v_c = smt_real("c")
+  v_d = smt_real("d")						claim = smt_implies(smt_neq(v_c, v_d),smt_gt((lambda v_1, v_2: smt_plus(smt_times(v_1, v_1), smt_times(v_1, v_2), smt_times(v_2, v_2)))(smt_plus(smt_times(smt_ratnum(2), v_a), v_b),smt_minus(v_c, v_d)),smt_ratnum(0)))...
+
+I like it, but I feel bad that I proposed a more complicated way earlier.
+
+While I'm happy translating user defined functions to lambda expressions, I would want to be more cautious about supporting lambda or let expressions in the claim.  The tricky issue here is variable binding.  There are subtle things one do if the same name is used in different scopes.  For example ((lambda (x) ((lambda (x) (* x x)) (+ x 1))) 2) evaluates to 9, but observe that it has two *different* variables named x.
+
+I'll guess that common-lisp has simple, systematic rules to figure out things like this, but we'd have to check all the details.  Otherwise, our SMT solver could give a different interpretation to a formula than ACL2, and we could prove contradictions.  So, I'd like to avoid supporting let and lambda.
+
+The same danger is lurking with function.  What if I wrote:
+  (defun three () 3)
+  (defun f (x) (+ x (three)))
+  (defthm mrg2
+    (implies
+      (and (integerp a) (integerp b))
+      (implies (< b 0) (let ((three (lambda () b)))(< (f a) a))))
+
+In ACL2, this is not a theorem.  ACL2 fails complaining that it can't find a suitable induction scheme, but the problem is obvious.  If I replace integerp with rationalp, then ACL2 runs a long time.  To translate this to the SMT solver correctly, the translator must recognize that the function 'three' in (defun f (x) (+ x (three))) is the function that returns 3.  But, if your translator uses the 'three' that returns b, then the resulting claim is always true.
+
+The simple fix for this (for now) is to check when your flattening a function to be sure that all variables that appear in the body of the function are formal parameters of that function.
+
+Summary:
+It's OK to flatten a user-defined function (in ACL2) to a raw-lisp lambda expression .  Then translate that to a python lambda expression. I think that's a great idea! I don't think we should support let or lambda in the ACL2 clause that the translator accepts. I think this means that the flattener fails with an error message if it encounters let or lambda.  So, there will be no let or lambda in the input to the flattener even though the flattener will produce lambda expressions in its output.
+
+How's that sound?
+--Mark

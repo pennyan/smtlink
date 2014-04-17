@@ -4,6 +4,10 @@
 ;; DPLL_theorems.lisp 
 ;; DPLL_theorems.lisp defines and proves the theorems and lemmas
 ;; needed in this proof.
+
+(logic)
+(set-raw-mode nil)
+
 (in-package "ACL2")
 (include-book "arithmetic/top-with-meta" :dir :system)
 
@@ -173,12 +177,6 @@
            :use ((:instance 2n-1-peel-first-2-terms-lemma5)
                  (:instance 2n-1-peel-first-2-terms-lemma6)
                  (:instance 2n-1-peel-first-2-terms-lemma7)))))
-
-(verbose-pstack nil)
-(verbose-pstack t)
-
-(accumulated-persistence nil)
-(accumulated-persistence t) 
 
 ; Prove a sum can be represent as the first half plus the middle value plus the second half
 (defthm divide-in-the-middle-sum-p-lemma1
@@ -358,9 +356,6 @@
                   (summation3 sum-p-3)))
            :in-theory (disable reverse-and-left-shift-sum-p-2-lemma1))))
 
-(verbose-pstack nil)
-(accumulated-persistence nil)
-
 ; Prove the p-2n-1 is equal to a sum using sum-p-full
 (defthm p-2n-1-transforming-sum-lemma2
   (implies (and (integerp i)
@@ -415,24 +410,27 @@
                 (>= p0 0)
                 (<= p0 (- (/ (* (mu) (+ 1 (* *alpha* *v0*))) (+ 1 (* *beta* (+ m 1) *g1*))) 1)))
            (< (p-2n-1 p0 m) 0))
-  :rule-classes nil)#|ACL2s-ToDo-Line|#
+  :rule-classes nil)
 
 ; Induction case
 
-(defthm B-smaller-than-0-lemma1
-  (show-me (implies (and (integerp m)
-                (<= m (- (/ (equ-c) *g1*) 3))
-                (>= m (- (/ (equ-c) *g1*) 320)))
-           (< (+ (f-term (+ 1 (- (n m) 2)) args)
-                 (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) args)) 0))))
+;; (defthm B-smaller-than-0-lemma1
+;;   (implies (and (and (integerp m))
+;; 		(and (<= m (- (/ (equ-c) *g1*) 3))
+;; 		     (>= m (- (/ (equ-c) *g1*) 320))))
+;;            (< (+ (f-term (+ 1 (- (n m) 2)) args)
+;;                  (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) args)) 0))
+;;   :hints (("Goal"
+;; 	   :clause-processor
+;; 	   (my-clause-processor clause '((f-term n equ-c mu c gamma) 3 "test2") ))))
 
-(defthm B-smaller-than-0
-  (implies (and (integerp m)
-                (<= m (- (/ (equ-c) *g1*) 3))
-                (>= m (- (/ (equ-c) *g1*) 320)))
-           (< (sum-p-full 1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m)) 2))) 0))
-  :hints (("Goal"
-           :induct (sum-p-full i j x k1 k2 args))))
+;;(defthm B-smaller-than-0
+;;  (implies (and (integerp m)
+;;                (<= m (- (/ (equ-c) *g1*) 3))
+;;                (>= m (- (/ (equ-c) *g1*) 320)))
+;;           (< (sum-p-full 1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m)) 2))) 0))
+;;  :hints (("Goal"
+;;           :induct (sum-p-full i j x k1 k2 args))))
 
 ;; -------------------------------------------------------------------
 ;; This part proves the induction proof developed in the documentation
