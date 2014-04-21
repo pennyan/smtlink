@@ -16,7 +16,7 @@
 	       (<= <= 2)
 	       (if if 3)
 	       (not not 1)
-	       (let let 2))))
+	       (lambda lambda 2))))
 
 (defun is-SMT-operator (opr)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"
@@ -150,18 +150,34 @@
 
 ;; --------------------- SMT-expression -------------------------:
 
-;; SMT-let-var-list
-(defun SMT-let-var-list (var-list)
-  "SMT-let-var-list: recognize a list of variables of a let expression"
-  (if (endp var-list)
-      nil
-    (if (not (and (listp (car var-list))
-		  (equal (length (car var-list)) 2)
-		  (symbolp (car (car var-list)))))
-	(cw "Error: Wrong format for the variable list of a let expression. ~q0" var-list)
-      (cons (car var-list) (SMT-let-var-list (cdr var-list))))))
-
 (mutual-recursion
+
+;; SMT-lambda-formal
+(defun SMT-lambda-formal (formal)
+  "SMT-lambda-formal: check if it's a valid formal list for a lambda expression"
+  (if (listp formal)
+      (if (endp formal)
+	  nil
+	(if (symbolp (car formal))
+	    (cons (car formal)
+		  (SMT-lambda-formal (cdr formal)))
+	  (cw "Error: it's not a valid formal symbol ~q0" (car formal))))
+    (cw "Error: formals should be in a list: ~q0" formal)))
+
+;; SMT-lambda-body
+(defun SMT-lambda-body (body formal)
+  "SMT-lambda-body: check if all variables in the body of a lambda expression is a defined formal in the formal list"
+  (SMT-expression body))
+
+ ;;SMT-lambda
+ (defun SMT-lambda (lambda-expr)
+   "SMT-lambda: check if a formula is a valid lambda formula"
+   (let ((formal (cadr lambda-expr))
+	 (body (caddr lambda-expr)))
+     (list (SMT-operator (car lambda-expr))
+	   (SMT-lambda-formal formal)
+	   (SMT-lambda-body body formal))))
+
 ;; SMT-expression-long
 (defun SMT-expression-long (expression)
   "SMT-expression-long: recognize a SMT expression, in a SMT expression's parameters"
@@ -175,16 +191,17 @@
 (defun SMT-expression (expression)
   "SMT-expression: a SMT expression in ACL2"
   (if (consp expression)
-      (cond ((is-SMT-operator (car expression))
-	     (if (equal (car expression) 'let)
-		 (list (SMT-operator (car expression))
-		       (SMT-let-var-list (cadr expression))
-		       (SMT-expression (caddr expression)))
-	       (cons (SMT-operator (car expression))
-		     (SMT-expression-long (cdr expression)))))
-	     ((equal (car expression) 'QUOTE)
+      (cond ((and (consp (car expression))
+		  (is-SMT-operator (caar expression))
+		  (equal (caar expression) 'lambda))
+	     (cons (SMT-lambda (car expression))
+		   (SMT-expression-long (cdr expression))))
+	    ((is-SMT-operator (car expression))
+	     (cons (SMT-operator (car expression))
+		   (SMT-expression-long (cdr expression))))
+	    ((equal (car expression) 'QUOTE)
 	      (SMT-expression (cadr expression)))
-	     (t (cw "Error: This is not a valid operator: ~q0" expression)))
+	    (t (cw "Error: This is not a valid operator: ~q0" expression)))
     (cond ((is-SMT-number expression) (SMT-number expression))
 	  ((is-SMT-variable expression) (SMT-variable expression))
 	  (t (cw "Error: Invalid number or variable: ~q0" expression)))))

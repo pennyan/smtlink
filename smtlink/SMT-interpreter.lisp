@@ -7,10 +7,11 @@
   "SMT-intepreter: get the result returned from calling SMT procedure"
   (mv-let (finishedp exit-status lines)
           (SMT-run filename)
+	  (prog2$ (cw "~q0 ~q1 ~q2" finishedp exit-status lines)
 	  (cond ((equal finishedp nil) 
 		 (cw "Warning: the command was interrupted."))
 		((not (equal exit-status 0)) 
 		 (cw "Z3 failure: ~q0" lines))
 		(t (if (equal (car lines) "proved")
 		       t
-		     (cw "~q0" lines))))))
+		     (cw "~q0" lines)))))))

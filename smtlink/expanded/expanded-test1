@@ -1,0 +1,5 @@
+from sys import path
+path.insert(0,"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3_interface")
+from ACL2_translator import to_smt
+s = to_smt()
+IMPLIESIFIFRATIONALPXIFINTEGERPYINTEGERPZQUOTEQUOTEIFNOTNOT<QUOTE0XIFEQUALZBINARY-+QUOTE2QUOTE4IF<YX<YX<BINARY-+YQUOTE1XQUOTEQUOTEQUOTE<LAMBDAvar0var1BINARY-*var0var1XYLAMBDAvar2var3BINARY-*var2var3XLAMBDAvar4var5BINARY-*var4var5XZ

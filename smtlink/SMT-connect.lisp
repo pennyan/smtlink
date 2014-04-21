@@ -25,6 +25,7 @@
   (defun my-clause-processor (cl hint)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
+    (prog2$ (cw "cl: ~q0" cl)
     (let ((fn-lst (car hint))
 	  (level (cadr hint))
 	  (fname (caddr hint)))
@@ -36,7 +37,7 @@
 			  (list (cons (list 'not expanded-cl) cl)))
 		(prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")
-			(list cl)))))))
+			(list cl))))))))
 
   (push-untouchable acl2-my-prove t)
   )
