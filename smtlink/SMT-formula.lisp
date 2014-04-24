@@ -52,11 +52,26 @@
 
 ;; --------------------- SMT-number -------------------------:
 
+;; is-SMT-rational
+(defun is-SMT-rational (number)
+  "is-SMT-rational: Check if this is a SMT rational number"
+  (if (and (rationalp number)
+	   (not (integerp number)))
+      t
+    nil))
+
+;; is-SMT-integer
+(defun is-SMT-integer (number)
+  "is-SMT-integer: Check if this is a SMT integer number"
+  (if (integerp number)
+      t
+    nil))
+
 ;; is-SMT-number
 (defun is-SMT-number (number)
   "is-SMT-number: Check if this is a SMT number"
-  (if (or (rationalp number)
-	  (integerp number))
+  (if (or (is-SMT-rational number)
+	  (is-SMT-integer number))
       t
     nil))
 
@@ -155,28 +170,12 @@
 ;; SMT-lambda-formal
 (defun SMT-lambda-formal (formal)
   "SMT-lambda-formal: check if it's a valid formal list for a lambda expression"
-  (if (listp formal)
-      (if (endp formal)
-	  nil
-	(if (symbolp (car formal))
-	    (cons (car formal)
-		  (SMT-lambda-formal (cdr formal)))
-	  (cw "Error: it's not a valid formal symbol ~q0" (car formal))))
-    (cw "Error: formals should be in a list: ~q0" formal)))
-
-;; SMT-lambda-body
-(defun SMT-lambda-body (body formal)
-  "SMT-lambda-body: check if all variables in the body of a lambda expression is a defined formal in the formal list"
-  (SMT-expression body))
-
- ;;SMT-lambda
- (defun SMT-lambda (lambda-expr)
-   "SMT-lambda: check if a formula is a valid lambda formula"
-   (let ((formal (cadr lambda-expr))
-	 (body (caddr lambda-expr)))
-     (list (SMT-operator (car lambda-expr))
-	   (SMT-lambda-formal formal)
-	   (SMT-lambda-body body formal))))
+  (if (endp formal)
+      nil
+    (if (symbolp (car formal))
+	(cons (car formal)
+	      (SMT-lambda-formal (cdr formal)))
+      (cw "Error: not a valid symbol in a formal list ~q0" (car formal)))))
 
 ;; SMT-expression-long
 (defun SMT-expression-long (expression)
@@ -187,14 +186,18 @@
     nil))
 
 ;; SMT-expression
-;; Right now, we don't allow functions in the formula
 (defun SMT-expression (expression)
   "SMT-expression: a SMT expression in ACL2"
   (if (consp expression)
       (cond ((and (consp (car expression))
 		  (is-SMT-operator (caar expression))
 		  (equal (caar expression) 'lambda))
-	     (cons (SMT-lambda (car expression))
+	     (cons (list (SMT-operator
+			  (car (car expression)))
+			 (SMT-lambda-formal
+			  (cadr (car expression)))
+			 (SMT-expression
+			  (caddr (car expression))))
 		   (SMT-expression-long (cdr expression))))
 	    ((is-SMT-operator (car expression))
 	     (cons (SMT-operator (car expression))

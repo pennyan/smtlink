@@ -1,0 +1,2 @@
+level5:
+(IMPLIES (IF (RATIONALP Y) (< '1 Y) 'nil) (< '9 ((LAMBDA (var0) (BINARY-* '2 ((LAMBDA (var1) (BINARY-+ var1 '3)) var0))) Y)))

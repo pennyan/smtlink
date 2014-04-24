@@ -61,12 +61,12 @@
   (c m j))
 
 ; Represent a term of sum
-(defun f-term (i args) (* (Expt (gamma) (- (nth 1 args) i)) 
+(defun f-term (i m j) (* (Expt (gamma) (- j i)) 
                           (- (/ (* (mu) (+ 1 (* *alpha* *v0*)))
-                                (+ 1 (* *beta* (c (nth 0 args) i)))) 1)))
+                                (+ 1 (* *beta* (c m i)))) 1)))
 ; Represent sum
 ; Peel off first 2 terms, prove equivalence
-(defun sum-p (jlo jhi args)
+(defun sum-p (jlo jhi m j)
   (declare (xargs :measure (if (or (not (integerp jhi))
                                    (not (integerp jlo))
                                    (< jhi jlo))

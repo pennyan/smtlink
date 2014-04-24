@@ -414,15 +414,15 @@
 
 ; Induction case
 
-;; (defthm B-smaller-than-0-lemma1
-;;   (implies (and (and (integerp m))
-;; 		(and (<= m (- (/ (equ-c) *g1*) 3))
-;; 		     (>= m (- (/ (equ-c) *g1*) 320))))
-;;            (< (+ (f-term (+ 1 (- (n m) 2)) args)
-;;                  (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) args)) 0))
-;;   :hints (("Goal"
-;; 	   :clause-processor
-;; 	   (my-clause-processor clause '((f-term n equ-c mu c gamma) 3 "test2") ))))
+(defthm B-smaller-than-0-lemma1
+   (implies (and (and (integerp m))
+ 		(and (<= m (- (/ (equ-c) *g1*) 3))
+ 		     (>= m (- (/ (equ-c) *g1*) 320))))
+            (< (+ (f-term (+ 1 (- (n m) 2)) args)
+                  (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) args)) 0))
+   :hints (("Goal"
+ 	   :clause-processor
+ 	   (my-clause-processor clause '((f-term n equ-c mu c gamma) 3 "test2") ))))
 
 ;;(defthm B-smaller-than-0
 ;;  (implies (and (integerp m)

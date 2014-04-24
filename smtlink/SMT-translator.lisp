@@ -43,7 +43,7 @@
   "translate-type: translates a type in ACL2 SMT-formula into Z3 type"     ;; all using reals because Z3 is not very good at mixed types
   (let ((result (translate-type-list type)))
     (if (equal result nil)
-	(prog2$ (cw "Error: Type ~q0 does not exist!" opr)
+	(prog2$ (cw "Error: Type ~q0 does not exist!" type)
 		nil)
       (cadr result))))
 
@@ -52,9 +52,11 @@
 ;; translate-number
 (defun translate-number (num)
   "translate-number: translates ACL2 SMT-number into a Z3 number"
-  (if (is-SMT-number num)
-      num
-    (cw "Error: Cannot translate an unrecognized number: ~q0" num)))
+  (if (is-SMT-rational num)
+      (list "Q(" (numerator num) "," (denominator num) ")")
+    (if (is-SMT-integer num)
+	num
+      (cw "Error: Cannot translate an unrecognized number: ~q0" num))))
 
 ;; ----------------------- translate-variable ---------------------------:
 
@@ -70,7 +72,9 @@
 ;; translate-const-name 
 (defun translate-const-name (const-name)
   "translate-const-name: translate a SMT constant name into Z3"
-  const-name)
+  (subseq
+   (coerce (symbol-name const-name) 'list)
+   1 (1- (len const-name))))
 
 ;; translate-constant
 (defun translate-constant (const)
@@ -84,6 +88,44 @@
       (cons (translate-constant (car const-list)) 
 	    (cons #\Newline (translate-constant-list (cdr const-list))))
     nil))
+
+;; check-const
+(defun check-const (expr)
+  "check-const: check to see if an expression is a constant"
+  (if (and (atom expr)
+	   (let ((expr-list (coerce (symbol-name expr) 'list)))
+	     (and (equal #\* (car expr-list))
+		  (equal #\* (nth (1- (len expr-list)) expr-list)))))
+      t
+    nil))
+
+;; get-constant-list-help
+(defun get-constant-list-help (expr const-list)
+  "get-constant-list-help: check all constants in a clause"
+  (cond
+    ( (consp expr)
+      (let ((const-list-2 (get-constant-list-help (car expr) const-list)))
+	(get-constant-list-help (cdr expr) const-list-2))
+    )
+    ( (check-const expr)
+      (mv-let (keyword name value)
+	      (pe expr) ;; pe will not be working for this
+	      (cons (list expr (translate-number value)) const-list))
+      )
+    ( (atom expr)
+      (get-constant-list-help (cdr expr) const-list)
+      )
+    ( t
+      const-list
+      )
+    )
+  )
+
+;; get-constant-list
+(defun get-constant-list (expr)
+  "get-constant-list: get the list of constants in an associate list"
+  (get-constant-list-help expr '()))
+
 
 ;; ----------------------- translate-declaration ---------------------------:
 
@@ -187,7 +229,8 @@
 	(decl-list (cadr formula))
 	(hypo-list (caddr formula))
 	(concl-list (cadddr formula)))
-    (list (translate-constant-list const-list)
+    (list ;;(translate-constant-list
+	  ;;  (get-constant-list formula))
 	  (translate-declaration-list decl-list)
 	  (translate-hypothesis-list hypo-list)
 	  (translate-conclusion-list concl-list)

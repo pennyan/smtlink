@@ -43,7 +43,7 @@
 	 #\Newline
 	 "path.insert(0,\"" *dir-interface* "\")"
 	 #\Newline
-	 "from " *z3-module* " import " *z3-class*
+	 "from " *z3-module* " import " *z3-class* ", Q"
 	 #\Newline
 	 "s = " *z3-class* "()"
 	 #\Newline)))
@@ -59,6 +59,17 @@
      (let ((state (princ$-list-of-strings translated-formula channel state)))
        (close-output-channel channel state)))))
 
+;; write-expander-file
+(defun write-expander-file (filename expanded-term state)
+  "write-expander-file: write expanded term to a file"
+  (mv-let
+   (channel state)
+   (open-output-channel! filename :character state)
+   (let ((state
+	  (princ$-list-of-strings
+	   expanded-term channel state)))
+     (close-output-channel channel state))))
+
 ;; SMT-run
 (defun SMT-run (filename)                                     
   "SMT-run: run the external SMT procedure from ACL2"
@@ -68,3 +79,4 @@
                         :save t)
            :msg "; Z3: `~s0`: ~st sec, ~sa bytes~%"
            :args (list cmd))))
+
