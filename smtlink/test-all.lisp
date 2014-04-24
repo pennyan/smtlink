@@ -48,11 +48,11 @@
 (defun foo (x) (+ x 3))
 (defun bar (y) (* 2 (foo y)))
 
-(defthm test3
+(defthm test2
   (implies (and (and (rationalp y))
 		(and (> y 1)))
-	   (> (bar y) 9))
+	   (> (bar (foo y)) 12))
   :hints
   (("Goal"
     :clause-processor
-    (my-clause-processor clause '((foo bar) 5 "test3")))))
+    (my-clause-processor clause '((foo bar) 5 "test2")))))

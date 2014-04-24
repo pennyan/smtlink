@@ -25,14 +25,14 @@
   (defun my-clause-processor (cl hint)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (prog2$ (cw "Original clause: ~q0" cl)
+    (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
     (let ((fn-lst (car hint))
 	  (level (cadr hint))
 	  (fname (caddr hint)))
       (mv-let (res expanded-cl)
 	      (acl2-my-prove (disjoin cl) fn-lst level fname)
 	      (if res
-		  (prog2$ (cw "Expanded clause: ~q0 ~% Success!~%" expanded-cl)
+		  (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" expanded-cl)
 			  (list (cons (list 'not expanded-cl) cl)))
 		(prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")

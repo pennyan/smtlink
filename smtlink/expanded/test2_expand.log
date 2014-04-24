@@ -1,0 +1,12 @@
+level0:
+(IMPLIES (IF (RATIONALP Y) (< '1 Y) 'nil) (< '12 ((LAMBDA (var0) (BINARY-* '2 (FOO var0))) (FOO Y))))
+level1:
+(IMPLIES (IF (RATIONALP Y) (< '1 Y) 'nil) (< '12 ((LAMBDA (var0) (BINARY-* '2 ((LAMBDA (var1) (BINARY-+ var1 '3)) var0))) ((LAMBDA (var2) (BINARY-+ var2 '3)) Y))))
+level2:
+(IMPLIES (IF (RATIONALP Y) (< '1 Y) 'nil) (< '12 ((LAMBDA (var0) (BINARY-* '2 ((LAMBDA (var1) (BINARY-+ var1 '3)) var0))) ((LAMBDA (var2) (BINARY-+ var2 '3)) Y))))
+level3:
+(IMPLIES (IF (RATIONALP Y) (< '1 Y) 'nil) (< '12 ((LAMBDA (var0) (BINARY-* '2 ((LAMBDA (var1) (BINARY-+ var1 '3)) var0))) ((LAMBDA (var2) (BINARY-+ var2 '3)) Y))))
+level4:
+(IMPLIES (IF (RATIONALP Y) (< '1 Y) 'nil) (< '12 ((LAMBDA (var0) (BINARY-* '2 ((LAMBDA (var1) (BINARY-+ var1 '3)) var0))) ((LAMBDA (var2) (BINARY-+ var2 '3)) Y))))
+level5:
+(IMPLIES (IF (RATIONALP Y) (< '1 Y) 'nil) (< '12 ((LAMBDA (var0) (BINARY-* '2 ((LAMBDA (var1) (BINARY-+ var1 '3)) var0))) ((LAMBDA (var2) (BINARY-+ var2 '3)) Y))))

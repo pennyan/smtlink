@@ -13,7 +13,7 @@
 	(mv (intern-in-package-of-symbol
 	     (concatenate 'string "var" index) 'ACL2)
 	    (1+ num))
-      (prog2$ (cw "Error: create name failed: ~q0!" index)
+      (prog2$ (cw "Error(function): create name failed: ~q0!" index)
 	      (mv nil num)))))
 
 ;; exist
@@ -125,7 +125,7 @@
 				      params-expr)
 				     params-num)))))
 	      (prog2$
-	       (cw "Error: Can't recognize this expression ~q0" expr)
+	       (cw "Error(function): Can't recognize this expression ~q0" expr)
 	       (mv expr num))))
 	   (t (cond ((exist (car expr) fn-lst)
 		     (expand-a-fn expr (car expr) num state))
