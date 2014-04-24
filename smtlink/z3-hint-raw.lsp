@@ -7,33 +7,38 @@
 
 (tshell-ensure)
 
-()
-;; I need indentation!!!!
 (mutual-recursion
 ;; lisp-code-print-help
-(defun lisp-code-print-help (lisp-code-list)
-  "lisp-code-print-help: make a printable lisp code list, the input parameter is the list of "
+(defun lisp-code-print-help (lisp-code-list indent)
+  "lisp-code-print-help: make a printable lisp code list"
   (if (endp lisp-code-list)
       nil
     (list #\Space
-	  (lisp-code-print (car lisp-code-list))
-	  (lisp-code-print-help (cdr lisp-code-list)))))
+	  (lisp-code-print (car lisp-code-list) indent)
+	  (lisp-code-print-help (cdr lisp-code-list) indent))))
  
 ;; lisp-code-print: make printable lisp list
-(defun lisp-code-print (lisp-code acc)
+(defun lisp-code-print (lisp-code indent)
   "lisp-code-print: make a printable lisp code list"
+  (prog2$ (cw "indent: ~q0" indent)
   (cond ((equal lisp-code 'nil) "nil") ;; 
 	((equal lisp-code 'quote) "'") ;; quote
 	((atom lisp-code) lisp-code)
 	((and (equal 2 (length lisp-code))
 	      (equal (car lisp-code) 'quote))
 	 (cons "'"
-	       (lisp-code-print (cadr lisp-code))))
+	       (lisp-code-print (cadr lisp-code)
+				(cons #\Space
+				      (cons #\Space indent)))))
 	(t
-	 (list (accumulated-indentation acc) '\(
-	       (cons (lisp-code-print (car lisp-code))
-		     (lisp-code-print-help (cdr lisp-code)))
-	       '\) ))))
+	 (list #\Newline indent '\(
+	       (cons (lisp-code-print (car lisp-code)
+				      (cons #\Space
+					    (cons #\Space indent)))
+		     (lisp-code-print-help (cdr lisp-code)
+					   (cons #\Space
+						 (cons #\Space indent))))
+	       '\) )))))
 )
 
 ;; my-prove-SMT-formula
@@ -73,10 +78,10 @@
   "my-prove-build-log-file: write the log file for expanding the functions"
   (if (endp expanded-term-list)
       nil
-      (cons (list (create-level "level" index) '\:  #\Newline
+      (cons (list (create-level "level " index) '\:
 		  (lisp-code-print
-		   (car expanded-term-list))
-		  #\Newline)
+		   (car expanded-term-list) '())
+		  #\Newline #\Newline)
 	    (my-prove-build-log-file
 	     (cdr expanded-term-list) (1+ index)))))
 
@@ -95,13 +100,17 @@
 				 "\_expand.log")))
     (mv-let (expanded-term-list num)
 	    (expand-fn-top term fn-lst level state)
+	    (prog2$ (cw "expand: ~q0" expanded-term-list)
 	    (prog2$ (my-prove-write-expander-file
+		     (prog2$ (cw "log: ~q0"
+				 (my-prove-build-log-file
+				  expanded-term-list 0))
 		     (my-prove-build-log-file
-		      expanded-term-list 0)
+		      expanded-term-list 0))
 		     expand-dir)
 		    (prog2$ (my-prove-write-file
 			     (my-last expanded-term-list)
 			     file-dir)
 			    (if (car (SMT-interpreter file-dir))
 				(mv t (my-last expanded-term-list))
-				(mv nil (my-last expanded-term-list))))))))
+				(mv nil (my-last expanded-term-list)))))))))
