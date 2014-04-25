@@ -4,11 +4,7 @@ level 0:
     (RATIONALP Y) 
     (< '1 Y) 'nil) 
   (< '12 
-    (
-      (LAMBDA 
-        (var0) 
-        (BINARY-* '2 
-          (FOO var0))) 
+    (BAR 
       (FOO Y))))
 
 level 1:
@@ -21,14 +17,11 @@ level 1:
       (LAMBDA 
         (var0) 
         (BINARY-* '2 
-          (
-            (LAMBDA 
-              (var1) 
-              (BINARY-+ var1 '3)) var0))) 
+          (FOO var0))) 
       (
         (LAMBDA 
-          (var2) 
-          (BINARY-+ var2 '3)) Y))))
+          (var1) 
+          (BINARY-+ var1 '3)) Y))))
 
 level 2:
 (IMPLIES 
@@ -42,12 +35,12 @@ level 2:
         (BINARY-* '2 
           (
             (LAMBDA 
-              (var1) 
-              (BINARY-+ var1 '3)) var0))) 
+              (var2) 
+              (BINARY-+ var2 '3)) var0))) 
       (
         (LAMBDA 
-          (var2) 
-          (BINARY-+ var2 '3)) Y))))
+          (var1) 
+          (BINARY-+ var1 '3)) Y))))
 
 level 3:
 (IMPLIES 
@@ -61,12 +54,12 @@ level 3:
         (BINARY-* '2 
           (
             (LAMBDA 
-              (var1) 
-              (BINARY-+ var1 '3)) var0))) 
+              (var2) 
+              (BINARY-+ var2 '3)) var0))) 
       (
         (LAMBDA 
-          (var2) 
-          (BINARY-+ var2 '3)) Y))))
+          (var1) 
+          (BINARY-+ var1 '3)) Y))))
 
 level 4:
 (IMPLIES 
@@ -80,12 +73,12 @@ level 4:
         (BINARY-* '2 
           (
             (LAMBDA 
-              (var1) 
-              (BINARY-+ var1 '3)) var0))) 
+              (var2) 
+              (BINARY-+ var2 '3)) var0))) 
       (
         (LAMBDA 
-          (var2) 
-          (BINARY-+ var2 '3)) Y))))
+          (var1) 
+          (BINARY-+ var1 '3)) Y))))
 
 level 5:
 (IMPLIES 
@@ -99,10 +92,29 @@ level 5:
         (BINARY-* '2 
           (
             (LAMBDA 
-              (var1) 
-              (BINARY-+ var1 '3)) var0))) 
+              (var2) 
+              (BINARY-+ var2 '3)) var0))) 
       (
         (LAMBDA 
-          (var2) 
-          (BINARY-+ var2 '3)) Y))))
+          (var1) 
+          (BINARY-+ var1 '3)) Y))))
+
+level 6:
+(IMPLIES 
+  (IF 
+    (RATIONALP Y) 
+    (< '1 Y) 'nil) 
+  (< '12 
+    (
+      (LAMBDA 
+        (var0) 
+        (BINARY-* '2 
+          (
+            (LAMBDA 
+              (var2) 
+              (BINARY-+ var2 '3)) var0))) 
+      (
+        (LAMBDA 
+          (var1) 
+          (BINARY-+ var1 '3)) Y))))
 

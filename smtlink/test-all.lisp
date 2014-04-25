@@ -30,21 +30,7 @@
               :clause-processor
               (my-clause-processor clause '((foo1) 2 "test1")))))
 
-;; Test cases:
-;; 1. Without constant definition and function definitions:
-;;   a. all types
-;;   b. all operators
-;;   c. exceptional cases
-;; 2. With constant definitions
-;; 3. With function definitions
-
 ;; test2
-;; We are assuming specific format for the declarations and conditions, use "and" in the connections:
-;; implies ( - (and decl1 decl2 decl3 ...)
-;;           \
-;;             (and cond1 cond2 cond3 ...))
-;;         (concl)
-
 (defun foo (x) (+ x 3))
 (defun bar (y) (* 2 (foo y)))
 
@@ -56,3 +42,26 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause '((foo bar) 5 "test2")))))
+
+;; test3
+(defun foo2 (x args) (+ x (nth 0 args) (nth 1 args)))
+
+(defthm test3
+  (implies (and (> x 0)
+		(> i 0)
+		(> j 0))
+	   (> (foo2 x (list i j)) 0))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause '((foo2) 1 "test3")))))
+
+(defthm test4
+  (implies (and (> x 0)
+		(> i 0)
+		(> j 0))
+	   (> (foo2 x '(i j)) 0))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause '((foo2) 1 "test4")))))

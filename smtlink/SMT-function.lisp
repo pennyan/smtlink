@@ -80,19 +80,31 @@
 ;; e.g.(defun double (x y) (+ (* 2 x) y))
 ;;     (double a b) -> (let ((var1 a) (var2 b)) (+ (* 2 var1) var2))
 ;;     (double a b) -> ((lambda (var1 var2) (+ (* 2 var1) var2)) a b)
-(defun expand-a-fn (expr fn num state)
+(defun expand-a-fn (fn num state)
   "expand-a-fn: expand an expression with a function definition, num should be accumulated by 1. fn should be stored as a symbol"
   (let ((formal (cdr (cadr (meta-extract-formula fn state))))
 	;; the third element is the formals
 	(body (end (meta-extract-formula fn state)))
 	;; the last element is the body
-	(formal-expr (cdr expr))
 	)
     (mv-let (var-list num1)
 	    (make-var-list formal num)
-	    (mv (cons (list 'lambda (assoc-fetch-value var-list)
-			    (set-fn-body body var-list))
-		      formal-expr) num1))))
+	    (mv (list 'lambda (assoc-fetch-value var-list)
+		      (set-fn-body body var-list))  num1))))
+
+;; lambdap
+(defun lambdap (expr)
+  "lambdap: check if a formula is a valid lambda expression"
+  (if (not (equal (len expr) 3))
+      nil
+      (let ((lambdax (car expr))
+	    (formals (cadr expr))
+	    (body (caddr expr)))
+	(if (and (equal lambdax 'lambda)
+		 (listp formals)) ;; I can add a check for no
+	                          ;; occurance of free variable in the future
+	    t
+	    nil))))
 
 (mutual-recursion
  ;; expand-fn-help-list
@@ -109,31 +121,36 @@
  ;; expand-fn-help
  (defun expand-fn-help (expr fn-lst num state)
    "expand-fn-help: expand an expression for one level"
-   (if (atom expr)
-       (mv expr num)
-     (cond ((listp (car expr))
-	    (if (equal (caar expr) 'lambda)
-		(let ((lambdax (car expr)) (params (cdr expr)))
-		  (let ((formals (cadr lambdax)) (body (caddr lambdax)))
-		    (mv-let (body-expr body-num)
-			    (expand-fn-help body fn-lst num state)
-			    (mv-let (params-expr params-num)
-				    (expand-fn-help-list params fn-lst body-num state)
-				    (mv
-				     (cons
-				      (list 'lambda formals body-expr)
-				      params-expr)
-				     params-num)))))
-	      (prog2$
-	       (cw "Error(function): Can't recognize this expression ~q0" expr)
-	       (mv expr num))))
-	   (t (cond ((exist (car expr) fn-lst)
-		     (expand-a-fn expr (car expr) num state))
-		    (t (mv-let (res-expr res-num)
-			       (expand-fn-help-list (cdr expr) fn-lst num state)
-			       (mv (cons (car expr) res-expr) res-num))))))))
- )
-
+   (cond ((atom expr)
+ 	  (mv expr num))
+ 	 ((consp expr) ;; expr is a function application
+ 	  (b*
+ 	   ((fn0 (car expr))
+ 	    (params (cdr expr))
+ 	    ((mv fn num2)
+ 	     (cond
+ 	       ((and (atom fn0) (exist fn0 fn-lst))
+ 		(expand-a-fn fn0 num state)) ;; expand a function
+ 	       ((atom fn0)
+ 		(mv fn0 num))
+ 	       ((lambdap fn0)
+ 		(let ((lambdax fn0) (params (cdr expr)))
+  		  (let ((formals (cadr lambdax)) (body (caddr lambdax)))
+  		    (mv-let (body-expr body-num)
+  			    (expand-fn-help body fn-lst num state)
+ 			    (mv (list 'lambda formals body-expr) body-num)))))
+ 	       ((and (not (lambdap fn0)) (consp fn0))
+ 		(expand-fn-help fn0 fn-lst num state))
+ 	       (t (prog2$ 
+ 		   (cw "Error(function): not a valid function application ~q0" expr)
+ 		   (mv expr num))))))
+	   (prog2$ (cw "~q0 ~q1 ~q2" fn params num2)
+ 	   (mv-let (res num3)
+ 		   (expand-fn-help-list params fn-lst num2 state)
+ 		   (mv (cons fn res) num3)))))
+ 	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
+ 		    (mv expr num)))))
+)
 ;; expand-fn
 (defun expand-fn (expr fn-lst level num state)
   "expand-fn: takes an expr and a list of functions, unroll the expression to a level using the function definitions. #\Newline

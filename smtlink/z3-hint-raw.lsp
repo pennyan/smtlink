@@ -20,7 +20,6 @@
 ;; lisp-code-print: make printable lisp list
 (defun lisp-code-print (lisp-code indent)
   "lisp-code-print: make a printable lisp code list"
-  (prog2$ (cw "indent: ~q0" indent)
   (cond ((equal lisp-code 'nil) "nil") ;; 
 	((equal lisp-code 'quote) "'") ;; quote
 	((atom lisp-code) lisp-code)
@@ -38,7 +37,7 @@
 		     (lisp-code-print-help (cdr lisp-code)
 					   (cons #\Space
 						 (cons #\Space indent))))
-	       '\) )))))
+	       '\) ))))
 )
 
 ;; my-prove-SMT-formula
@@ -102,11 +101,8 @@
 	    (expand-fn-top term fn-lst level state)
 	    (prog2$ (cw "expand: ~q0" expanded-term-list)
 	    (prog2$ (my-prove-write-expander-file
-		     (prog2$ (cw "log: ~q0"
-				 (my-prove-build-log-file
-				  expanded-term-list 0))
 		     (my-prove-build-log-file
-		      expanded-term-list 0))
+		      (cons term expanded-term-list) 0)
 		     expand-dir)
 		    (prog2$ (my-prove-write-file
 			     (my-last expanded-term-list)

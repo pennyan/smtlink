@@ -4,5 +4,5 @@ from ACL2_translator import to_smt, Q
 s = to_smt()
 Y=s.isReal("Y")
 hypothesis=s.lt(1,Y)
-conclusion=s.lt(12,(lambda var0:s.times(2,(lambda var1:s.plus(var1,3))(var0)))((lambda var2:s.plus(var2,3))(Y)))
+conclusion=s.lt(12,(lambda var0:s.times(2,(lambda var2:s.plus(var2,3))(var0)))((lambda var1:s.plus(var1,3))(Y)))
 s.prove(hypothesis, conclusion)

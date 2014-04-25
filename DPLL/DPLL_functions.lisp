@@ -61,12 +61,12 @@
   (c m j))
 
 ; Represent a term of sum
-(defun f-term (i m j) (* (Expt (gamma) (- j i)) 
+(defun f-term (i args) (* (Expt (gamma) (- (nth 1 args) i)) ;; args - m, j 
                           (- (/ (* (mu) (+ 1 (* *alpha* *v0*)))
-                                (+ 1 (* *beta* (c m i)))) 1)))
+                                (+ 1 (* *beta* (c (nth 0 args) i)))) 1)))
 ; Represent sum
 ; Peel off first 2 terms, prove equivalence
-(defun sum-p (jlo jhi m j)
+(defun sum-p (jlo jhi args)
   (declare (xargs :measure (if (or (not (integerp jhi))
                                    (not (integerp jlo))
                                    (< jhi jlo))
@@ -151,8 +151,6 @@
        (f-term (+ (- jlo-plus-jhi jhi) k2) args)
        (sum-p-full jlo (- jhi 1) jlo-plus-jhi k1 k2 args))))
 
-(defun-sk exists-x-between (y z)
-         (exists x (and (natp x) (< y x) (< x z))))#|ACL2s-ToDo-Line|#
 
 
 ;; ---------------------------------------------------------------------- 

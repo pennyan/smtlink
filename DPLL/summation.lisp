@@ -122,6 +122,4 @@
            (equal (summation4 (- lo k) (- hi k) (+ lo hi (- k) (- k)) k args)
                   (summation3 (- lo k) (- hi k) k args)))
   :hints (("Goal"
-           :use ((:instance equivalence-summation3-summation4-lemma2 (delta 0) (i1 lo) (j1 hi))))))#|ACL2s-ToDo-Line|#
-
-
+           :use ((:instance equivalence-summation3-summation4-lemma2 (delta 0) (i1 lo) (j1 hi))))))
