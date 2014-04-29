@@ -16,7 +16,9 @@
 	       (<= <= 2)
 	       (if if 3)
 	       (not not 1)
-	       (lambda lambda 2))))
+	       (lambda lambda 2)
+	       (list list 0)
+	       (nth nth 2))))
 
 (defun is-SMT-operator (opr)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"
@@ -202,8 +204,12 @@
 	    ((is-SMT-operator (car expression))
 	     (cons (SMT-operator (car expression))
 		   (SMT-expression-long (cdr expression))))
+	    ;; for handling a list
 	    ((equal (car expression) 'QUOTE)
-	      (SMT-expression (cadr expression)))
+	     (if (consp (cadr expression))
+		 (cons 'list
+		       (SMT-expression-long (cadr expression)))
+		 (SMT-expression (cadr expression))))
 	    (t (cw "Error(formula): This is not a valid operator: ~q0" expression)))
     (cond ((is-SMT-number expression) (SMT-number expression))
 	  ((is-SMT-variable expression) (SMT-variable expression))

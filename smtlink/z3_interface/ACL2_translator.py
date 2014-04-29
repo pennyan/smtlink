@@ -1,4 +1,4 @@
-from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Q
+from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Q, Array, Select, Store
 
 def sort(x):
     if type(x) == bool:    return BoolSort()
@@ -75,6 +75,24 @@ class to_smt:
             if v is 0: raise Exception('mixed type for if-expression')
         self.solver.add(And(Implies(condx, v == thenx), Implies(Not(condx), v == elsex)))
         return(v)
+
+    # array
+    def array(self, mylist):
+        if not mylist:
+           raise("Can't determine type of an empty list.")
+        else:
+            ty = sort(mylist[0])
+            a = Array(self.newVar(), IntSort(), ty)
+            n = len(mylist)
+            for i in range(0,n):
+                j = Int(self.newVar())
+                self.solver.add(j == i)
+                self.solver.add(Select(a, j) == mylist[i])
+        return a
+    
+    # nth
+    def nth(self, i, a):
+        return Select(a, i)
 
     # usage prove(claim) or prove(hypotheses, conclusion)
     def prove(self, hypotheses, conclusion=0):

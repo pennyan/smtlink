@@ -144,10 +144,9 @@
  	       (t (prog2$ 
  		   (cw "Error(function): not a valid function application ~q0" expr)
  		   (mv expr num))))))
-	   (prog2$ (cw "~q0 ~q1 ~q2" fn params num2)
  	   (mv-let (res num3)
  		   (expand-fn-help-list params fn-lst num2 state)
- 		   (mv (cons fn res) num3)))))
+ 		   (mv (cons fn res) num3))))
  	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
  		    (mv expr num)))))
 )

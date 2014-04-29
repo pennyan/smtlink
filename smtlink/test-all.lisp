@@ -46,22 +46,15 @@
 ;; test3
 (defun foo2 (x args) (+ x (nth 0 args) (nth 1 args)))
 
-(defthm test3
-  (implies (and (> x 0)
-		(> i 0)
-		(> j 0))
-	   (> (foo2 x (list i j)) 0))
-  :hints
-  (("Goal"
-    :clause-processor
-    (my-clause-processor clause '((foo2) 1 "test3")))))
-
 (defthm test4
-  (implies (and (> x 0)
-		(> i 0)
-		(> j 0))
+  (implies (and (and (rationalp x)
+		     (integerp i)
+		     (integerp j))
+		(and (> x 0)
+		     (> i 0)
+		     (> j 0)))
 	   (> (foo2 x '(i j)) 0))
   :hints
   (("Goal"
     :clause-processor
-    (my-clause-processor clause '((foo2) 1 "test4")))))
+    (my-clause-processor clause '((foo2) 1 "test3")))))
