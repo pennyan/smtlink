@@ -1,3 +1,5 @@
+(in-package "ACL2")
+
 (defstub acl2-my-prove (term fn-lst level fname) (mv t nil))
 
 (program)
@@ -16,7 +18,7 @@
 
    (set-raw-mode-on state)
 
-   (load "z3-hint-raw.lsp") ; defines my-prove in raw Lisp
+   (load "../smtlink/z3-hint-raw.lsp") ; defines my-prove in raw Lisp
    
    (defun acl2-my-prove (term fn-lst level fname)
      (my-prove term fn-lst level fname)))

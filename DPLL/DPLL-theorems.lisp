@@ -6,7 +6,6 @@
 ;; needed in this proof.
 
 (logic)
-(set-raw-mode nil)
 
 (in-package "ACL2")
 (include-book "arithmetic/top-with-meta" :dir :system)
@@ -16,7 +15,9 @@
 ; Include summation
 (local (include-book "summation"))
 ; Include DPLL functions
-(local (include-book "DPLL_functions"))
+(local (include-book "DPLL-functions"))
+; Include smtlink
+(local (include-book "../smtlink/SMT-connect"))
 
 ;; ------------------------------------------------------------
 ;; Proof for the upper half
@@ -61,8 +62,9 @@
                   (:instance peel-first-2-terms (args (list m j)))
                   (f (lambda (x args) (f-term x args)))
                   (summation sum-p)))
-           :do-not-induct t
+           :do-not-induct T
            :in-theory (disable peel-first-2-terms reverse-the-sum))))
+
 (defthm peel-first-2-terms-p
   (implies (and (integerp j)
                 (> j 1)
@@ -398,6 +400,32 @@
                  (:instance sum-p-3-as-sum-p-4)
                  (:instance p-2n-1-transforming-sum-lemma1)))))
 
+; April 30th
+;; extract gamma^(n-2) out of the f-term function, prove equivalence
+(defthm p-2n-1-extract-gamma-out-lemma1
+    (implies (and (integerp m)
+		  (<= m (- (/ (equ-c) *g1*) 3))
+		  (>= m (- (/ (equ-c) *g1*) 320))
+		  (integerp i)
+		  (>= i 1)
+		  (<= i (- (n m) 2))
+		  (equal j (- (n m) 2)))
+	     (equal (f-term i (list m j))
+		    (* (Expt (gamma) (- (n m) 2))
+		       (extract-f-term i m)))))
+
+;; extract gamma^(n-2) out of the summation, prove equivalence
+(defthm p-2n-1-extract-gamma-out
+    (implies (and (integerp m)
+		  (<= m (- (/ (equ-c) *g1*) 3))
+		  (>= m (- (/ (equ-c) *g1*) 320)))
+	     (equal
+	      (* (Expt (gamma) (- (n m) 2))
+		 (sum-p-full-extract  1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m))) 2) ))
+	      (sum-p-full 1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m)) 2)))))
+  :hints (("Goal"
+           :use ((:instance p-2n-1-extract-gamma-out-lemma1)))))
+
 ;; -------------------------------------------------------------------
 ;; This part proves the induction proof developed in the documentation
 ;;      for the upper half
@@ -412,17 +440,22 @@
            (< (p-2n-1 p0 m) 0))
   :rule-classes nil)
 
-; Induction case
+;; ; Induction case
+;; (defthm B-smaller-than-0-lemma1-lemma1
+;;     (implies (and (and ())
+;; 		  ())
+;; 	     ()))
 
-(defthm B-smaller-than-0-lemma1
-   (implies (and (and (integerp m))
- 		(and (<= m (- (/ (equ-c) *g1*) 3))
- 		     (>= m (- (/ (equ-c) *g1*) 320))))
-            (< (+ (f-term (+ 1 (- (n m) 2)) args)
-                  (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) args)) 0))
-   :hints (("Goal"
- 	   :clause-processor
- 	   (my-clause-processor clause '((f-term n equ-c mu c gamma) 3 "test2") ))))
+;; ;; B-smaller-than-0-lemma1
+;; (defthm B-smaller-than-0-lemma1
+;;    (implies (and (and (integerp m))
+;;  		(and (<= m (- (/ (equ-c) *g1*) 3))
+;;  		     (>= m (- (/ (equ-c) *g1*) 320))))
+;;             (< (+ (f-term (+ 1 (- (n m) 2)) args)
+;;                   (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) args)) 0))
+;;    :hints (("Goal"
+;;  	   :clause-processor
+;;  	   (my-clause-processor clause '((f-term n equ-c mu c gamma) 3 "B-smaller-than-0-lemma1") ))))
 
 ;;(defthm B-smaller-than-0
 ;;  (implies (and (integerp m)

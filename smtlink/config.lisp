@@ -5,7 +5,7 @@
 ;; 4. SMT command
 (in-package "ACL2")
 (defconst *dir-interface* "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface")
-(defconst *dir-files* "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_files")
+(defconst *dir-files* "z3\_files")
 (defconst *z3-module* "ACL2\_translator")
 (defconst *z3-class* "to_smt")
 (defconst *smt-cmd* "python")

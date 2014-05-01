@@ -60,10 +60,28 @@
 (defun state-j-sum-C (m j)
   (c m j))
 
-; Represent a term of sum
-(defun f-term (i args) (* (Expt (gamma) (- (nth 1 args) i)) ;; args - m, j 
-                          (- (/ (* (mu) (+ 1 (* *alpha* *v0*)))
-                                (+ 1 (* *beta* (c (nth 0 args) i)))) 1)))
+; Represent a term of sum: summing from lowest to highest
+;; gamma^(n-2-h)*(mu*(1+alpha*v0)/(1+beta*c(h+n))-1) +
+;; gamma^(n-2+h)*(mu*(1+alpha*v0)/(1+beta*c(-h+n))-1)
+;; i - jhi(like h)
+;; args - m , j(= n-2)
+;; | in code        | in formula       | in m's def
+;; | args(1)-i        n-2-h              
+;; | args(0)          m
+;; | args(1)          n-2
+(defun f-term (i args)
+  (* (Expt (gamma) (- (nth 1 args) i))
+     ;; args - m, j 
+     (- (/ (* (mu) (+ 1 (* *alpha* *v0*)))
+	   (+ 1 (* *beta* (c (nth 0 args) i)))) 1)))
+
+; April 30th
+;; extract-f-term: extract the exponential term out of the sum
+(defun extract-f-term (i m)
+  (* (Expt (gamma) (- i))
+     (- (/ (* (mu) (+ 1 (* *alpha* *v0*)))
+	   (+ 1 (* *beta* (c m i)))) 1)))
+
 ; Represent sum
 ; Peel off first 2 terms, prove equivalence
 (defun sum-p (jlo jhi args)
@@ -151,7 +169,19 @@
        (f-term (+ (- jlo-plus-jhi jhi) k2) args)
        (sum-p-full jlo (- jhi 1) jlo-plus-jhi k1 k2 args))))
 
-
+; April 30th
+;; sum-p-full-extract takes out the common factor of the two sums
+;; by taking the function f-term-extract
+(defun sum-p-full-extract (jlo jhi jlo-plus-jhi k1 k2 args)
+  (declare (xargs :measure (if (or (not (integerp jhi))
+                                   (not (integerp jlo))
+                                   (< jhi jlo))
+                             0
+                             (1+ (- jhi jlo)))))
+  (if (or (not (integerp jlo)) (not (integerp jhi)) (< jhi jlo)) 0
+    (+ (extract-f-term (+ jhi k1) args)
+       (extract-f-term (+ (- jlo-plus-jhi jhi) k2) args)
+       (sum-p-full-extract jlo (- jhi 1) jlo-plus-jhi k1 k2 args))))
 
 ;; ---------------------------------------------------------------------- 
 ;; This part is the induction proof for the upper half space
