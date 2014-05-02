@@ -414,17 +414,21 @@
 		    (* (Expt (gamma) (- (n m) 2))
 		       (extract-f-term i m)))))
 
-;; extract gamma^(n-2) out of the summation, prove equivalence
-(defthm p-2n-1-extract-gamma-out
-    (implies (and (integerp m)
-		  (<= m (- (/ (equ-c) *g1*) 3))
-		  (>= m (- (/ (equ-c) *g1*) 320)))
-	     (equal
-	      (* (Expt (gamma) (- (n m) 2))
-		 (sum-p-full-extract  1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m))) 2) ))
-	      (sum-p-full 1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m)) 2)))))
-  :hints (("Goal"
-           :use ((:instance p-2n-1-extract-gamma-out-lemma1)))))
+;; ;; extract gamma^(n-2) out of the summation, prove equivalence
+;; (defthm p-2n-1-extract-gamma-out
+;;     (implies (and (integerp m)
+;; 		  (<= m (- (/ (equ-c) *g1*) 3))
+;; 		  (>= m (- (/ (equ-c) *g1*) 320)))
+;; 	     (equal
+;; 	      (* (Expt (gamma) (- (n m) 2))
+;; 		 (sum-p-full-extract
+;; 		  1 (- (n m) 2) (- (n m) 1) 1 (n m)
+;; 		  (list m (- (* 2 (n m)) 2) )))
+;; 	      (sum-p-full
+;; 	       1 (- (n m) 2) (- (n m) 1) 1 (n m)
+;; 	       (list m (- (* 2 (n m)) 2) ))))
+;;   :hints (("Goal"
+;;            :use ((:instance p-2n-1-extract-gamma-out-lemma1)))))
 
 ;; -------------------------------------------------------------------
 ;; This part proves the induction proof developed in the documentation
@@ -440,30 +444,25 @@
            (< (p-2n-1 p0 m) 0))
   :rule-classes nil)
 
-;; ; Induction case
-;; (defthm B-smaller-than-0-lemma1-lemma1
-;;     (implies (and (and ())
-;; 		  ())
-;; 	     ()))
-
+; Induction case
 ;; ;; B-smaller-than-0-lemma1
 ;; (defthm B-smaller-than-0-lemma1
 ;;    (implies (and (and (integerp m))
 ;;  		(and (<= m (- (/ (equ-c) *g1*) 3))
 ;;  		     (>= m (- (/ (equ-c) *g1*) 320))))
-;;             (< (+ (f-term (+ 1 (- (n m) 2)) args)
-;;                   (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) args)) 0))
+;;             (< (+ (f-term (+ 1 (- (n m) 2)) (list m (- (* 2 (n m)) 2)))
+;;                   (f-term (+ (- (- (n m) 1) (- (n m) 2)) (n m)) (list m (- (* 2 (n m)) 2)))) 0))
 ;;    :hints (("Goal"
 ;;  	   :clause-processor
 ;;  	   (my-clause-processor clause '((f-term n equ-c mu c gamma) 3 "B-smaller-than-0-lemma1") ))))
 
-;;(defthm B-smaller-than-0
-;;  (implies (and (integerp m)
-;;                (<= m (- (/ (equ-c) *g1*) 3))
-;;                (>= m (- (/ (equ-c) *g1*) 320)))
-;;           (< (sum-p-full 1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m)) 2))) 0))
-;;  :hints (("Goal"
-;;           :induct (sum-p-full i j x k1 k2 args))))
+(defthm B-smaller-than-0
+ (implies (and (integerp m)
+               (<= m (- (/ (equ-c) *g1*) 3))
+               (>= m (- (/ (equ-c) *g1*) 320)))
+          (< (sum-p-full 1 (- (n m) 2) (- (n m) 1) 1 (n m) (list m (- (* 2 (n m)) 2))) 0))
+  :hints (("Goal"
+	   :induct (sum-p-full i j k l k1 args))))
 
 ;; -------------------------------------------------------------------
 ;; This part proves the induction proof developed in the documentation

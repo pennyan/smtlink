@@ -74,7 +74,7 @@ It's OK to flatten a user-defined function (in ACL2) to a raw-lisp lambda expres
 How's that sound?
 --Mark
 
-==================================================================================================
+=========================================================================================
 
 Thanks for the great report on handling lists in your translator.  It
 looks good.  For handling other functions (cons, car, cdr, append, etc.)
