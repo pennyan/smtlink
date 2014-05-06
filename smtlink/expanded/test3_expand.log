@@ -15,49 +15,29 @@ level 0:
     (FOO2 X '
         (I J))))
 
-level 1:
-(IMPLIES 
-  (IF 
-    (IF 
-      (RATIONALP X) 
-      (IF 
-        (INTEGERP I) 
-        (INTEGERP J) 'nil) 'nil) 
-    (IF 
-      (< '0 X) 
-      (IF 
-        (< '0 I) 
-        (< '0 J) 'nil) 'nil) 'nil) 
-  (< '0 
-    (
-      (LAMBDA 
-        (var0 var1) 
-        (BINARY-+ var0 
-          (BINARY-+ 
-            (NTH '0 var1) 
-            (NTH '1 var1)))) X '
-        (I J))))
+level 1:IMPLIES
 
 level 2:
-(IMPLIES 
+(IF 
   (IF 
+    (RATIONALP X) 
     (IF 
-      (RATIONALP X) 
-      (IF 
-        (INTEGERP I) 
-        (INTEGERP J) 'nil) 'nil) 
+      (INTEGERP I) 
+      (INTEGERP J) 'nil) 'nil) 
+  (IF 
+    (< '0 X) 
     (IF 
-      (< '0 X) 
-      (IF 
-        (< '0 I) 
-        (< '0 J) 'nil) 'nil) 'nil) 
-  (< '0 
-    (
-      (LAMBDA 
-        (var0 var1) 
-        (BINARY-+ var0 
-          (BINARY-+ 
-            (NTH '0 var1) 
-            (NTH '1 var1)))) X '
-        (I J))))
+      (< '0 I) 
+      (< '0 J) 'nil) 'nil) 'nil)
+
+level 3:
+(< '0 
+  (
+    (LAMBDA 
+      (var0 var1) 
+      (BINARY-+ var0 
+        (BINARY-+ 
+          (NTH '0 var1) 
+          (NTH '1 var1)))) X '
+      (I J)))
 

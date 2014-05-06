@@ -120,52 +120,41 @@
 
  ;; expand-fn-help
  (defun expand-fn-help (expr fn-lst num state)
-   "expand-fn-help: expand an expression for one level"
+   "expand-fn-help: expand an expression"
    (cond ((atom expr)
  	  (mv expr num))
  	 ((consp expr) ;; expr is a function application
  	  (b*
- 	   ((fn0 (car expr))
- 	    (params (cdr expr))
+ 	   ((fn0 (car expr)) ;; function name
+ 	    (params (cdr expr)) ;; function parameters
  	    ((mv fn num2)
  	     (cond
- 	       ((and (atom fn0) (exist fn0 fn-lst))
+ 	       ((and (atom fn0) (exist fn0 fn-lst)) ;; function exists in the list
  		(expand-a-fn fn0 num state)) ;; expand a function
- 	       ((atom fn0)
- 		(mv fn0 num))
- 	       ((lambdap fn0)
+ 	       ((lambdap fn0) ;; function is a lambda expression
  		(let ((lambdax fn0) (params (cdr expr)))
   		  (let ((formals (cadr lambdax)) (body (caddr lambdax)))
   		    (mv-let (body-expr body-num)
   			    (expand-fn-help body fn-lst num state)
  			    (mv (list 'lambda formals body-expr) body-num)))))
  	       ((and (not (lambdap fn0)) (consp fn0))
- 		(expand-fn-help fn0 fn-lst num state))
+ 		(expand-fn-help fn0 fn-lst num state)) ;; for handling lists
+ 	       ((atom fn0)
+ 		(mv fn0 num))
  	       (t (prog2$ 
  		   (cw "Error(function): not a valid function application ~q0" expr)
  		   (mv expr num))))))
  	   (mv-let (res num3)
  		   (expand-fn-help-list params fn-lst num2 state)
- 		   (mv (cons fn res) num3))))
+		   (mv-let (res2 num4)
+			   (expand-fn-help fn fn-lst num3 state)
+			   (mv (cons res2 res) num4)))))
  	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
  		    (mv expr num)))))
 )
 ;; expand-fn
-(defun expand-fn (expr fn-lst level num state)
-  "expand-fn: takes an expr and a list of functions, unroll the expression to a level using the function definitions. #\Newline
-level - level of unrolling; num - starts from 0, for new variables"
-  (if (zp level)
-      (mv (cons expr nil) num)
-    (mv-let (res-expr res-num)
-	    (expand-fn-help expr fn-lst num state)
-	    (mv-let (res-expr-1 res-num-1)
-		    (expand-fn res-expr fn-lst (1- level) res-num state)
-		    (mv (cons res-expr res-expr-1) res-num-1)))))
-
-;; expand-fn-top
-(defun expand-fn-top (expr fn-lst level state)
-  "expand-fn-top: top function for handling expression unrolling."
-  (mv-let (res num)
-	  (expand-fn expr fn-lst level 0 state)
-	  (prog2$ (cw "The final index number: ~q0" num)
-		  res)))
+(defun expand-fn (expr fn-lst level state)
+  "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
+  (mv-let (res-expr res-num)
+	  (expand-fn-help expr fn-lst 0 state)
+	  (prog2$ (cw "The final index number: ~q0" res-num) res-expr)))

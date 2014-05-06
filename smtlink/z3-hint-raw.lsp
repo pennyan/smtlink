@@ -98,15 +98,15 @@
 				 fname
 				 "\_expand.log")))
     (mv-let (expanded-term-list num)
-	    (expand-fn-top term fn-lst level state)
+	    (expand-fn term fn-lst level state)
 	    (prog2$ (cw "expand: ~q0" expanded-term-list)
 	    (prog2$ (my-prove-write-expander-file
 		     (my-prove-build-log-file
 		      (cons term expanded-term-list) 0)
 		     expand-dir)
 		    (prog2$ (my-prove-write-file
-			     (my-last expanded-term-list)
+			     expanded-term-list
 			     file-dir)
 			    (if (car (SMT-interpreter file-dir))
-				(mv t (my-last expanded-term-list))
-				(mv nil (my-last expanded-term-list)))))))))
+				(mv t expanded-term-list)
+				(mv nil expanded-term-list))))))))

@@ -116,3 +116,17 @@ Here's a way you could handle most list operations:
     the expression by an exponential in k.
       Maybe it's best not to handle if's inside list constructing
     functions (at least not for now).
+======================================================================
+
+1. When recursive expander is added, I'm no longer able to print the
+   expand log file, because I don't have full access to the whole
+   formula when I'm expanding it. Just print out the part I've been
+   expanding?
+
+2. I need a way to check cycle in the call tree. Sounds easy at first,
+   but I somehow have to remember the whole graph, because I don't
+   want to state that I've got a cycle when actually it's just a call
+   from another path. For simplicity for now, I can check a recursive
+   call when some function is called directly after itself, because I...
+   Oh ... ok ... it doesn't look like a problem now. I know how...
+

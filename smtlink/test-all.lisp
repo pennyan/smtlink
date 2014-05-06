@@ -12,7 +12,12 @@
   :hints
             (("Goal"
               :clause-processor
-              (my-clause-processor clause '((bar1) 1 "test0")))))
+              (my-clause-processor clause
+				   '( (:expand (bar1) 1)
+				      (:python-file "test0")
+				      (:let ())
+				      (:hypothesize ()))
+				      ))))
 
 ;; test1
 (defun foo1 (x y) (* x (+ 1 y)))
@@ -28,7 +33,11 @@
      :hints
             (("Goal"
               :clause-processor
-              (my-clause-processor clause '((foo1) 2 "test1")))))
+              (my-clause-processor clause
+				   '( (:expand (foo1) 2)
+				      (:python-file "test1")
+				      (:let ())
+				      (:hypothesize ()))))))
 
 ;; test2
 (defun foo (x) (+ x 3))
@@ -41,7 +50,11 @@
   :hints
   (("Goal"
     :clause-processor
-    (my-clause-processor clause '((foo bar) 5 "test2")))))
+    (my-clause-processor clause
+			 '( (:expand (foo bar) 5)
+			    (:python-file "test2")
+			    (:let ())
+			    (:hypothesize ()))))))
 
 ;; test3
 (defun foo2 (x args) (+ x (nth 0 args) (nth 1 args)))
@@ -57,4 +70,8 @@
   :hints
   (("Goal"
     :clause-processor
-    (my-clause-processor clause '((foo2) 1 "test3")))))
+    (my-clause-processor clause
+			 '( (:expand (foo2) 1)
+			    (:python-file "test3")
+			    (:let ())
+			    (:hypothesize ()))))))
