@@ -2,9 +2,10 @@
 (in-package "ACL2")
 (include-book "centaur/misc/tshell" :dir :system)
 (include-book "std/io/top" :dir :system)
-(include-book "config")
+(include-book "./config")
 
-:set-state-ok t
+(tshell-ensure)
+
 (set-print-case :downcase state)
 
 ;; princ$-list-of-strings

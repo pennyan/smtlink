@@ -5,7 +5,7 @@ level 0:
   (EQUAL 
     (BINARY-+ X X) 
     (BINARY-* '1 
-      (BAR1 X))))
+      (BAR0 X))))
 
 level 1:IMPLIES
 

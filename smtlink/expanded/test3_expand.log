@@ -12,7 +12,7 @@ level 0:
         (< '0 I) 
         (< '0 J) 'nil) 'nil) 'nil) 
   (< '0 
-    (FOO2 X '
+    (FOO3 X '
         (I J))))
 
 level 1:IMPLIES

@@ -1,11 +1,8 @@
-(include-book "./helper")
-(include-book "./SMT-formula")
+(in-package "ACL2")
 (include-book "./SMT-translator")
 (include-book "./SMT-run")
 (include-book "./SMT-interpreter")
 (include-book "./SMT-function")
-
-(tshell-ensure)
 
 (mutual-recursion
 ;; lisp-code-print-help
@@ -85,7 +82,7 @@
 	     (cdr expanded-term-list) (1+ index)))))
 
 ;; my-prove
-(defun my-prove (term fn-lst level fname)
+(defun my-prove (term fn-lst fname)
   "my-prove: return the result of calling SMT procedure"
   (let ((file-dir (concatenate 'string
 			       *dir-files*
@@ -98,7 +95,7 @@
 				 fname
 				 "\_expand.log")))
     (mv-let (expanded-term-list num)
-	    (expand-fn term fn-lst level state)
+	    (expand-fn term fn-lst state)
 	    (prog2$ (cw "expand: ~q0" expanded-term-list)
 	    (prog2$ (my-prove-write-expander-file
 		     (my-prove-build-log-file

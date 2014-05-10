@@ -4,8 +4,8 @@ level 0:
     (RATIONALP Y) 
     (< '1 Y) 'nil) 
   (< '12 
-    (BAR 
-      (FOO Y))))
+    (BAR2 
+      (FOO2 Y))))
 
 level 1:IMPLIES
 
@@ -22,10 +22,10 @@ level 3:
       (BINARY-* '2 
         (
           (LAMBDA 
-            (var2) 
-            (BINARY-+ var2 '3)) var0))) 
+            (var1) 
+            (BINARY-+ var1 '3)) var0))) 
     (
       (LAMBDA 
-        (var1) 
-        (BINARY-+ var1 '3)) Y)))
+        (var2) 
+        (BINARY-+ var2 '3)) Y)))
 

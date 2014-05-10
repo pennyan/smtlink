@@ -56,7 +56,16 @@ class to_smt:
         return reduce(lambda x, y: Or(x,y), args)
 
     def minus(self, x,y): return x-y
-    def reciprocal(self, x): return 1/x
+
+    # special care for reciprocal because
+    # in ACL2 3/0 = 0 and in z3 3/0 == 0
+    # will return a counter-example
+    def reciprocal(self, x):
+        if x == 0:
+            return 0
+        else:
+            return 1/x
+        
     def negate(self, x): return -x
     def div(self, x, y): return times(self,x,reciprocal(self,y))
     def gt(self, x,y): return x>y

@@ -1,12 +1,10 @@
 (in-package "ACL2")
 
-(defstub acl2-my-prove (term fn-lst level fname) (mv t nil))
+(defstub acl2-my-prove (term fn-lst fname) (mv t nil))
 
 (program)
 
 (defttag :my-cl-proc)
-
-(set-ignore-ok t)
 
 (progn
 
@@ -18,21 +16,23 @@
 
    (set-raw-mode-on state)
 
-   (load "../smtlink/z3-hint-raw.lsp") ; defines my-prove in raw Lisp
-   
-   (defun acl2-my-prove (term fn-lst level fname)
-     (my-prove term fn-lst level fname)))
-
+   (load "../smtlink/SMT-z3.lisp")
+  
+   (defun acl2-my-prove (term fn-lst fname)
+     (my-prove term fn-lst fname)))
+  
   ;; put fn-lst level and fname into the hint list
   (defun my-clause-processor (cl hint)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
-    (let ((fn-lst (car hint))
-	  (level (cadr hint))
-	  (fname (caddr hint)))
+    (prog2$ (cw "Original clause(connect): ~q0"
+		(disjoin cl))
+    (let ((fn-lst (cadr (assoc ':expand hint)))
+	  (fname (cadr (assoc ':python-file hint))))
+	  ;(let-expr (cadr (assoc ':let hint)))
+	  ;(hypo (cadr (assoc ':hypothesize hint))))
       (mv-let (res expanded-cl)
-	      (acl2-my-prove (disjoin cl) fn-lst level fname)
+	      (acl2-my-prove (disjoin cl) fn-lst fname)
 	      (if res
 		  (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" expanded-cl)
 			  (list (cons (list 'not expanded-cl) cl)))
