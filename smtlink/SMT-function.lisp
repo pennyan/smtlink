@@ -14,22 +14,6 @@
       (prog2$ (cw "Error(function): create name failed: ~q0!" index)
 	      (mv nil num)))))
 
-;; exist
-(defun exist (elem lista)
-  "exist: check if an element exist in a list"
-  (if (endp lista)
-      nil
-    (if (equal elem (car lista))
-	t
-      (exist elem (cdr lista)))))
-
-;; end
-(defun end (lista)
-  "end: return the last element in a list"
-  (if (endp (cdr lista))
-      (car lista)
-    (end (cdr lista))))
-
 ;; replace-var
 (defun replace-var (body var-pair)
   "replace-var: replace all appearance of a function symbol in the body with the var-pair"
@@ -111,7 +95,7 @@
  ;; expand-fn-help-list
  (defun expand-fn-help-list (expr fn-lst fn-waiting fn-extended num state)
    "expand-fn-help-list"
-   (declare (xargs :measure (list (len fn-waiting) (acl2-count expr))))
+   (declare (xargs :measure (list (acl2-count (len fn-waiting)) (acl2-count expr))))
    (if (endp expr)
        (mv nil num)
      (mv-let (res-expr1 res-num1)
@@ -143,7 +127,8 @@
  ;   length is a sign for recursive call. 
  (defun expand-fn-help (expr fn-lst fn-waiting fn-extended num state)
    "expand-fn-help: expand an expression"
-   (declare (xargs :measure (list (len fn-waiting) (acl2-count expr))))
+   (declare (xargs :measure (list (acl2-count (len fn-waiting)) (acl2-count expr))))
+   (prog2$ (cw "fn-waiting: ~q0 fn-extended: ~q1 ~%" fn-waiting fn-extended)
    (cond ((atom expr) ;; base case, when expr is an atom
  	  (mv expr num))
 	 ((consp expr)
@@ -183,7 +168,7 @@
  		   (mv expr num)))
 	      )))
 	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
- 		    (mv expr num)))))
+ 		    (mv expr num))))))
 )
 ;; expand-fn
 (defun expand-fn (expr fn-lst state)

@@ -110,3 +110,20 @@
 			    (:python-file "test4")
 			    (:let ())
 			    (:hypothesize ()))))))
+
+;; test5: with recursive call
+;; (fac)
+(defun fac (x) (if (zp x) 1 (* x (fac (1- x)))))
+
+(defthm test5
+    (implies (and (and (integerp a))
+		  (and (>= a 10)))
+	     (>= (fac a) 20))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause
+			 '( (:expand (fac))
+			    (:python-file "test5")
+			    (:let ())
+			    (:hypothesize ()))))))
