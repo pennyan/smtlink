@@ -2,6 +2,7 @@
 (in-package "ACL2")
 (include-book "str/top" :dir :system)
 (include-book "./helper")
+(include-book "./SMT-extract")
 
 ;; create-name
 (defun create-name (num)
@@ -128,26 +129,11 @@
  (defun expand-fn-help (expr fn-lst fn-waiting fn-extended num state)
    "expand-fn-help: expand an expression"
    (declare (xargs :measure (list (acl2-count (len fn-waiting)) (acl2-count expr))))
-   (prog2$ (cw "fn-waiting: ~q0 fn-extended: ~q1 ~%" fn-waiting fn-extended)
    (cond ((atom expr) ;; base case, when expr is an atom
  	  (mv expr num))
 	 ((consp expr)
 	  (let ((fn0 (car expr)) (params (cdr expr)))
 	    (cond
-	      ((lambdap fn0) ;; function is a lambda expression, expand the body
-	       (let ((lambdax fn0) (params (cdr expr)))
-		 (let ((formals (cadr lambdax)) (body (caddr lambdax)))
-		   (mv-let (res num2)
-			   (expand-fn-help body fn-lst fn-waiting fn-extended num state)
-			   (mv-let (res2 num3)
-				   (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
-				   (mv (cons (list 'lambda formals res) res2) num3))))))
-	      ((and (not (lambdap fn0)) (consp fn0)) ;; for handling lists 
-	       (mv-let (res num2)
-		       (expand-fn-help fn0 fn-lst fn-waiting fn-extended num state)
-		       (mv-let (res2 num3)
-			       (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
-			       (mv (cons res res2) num3))))
 	      ((and (atom fn0) (exist fn0 fn-lst)) ;; function exists in the list
 	       (if (and (exist fn0 fn-waiting) (not (exist fn0 fn-extended))) ;; if fn0 exist in waiting list and not in extended list
 		   (mv-let (res fn-w-1 fn-e-1 num2)
@@ -159,20 +145,106 @@
 					   (mv (cons res2 res3) num4))))
 		   (prog2$ (cw "Error(function): possible recursive function call detected: ~q0" fn0)
 			   (mv expr num))))
-	      ((and (consp expr) (atom (car expr))) ;; when expr is a un-expandable function
+	      ((atom fn0) ;; when expr is a un-expandable function
 	       (mv-let (res num2)
 		       (expand-fn-help-list (cdr expr) fn-lst fn-waiting fn-extended num state)
 		       (mv (cons (car expr) res) num2)))
-	      (t (prog2$ 
- 		   (cw "Error(function): not a valid function application ~q0" fn0)
- 		   (mv expr num)))
+	      ((lambdap fn0) ;; function is a lambda expression, expand the body
+	       (let ((lambdax fn0) (params (cdr expr)))
+		 (let ((formals (cadr lambdax)) (body (caddr lambdax)))
+		   (mv-let (res num2)
+			   (expand-fn-help body fn-lst fn-waiting fn-extended num state)
+			   (mv-let (res2 num3)
+				   (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
+				   (mv (cons (list 'lambda formals res) res2) num3))))))
+	      ((and (not (lambdap fn0)) (consp fn0))
+	       (prog2$ (cw "composite LIST detected!")
+	       (mv-let (res num2)
+		       (expand-fn-help fn0 fn-lst fn-waiting fn-extended num state)
+		       (mv-let (res2 num3)
+			       (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
+			       (mv (cons res res2) num3)))))
 	      )))
 	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
- 		    (mv expr num))))))
+ 		    (mv expr num)))))
 )
+
+(mutual-recursion
+
+;; rewrite-formula-params
+(defun rewrite-formula-params (expr let-expr)
+  "rewrite-formula-params: a helper function for dealing with the param list of rewrite-formula function"
+  (if (endp expr)
+      nil
+      (cons (rewrite-formula (car expr) let-expr)
+	    (rewrite-formula-params (cdr expr) let-expr))))
+
+;; rewrite-formula
+;; rewrite the formula according to given hypothesis and let-expression
+(defun rewrite-formula (expr let-expr)
+  "rewrite-formula rewrites an expression by replacing corresponding terms in the let expression"
+  (cond ((atom expr) ;; if expr is an atom
+	 (let ((res-pair (assoc expr let-expr)))
+	   (if (equal res-pair nil)
+	       expr
+	       (cadr res-pair))))
+      ;; if expr is a consp
+	((consp expr)
+	 (let ((fn (car expr))
+	       (params (cdr expr)))
+	   (if (listp fn)
+	       ;; if first elem of expr is a list
+	       (cond
+		 ;; if it is a lambda expression
+		 ((lambdap fn)
+		  (let ((lambda-params (cadr fn))
+			(lambda-body (caddr fn)))
+		    (let ((res-pair (assoc-lambda
+				     lambda-body
+				     (create-assoc lambda-params params)
+				     let-expr)))
+		    (if (not (equal res-pair nil))
+			(cadr res-pair)
+			(cons (list 'lambda lambda-params (rewrite-formula lambda-body let-expr))
+			      (rewrite-formula-params params let-expr))))))
+		 ;; if it is a only a list, for handling nested list
+		 (t
+		  (cons (rewrite-formula fn let-expr)
+			(rewrite-formula-params params let-expr))))
+	       ;; if first elem of expr is an atom
+	       (let ((res-pair (assoc expr let-expr)))
+	       (cond (if (not (equal res-pair nil))
+			 (cadr res-pair)
+			 (cons fn (rewrite-formula-params params let-expr)))
+		     (t (cw "Error(function): ~q0 is not a valid function application." fn)))))))
+	;; if expr is nil
+	(t (cw "Error(function): nil expression."))))
+)
+
+;; augment-formula
+(defun augment-formula (expr new-hypo)
+  "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
+  (mv-let (decl-list hypo-list concl-list)
+	  (SMT-extract expr)
+	  (list 'implies
+		(list 'if decl-list (append-and hypo-list new-hypo) ''nil)
+		concl-list)))
+
+;; reform-let
+(defun reform-let (let-expr)
+  "reform-let: reforms a let expression for convenient fetch"
+  (let ((inverted-let-expr (invert-assoc let-expr)))
+  (if (assoc-no-repeat inverted-let-expr)
+      inverted-let-expr
+      (cw "Error(function): there's repetition in the associate list's values" let-expr))))
+
 ;; expand-fn
-(defun expand-fn (expr fn-lst state)
+(defun expand-fn (expr fn-lst let-expr new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
-  (mv-let (res-expr res-num)
-	  (expand-fn-help expr fn-lst fn-lst nil 0 state)
-	  (prog2$ (cw "The final index number: ~q0" res-num) res-expr)))
+  (let ((reformed-let-expr (reform-let let-expr)))
+    (mv-let (res-expr res-num)
+	    (expand-fn-help
+	     (rewrite-formula expr reformed-let-expr)
+	     fn-lst fn-lst nil 0 state)
+	    (prog2$ (cw "The final index number: ~q0" res-num)
+		    (augment-formula (rewrite-formula res-expr reformed-let-expr) new-hypo)))))

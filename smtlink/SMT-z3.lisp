@@ -82,7 +82,7 @@
 	     (cdr expanded-term-list) (1+ index)))))
 
 ;; my-prove
-(defun my-prove (term fn-lst fname)
+(defun my-prove (term fn-lst fname let-expr new-hypo)
   "my-prove: return the result of calling SMT procedure"
   (let ((file-dir (concatenate 'string
 			       *dir-files*
@@ -95,7 +95,7 @@
 				 fname
 				 "\_expand.log")))
     (mv-let (expanded-term-list num)
-	    (expand-fn term fn-lst state)
+	    (expand-fn term fn-lst let-expr new-hypo state)
 	    (prog2$ (cw "expand: ~q0" expanded-term-list)
 	    (prog2$ (my-prove-write-expander-file
 		     (my-prove-build-log-file

@@ -1,6 +1,6 @@
 (in-package "ACL2")
 
-(defstub acl2-my-prove (term fn-lst fname) (mv t nil))
+(defstub acl2-my-prove (term fn-lst fname let-expr new-hypo) (mv t nil))
 
 (program)
 
@@ -18,8 +18,8 @@
 
    (load "../smtlink/SMT-z3.lisp")
   
-   (defun acl2-my-prove (term fn-lst fname)
-     (my-prove term fn-lst fname)))
+   (defun acl2-my-prove (term fn-lst fname let-expr new-hypo)
+     (my-prove term fn-lst fname let-expr new-hypo)))
   
   ;; put fn-lst level and fname into the hint list
   (defun my-clause-processor (cl hint)
@@ -28,11 +28,11 @@
     (prog2$ (cw "Original clause(connect): ~q0"
 		(disjoin cl))
     (let ((fn-lst (cadr (assoc ':expand hint)))
-	  (fname (cadr (assoc ':python-file hint))))
-	  ;(let-expr (cadr (assoc ':let hint)))
-	  ;(hypo (cadr (assoc ':hypothesize hint))))
+	  (fname (cadr (assoc ':python-file hint)))
+	  (let-expr (cadr (assoc ':let hint)))
+	  (new-hypo (cadr (assoc ':hypothesize hint))))
       (mv-let (res expanded-cl)
-	      (acl2-my-prove (disjoin cl) fn-lst fname)
+	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo)
 	      (if res
 		  (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" expanded-cl)
 			  (list (cons (list 'not expanded-cl) cl)))

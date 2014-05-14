@@ -1,3 +1,37 @@
 1. SMT-function and SMT-translator have termination problem
 2. how to arrage the files, include and certify books?
 
+;; ====================================================
+When replacing part of the formula with the let expression,
+there are several places the replacement can occur:
+before the expansion, while the expansion and after the
+expassion.
+
+After the expansion make sense because functions defined
+by user can have terms that requires user simplification.
+And before the expansion also kind of make sense because
+it guides ACL2 to prove some given properties first and
+then this result may help prove the theorem. During the
+expansion may make sense too, and it can be cool, but we
+are just not so sure how to control that kind of rewriting.
+It can be convenient that part of the expansion is
+rewritten and part of it is not, and this is a better way
+to guide ACL2.
+
+So temporarily, we'll rewrite the formula before and after
+the expansion. No other time.
+
+;; ===================================================
+
+I'm not supporting recognizing lambda expression for let
+expressions. The reason is that, it's kind of weird that
+the user would think about what the expansion is like and
+take something spanning two function expansions as some
+hint hypothesis. It could be possible, but weird. And the
+implementation can be really tough. I can ask Mark this
+question tomorrow.
+
+-- actually, I think I can solve the problem by expanding
+   the let-expression's functions. ... tomorrow ... nope..
+   this is not a problem...
+

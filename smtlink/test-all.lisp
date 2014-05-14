@@ -127,3 +127,46 @@
 			    (:python-file "test5")
 			    (:let ())
 			    (:hypothesize ()))))))
+
+;; test6: user given hypothesis
+;; a - real
+;; b - real
+;; gamma - real
+;; m - integer
+;; n - integer
+;; 0 < gamma < 1
+;; 0 < m < n
+;; adapted from test4: a^2 + b^2 >= 2ab
+(defun a6 (x y) (* x y))
+(defun b6 (x) (a6 2 x))
+(defun c6 (x y) (+ x y))
+(defun d6 (x) (a6 x x))
+(defun e6 (x) (- x))
+(defun f6 (x y) (c6 x (e6 y)))
+(defun foo6 (x n) (expt x n))
+
+(defthm test6
+    (implies (and (and (rationalp a)
+		       (rationalp b)
+		       (rationalp gamma)
+		       (integerp m)
+		       (integerp n))
+		  (and (> gamma 0)
+		       (< gamma 1)
+		       (> m 0)
+		       (< m n)))
+	     (>= (a6 (expt gamma m)
+		    (f4 (d4 (c4 a b))
+			(a4 (b4 a) b)))
+		 (a6 (foo6 gamma n)
+		    (a4 (b4 a) b))))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause
+			 '( (:expand (a6 b6 c6 d6 e6 f6 foo6))
+			    (:python-file "test6")
+			    (:let ((expt-gamma-m (expt gamma m))
+				   (expt-gamma-n (expt gamma n))))
+			    (:hypothesize (> expt-gamma-m expt-gamma-n)))))))
+
