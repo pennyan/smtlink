@@ -8,9 +8,9 @@
   (mv-let (finishedp exit-status lines)
           (SMT-run filename)
 	  (cond ((equal finishedp nil) 
-		 (cw "Warning: the command was interrupted."))
+		 (er soft 'top-level  "Warning: the command was interrupted."))
 		((not (equal exit-status 0)) 
-		 (cw "Z3 failure: ~q0" lines))
+		 (er soft 'top-level "Z3 failure: ~q0" lines))
 		(t (if (equal (car lines) "proved")
 		       t
 		     (cw "~q0" lines))))))

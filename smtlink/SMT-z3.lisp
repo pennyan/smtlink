@@ -3,6 +3,7 @@
 (include-book "./SMT-run")
 (include-book "./SMT-interpreter")
 (include-book "./SMT-function")
+(include-book "./helper")
 
 (mutual-recursion
 ;; lisp-code-print-help
@@ -81,6 +82,36 @@
 	    (my-prove-build-log-file
 	     (cdr expanded-term-list) (1+ index)))))
 
+;; translate added hypothesis to underling representation
+(defun translate-hypo (hypo)
+  "translate-hypo: translate added hypothesis to underling representation"
+  (if (endp hypo)
+      nil
+      (cons (mv-let (erp res state)
+		    (translate (car hypo) t nil t nil (w state) state)
+		    (if (endp res) (car hypo) res))
+	    (translate-hypo (cdr hypo)))))
+
+;; translate a let binding for added hypothesis
+(defun translate-let (let-expr)
+  "translate-let: translate a let binding for added hypo"
+  (if (endp let-expr)
+      nil
+      (cons (list (caar let-expr)
+		  (mv-let (erp res state)
+			  (translate (cadar let-expr) t nil t nil (w state) state)
+			  (if (endp res) (cadar let-expr) res)))
+	    (translate-let (cdr let-expr)))))
+
+;; construct augmented result
+(defun augment-hypothesis (rewritten-term let-expr orig-param)
+  "augment-hypothesis: augment the returned clause with \
+new hypothesis in lambda expression"
+  (if (endp let-expr)
+      rewritten-term
+      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
+	    (append (assoc-get-value let-expr) orig-param))))
+
 ;; my-prove
 (defun my-prove (term fn-lst fname let-expr new-hypo)
   "my-prove: return the result of calling SMT procedure"
@@ -94,9 +125,11 @@
 				 "/"
 				 fname
 				 "\_expand.log")))
-    (mv-let (expanded-term-list num)
-	    (expand-fn term fn-lst let-expr new-hypo state)
-	    (prog2$ (cw "expand: ~q0" expanded-term-list)
+    (let ((let-expr-translated (translate-let let-expr))
+	  (hypo-translated (translate-hypo new-hypo)))
+    (mv-let (expanded-term-list num orig-param)
+	    (expand-fn term fn-lst let-expr-translated hypo-translated state)
+	    (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
 	    (prog2$ (my-prove-write-expander-file
 		     (my-prove-build-log-file
 		      (cons term expanded-term-list) 0)
@@ -105,5 +138,5 @@
 			     expanded-term-list
 			     file-dir)
 			    (if (car (SMT-interpreter file-dir))
-				(mv t expanded-term-list)
-				(mv nil expanded-term-list))))))))
+				(mv t (augment-hypothesis expanded-term-list let-expr-translated orig-param))
+				(mv nil (augment-hypothesis expanded-term-list let-expr-translated ))))))))))

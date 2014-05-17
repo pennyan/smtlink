@@ -12,7 +12,7 @@
 	(mv (intern-in-package-of-symbol
 	     (concatenate 'string "var" index) 'ACL2)
 	    (1+ num))
-      (prog2$ (cw "Error(function): create name failed: ~q0!" index)
+      (prog2$ (er soft 'top-level "Error(function): create name failed: ~q0!" index)
 	      (mv nil num)))))
 
 ;; replace-var
@@ -143,7 +143,7 @@
 				   (mv-let (res3 num4)
 					   (expand-fn-help-list params fn-lst fn-waiting fn-extended num3 state)
 					   (mv (cons res2 res3) num4))))
-		   (prog2$ (cw "Error(function): possible recursive function call detected: ~q0" fn0)
+		   (prog2$ (er soft 'top-level "Error(function): possible recursive function call detected: ~q0" fn0)
 			   (mv expr num))))
 	      ((atom fn0) ;; when expr is a un-expandable function
 	       (mv-let (res num2)
@@ -158,14 +158,13 @@
 				   (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
 				   (mv (cons (list 'lambda formals res) res2) num3))))))
 	      ((and (not (lambdap fn0)) (consp fn0))
-	       (prog2$ (cw "composite LIST detected!")
 	       (mv-let (res num2)
 		       (expand-fn-help fn0 fn-lst fn-waiting fn-extended num state)
 		       (mv-let (res2 num3)
 			       (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
-			       (mv (cons res res2) num3)))))
+			       (mv (cons res res2) num3))))
 	      )))
-	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
+	 (t (prog2$ (er soft 'top-level "Error(function): strange expression == ~q0" expr)
  		    (mv expr num)))))
 )
 
@@ -184,7 +183,7 @@
 (defun rewrite-formula (expr let-expr)
   "rewrite-formula rewrites an expression by replacing corresponding terms in the let expression"
   (cond ((atom expr) ;; if expr is an atom
-	 (let ((res-pair (assoc expr let-expr)))
+	 (let ((res-pair (assoc-equal expr let-expr)))
 	   (if (equal res-pair nil)
 	       expr
 	       (cadr res-pair))))
@@ -212,23 +211,27 @@
 		  (cons (rewrite-formula fn let-expr)
 			(rewrite-formula-params params let-expr))))
 	       ;; if first elem of expr is an atom
-	       (let ((res-pair (assoc expr let-expr)))
-	       (cond (if (not (equal res-pair nil))
-			 (cadr res-pair)
-			 (cons fn (rewrite-formula-params params let-expr)))
-		     (t (cw "Error(function): ~q0 is not a valid function application." fn)))))))
+	       (let ((res-pair (assoc-equal expr let-expr)))
+		 (if (not (equal res-pair nil))
+		     ;;(prog2$ (er soft 'top-level "~q0" (cadr res-pair))
+		     (cadr res-pair)
+		     (cons fn (rewrite-formula-params params let-expr)))))))
 	;; if expr is nil
-	(t (cw "Error(function): nil expression."))))
+	(t (er soft 'top-level "Error(function): nil expression."))))
 )
 
 ;; augment-formula
-(defun augment-formula (expr new-hypo)
+(defun augment-formula (expr new-decl new-hypo)
   "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
   (mv-let (decl-list hypo-list concl-list)
 	  (SMT-extract expr)
-	  (list 'implies
-		(list 'if decl-list (append-and hypo-list new-hypo) ''nil)
-		concl-list)))
+	  (mv (list 'implies
+		    (list 'if
+			  (append-and-decl decl-list new-decl)
+			  (append-and-hypo hypo-list new-hypo)
+			  ''nil)
+		    concl-list)
+	      (get-orig-param decl-list))))
 
 ;; reform-let
 (defun reform-let (let-expr)
@@ -236,15 +239,18 @@
   (let ((inverted-let-expr (invert-assoc let-expr)))
   (if (assoc-no-repeat inverted-let-expr)
       inverted-let-expr
-      (cw "Error(function): there's repetition in the associate list's values" let-expr))))
+      (er soft 'top-level "Error(function): there's repetition in the associate list's values ~q0" let-expr))))
 
 ;; expand-fn
 (defun expand-fn (expr fn-lst let-expr new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
   (let ((reformed-let-expr (reform-let let-expr)))
     (mv-let (res-expr res-num)
-	    (expand-fn-help
-	     (rewrite-formula expr reformed-let-expr)
-	     fn-lst fn-lst nil 0 state)
-	    (prog2$ (cw "The final index number: ~q0" res-num)
-		    (augment-formula (rewrite-formula res-expr reformed-let-expr) new-hypo)))))
+	    (expand-fn-help (rewrite-formula expr reformed-let-expr)
+			    fn-lst fn-lst nil 0 state)
+	    (mv-let (rewritten-expr orig-param)
+		    (augment-formula (rewrite-formula res-expr reformed-let-expr)
+				     (assoc-get-value reformed-let-expr)
+				     new-hypo)
+		    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
+		    (mv rewritten-expr res-num orig-param))))))

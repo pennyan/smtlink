@@ -35,3 +35,29 @@ question tomorrow.
    the let-expression's functions. ... tomorrow ... nope..
    this is not a problem...
 
+
+05/13
+do we want type for hypothesis variables?
+helper.lisp : append-and-decl and append-and-hyp needs to
+combine. Need type information
+
+variable names in lisp, if has dashes, won't work in z3!!!!
+
+When giving new hypotheses, the format is not in the underneath
+form. I don't really want to user to figure out the form.
+How to do that?
+
+05/15
+I need to solve above three problems today!
+
+05/16
+(let (...) clause) -- not working
+I tried it in the command, cannot prove......
+done!
+
+05/17
+(let (...) clause) done
+new hypotheses done
+variable name?
+type inference?
+

@@ -1,6 +1,7 @@
 ;; translate-SMT-formula translate a SMT formula in ACL2 into Z3 python code
 (in-package "ACL2")
 (include-book "SMT-formula")
+(include-book "helper")
 
 ;; -------------- translate operator  -----------:
 
@@ -204,7 +205,7 @@
 	  ((equal expression 't) "True")
 	  ((is-SMT-variable expression)
 	   (translate-variable expression))
-	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression)))))
+	  (t (er soft 'top-level "Error(translator): Invalid number or variable: ~q0" expression)))))
 )
 
 ;; ----------------------- translate-hypothesis --------------------------:

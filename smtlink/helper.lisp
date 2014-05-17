@@ -36,19 +36,68 @@
     (implies (exist a listx)
 	     (< (len (my-delete listx a)) (len listx))))
 
-;; append-and
-(defun append-and (listx listy)
-  "append-and: append two and lists together in the underneath representation"
+;; dash-to-underscore-char
+(defun dash-to-underscore-char (charx)
+  (if (equal charx '-)
+      '_
+      charx))
+
+;; dash-to-underscore-helper
+(defun dash-to-underscore-helper (name-list)
+  (if (endp name-list)
+      nil
+      (cons (dash-to-underscore-char (car name-list))
+	    (dash-to-underscore-helper (cdr name-list)))))
+
+;; dash-to-underscore
+(defun dash-to-underscore (name)
+  (intern-in-package-of-symbol
+   (coerce
+    (dash-to-underscore-helper
+     (coerce (symbol-name name)'list))
+    'string)
+   'ACL2))
+
+;; append-and-decl
+(defun append-and-decl (listx listy)
+  "append-and-decl: append two and lists together in the underneath representation"
   (if (endp listy)
       listx
-      (list 'if listx listy 'nil)))
+      (append-and-decl
+       (list 'if (list 'rationalp (car listy)) listx ''nil)
+       (cdr listy))))
+
+;; append-and-hypo
+(defun append-and-hypo (listx listy)
+  "append-and-hypo: append two and lists together in the underneath representation"
+  (if (endp listy)
+      listx
+      (append-and-hypo
+       (list 'if (car listy) listx ''nil)
+       (cdr listy))))
+
+;; assoc-get-value
+(defun assoc-get-value (listx)
+  "assoc-get-value: get all values out of an associate list"
+  (if (endp listx)
+      nil
+      (cons (cadar listx)
+	    (assoc-get-value (cdr listx)))))
+
+;; assoc-get-key
+(defun assoc-get-key (listx)
+  "assoc-get-key: get all keys out of an associate list"
+  (if (endp listx)
+      nil
+      (cons (caar listx)
+	    (assoc-get-key (cdr listx)))))
 
 ;; assoc-no-repeat
 (defun assoc-no-repeat (assoc-list)
   "assoc-no-repeat: check if an associate list has repeated keys"
   (if (endp assoc-list)
       t
-      (if (equal (assoc (caar assoc-list) (cdr assoc-list)) nil)
+      (if (equal (assoc-equal (caar assoc-list) (cdr assoc-list)) nil)
 	  (assoc-no-repeat (cdr assoc-list))
 	  nil)))
 
@@ -57,7 +106,7 @@
   "invert-assoc: invert the key and value pairs in an associate list"
   (if (endp assoc-list)
       nil
-      (cons (list (cadr (car assoc-list)) (car (car assoc-list)))
+      (cons (list (cadar assoc-list) (caar assoc-list))
 	   (invert-assoc (cdr assoc-list)))))
 
 ;; create-assoc-helper
@@ -78,7 +127,7 @@
  (defun replace-lambda-params (expr lambda-params-mapping)
    "replace-lambda-params: replace params in the expression using the mapping"
    (if (atom expr)
-       (let ((res (assoc expr lambda-params-mapping)))
+       (let ((res (assoc-equal expr lambda-params-mapping)))
 	 (if (equal res nil)
 	     expr
 	     (cadr res)))
@@ -90,7 +139,17 @@
   "assoc-lambda: replacing params in expression using lambda-params-mapping \
 and check if the resulting term exist in assoc-list keys. Return the resulting \
 pair from assoc-list."
-  (b* ((new-expr (replace-lambda-params expr lambda-params-mapping))
-       (final-res (assoc new-expr assoc-list)))
-      final-res)
-  )
+  (let ((new-expr (replace-lambda-params expr lambda-params-mapping)))
+       (assoc-equal new-expr assoc-list)))
+
+;; combine
+(defun combine (lista listb)
+  "combine: takes two items, either atoms or lists, then combine them together according to some rule. E.g. if either element is nil, return the other one; if a is atom and b is list, do cons; if both are lists, do append; if a is list and b is atom, attach b at the end; if both are atoms, make a list"
+  (cond ((and (atom lista) (atom listb) (not (equal lista nil)) (not (equal listb nil)))
+	 (list lista listb))
+	((and (atom lista) (listp listb) (not (equal lista nil)))
+	 (cons lista listb))
+	((and (listp lista) (atom listb) (not (equal listb nil)))
+	 (append lista (list listb)))
+	((and (listp lista) (listp listb))
+	 (append lista listb))))

@@ -34,7 +34,7 @@
 	   (concatenate 'string
 			(coerce (list (car slist)) 'STRING)
 			(coerce-str-and-char-to-str (cdr slist))))
-	  (t (cw "Error(run): Invalid list ~q0." (car slist))))))
+	  (t (er soft 'top-level "Error(run): Invalid list ~q0." (car slist))))))
 
 ;; write-head
 (defun write-head ()

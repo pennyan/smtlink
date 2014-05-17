@@ -14,10 +14,10 @@
 
   (progn!
 
-   (set-raw-mode-on state)
+   (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
 
    (load "../smtlink/SMT-z3.lisp")
-  
+
    (defun acl2-my-prove (term fn-lst fname let-expr new-hypo)
      (my-prove term fn-lst fname let-expr new-hypo)))
   
@@ -26,16 +26,18 @@
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
     (prog2$ (cw "Original clause(connect): ~q0"
-		(disjoin cl))
+	        (disjoin cl))
     (let ((fn-lst (cadr (assoc ':expand hint)))
 	  (fname (cadr (assoc ':python-file hint)))
 	  (let-expr (cadr (assoc ':let hint)))
+	  ;; translate formulas in let associate list into underling representation
 	  (new-hypo (cadr (assoc ':hypothesize hint))))
       (mv-let (res expanded-cl)
 	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo)
 	      (if res
 		  (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" expanded-cl)
-			  (list (cons (list 'not expanded-cl) cl)))
+			  (list (cons (list 'not expanded-cl)
+				      cl)))
 		(prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")
 			(list cl)))))))
@@ -47,3 +49,4 @@
   my-clause-processor
   nil
   :ttag my-cl-proc)
+
