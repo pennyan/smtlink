@@ -221,13 +221,13 @@
 )
 
 ;; augment-formula
-(defun augment-formula (expr new-decl new-hypo)
+(defun augment-formula (expr new-decl let-type new-hypo)
   "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
   (mv-let (decl-list hypo-list concl-list)
 	  (SMT-extract expr)
 	  (mv (list 'implies
 		    (list 'if
-			  (append-and-decl decl-list new-decl)
+			  (append-and-decl decl-list new-decl let-type)
 			  (append-and-hypo hypo-list new-hypo)
 			  ''nil)
 		    concl-list)
@@ -242,7 +242,7 @@
       (er soft 'top-level "Error(function): there's repetition in the associate list's values ~q0" let-expr))))
 
 ;; expand-fn
-(defun expand-fn (expr fn-lst let-expr new-hypo state)
+(defun expand-fn (expr fn-lst let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
   (let ((reformed-let-expr (reform-let let-expr)))
     (mv-let (res-expr res-num)
@@ -251,6 +251,7 @@
 	    (mv-let (rewritten-expr orig-param)
 		    (augment-formula (rewrite-formula res-expr reformed-let-expr)
 				     (assoc-get-value reformed-let-expr)
+				     let-type
 				     new-hypo)
 		    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
 		    (mv rewritten-expr res-num orig-param))))))

@@ -1,6 +1,6 @@
 (in-package "ACL2")
 
-(defstub acl2-my-prove (term fn-lst fname let-expr new-hypo) (mv t nil))
+(defstub acl2-my-prove (term fn-lst fname let-expr new-hypo) (mv t nil nil))
 
 (program)
 
@@ -32,15 +32,17 @@
 	  (let-expr (cadr (assoc ':let hint)))
 	  ;; translate formulas in let associate list into underling representation
 	  (new-hypo (cadr (assoc ':hypothesize hint))))
-      (mv-let (res expanded-cl)
+      (mv-let (res expanded-cl type-related-theorem)
 	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo)
 	      (if res
-		  (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" expanded-cl)
-			  (list (cons (list 'not expanded-cl)
-				      cl)))
-		(prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
-                  my-clause-processor and indicated hint.~|")
-			(list cl)))))))
+		  (if (not (equal type-related-theorem nil))
+		      (let ((res-clause (list (cons (list 'not expanded-cl) cl) type-related-theorem)))
+			(prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause))
+		      (let ((res-clause (list (cons (list 'not expanded-cl) cl))))
+			(prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause)))
+		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
+                                 my-clause-processor and indicated hint.~|")
+			  (list cl)))))))
 
   (push-untouchable acl2-my-prove t)
   )

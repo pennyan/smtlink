@@ -100,7 +100,8 @@
       (cons (list (caar let-expr)
 		  (mv-let (erp res state)
 			  (translate (cadar let-expr) t nil t nil (w state) state)
-			  (if (endp res) (cadar let-expr) res)))
+			  (if (endp res) (cadar let-expr) res))
+		  (caddar let-expr))
 	    (translate-let (cdr let-expr)))))
 
 ;; construct augmented result
@@ -111,6 +112,31 @@ new hypothesis in lambda expression"
       rewritten-term
       (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
 	    (append (assoc-get-value let-expr) orig-param))))
+
+;;separate-type
+(defun separate-type (let-expr)
+  "separate-type: separate let expression types from let expression, I do it in this way for convenience. I might want to use them as a whole in the future."
+  (if (endp let-expr)
+      (mv nil nil)
+      (mv-let (res-let-expr res-let-type)
+	      (separate-type (cdr let-expr))
+	      (mv (cons (list (caar let-expr) (cadar let-expr))
+			res-let-expr)
+		  (cons (caddar let-expr)
+			res-let-type)))))
+
+;; create-type-theorem
+(defun create-type-theorem (decl-hypo-list let-expr let-type)
+  "create-type-theorem: create a theorem for proving types"
+  (if (endp let-expr)
+      nil
+      (cons (list 'implies
+		  (list 'if (cadr decl-hypo-list)
+			(append-and-hypo (caddr decl-hypo-list)
+					 (list (list 'equal (caar let-expr) (cadar let-expr))))
+			''nil)
+		  (list (car let-type) (caar let-expr)))
+	    (create-type-theorem decl-hypo-list (cdr let-expr) (cdr let-type)))))
 
 ;; my-prove
 (defun my-prove (term fn-lst fname let-expr new-hypo)
@@ -125,18 +151,27 @@ new hypothesis in lambda expression"
 				 "/"
 				 fname
 				 "\_expand.log")))
-    (let ((let-expr-translated (translate-let let-expr))
+    (let ((let-expr-translated-with-type (translate-let let-expr))
 	  (hypo-translated (translate-hypo new-hypo)))
-    (mv-let (expanded-term-list num orig-param)
-	    (expand-fn term fn-lst let-expr-translated hypo-translated state)
-	    (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
-	    (prog2$ (my-prove-write-expander-file
-		     (my-prove-build-log-file
-		      (cons term expanded-term-list) 0)
-		     expand-dir)
-		    (prog2$ (my-prove-write-file
-			     expanded-term-list
-			     file-dir)
-			    (if (car (SMT-interpreter file-dir))
-				(mv t (augment-hypothesis expanded-term-list let-expr-translated orig-param))
-				(mv nil (augment-hypothesis expanded-term-list let-expr-translated ))))))))))
+      (mv-let (let-expr-translated let-type)
+	      (separate-type let-expr-translated-with-type)
+	      (mv-let (expanded-term-list num orig-param)
+		      (expand-fn term fn-lst let-expr-translated let-type hypo-translated state)
+		      (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
+			      (prog2$ (my-prove-write-expander-file
+				       (my-prove-build-log-file
+					(cons term expanded-term-list) 0)
+				       expand-dir)
+				      (prog2$ (my-prove-write-file
+					       expanded-term-list
+					       file-dir)
+					      (let ((type-theorem (create-type-theorem (cadr term)
+										       let-expr-translated
+										       let-type))
+						    (aug-theorem (augment-hypothesis expanded-term-list
+										     let-expr-translated
+										     orig-param)))
+						(if (car (SMT-interpreter file-dir))
+						    (mv t aug-theorem type-theorem)
+						    (mv nil aug-theorem type-theorem)))))))))))
+  

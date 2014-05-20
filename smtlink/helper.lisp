@@ -59,13 +59,14 @@
    'ACL2))
 
 ;; append-and-decl
-(defun append-and-decl (listx listy)
+(defun append-and-decl (listx listy let-type)
   "append-and-decl: append two and lists together in the underneath representation"
   (if (endp listy)
       listx
       (append-and-decl
-       (list 'if (list 'rationalp (car listy)) listx ''nil)
-       (cdr listy))))
+       (list 'if (list (car let-type) (car listy)) listx ''nil)
+       (cdr listy)
+       (cdr let-type))))
 
 ;; append-and-hypo
 (defun append-and-hypo (listx listy)

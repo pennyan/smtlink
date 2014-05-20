@@ -56,8 +56,8 @@ I tried it in the command, cannot prove......
 done!
 
 05/17
-(let (...) clause) done
-new hypotheses done
-variable name?
-type inference?
+(let (...) clause) -- done
+new hypotheses -- done
+variable name? -- ??
+type inference? -- done
 

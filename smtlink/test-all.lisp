@@ -171,8 +171,8 @@
     (my-clause-processor clause
 			 '( (:expand (a6 b6 c6 d6 e6 f6 foo6))
 			    (:python-file "test6")
-			    (:let ((expt_gamma_m (expt gamma m))
-				   (expt_gamma_n (expt gamma n))))
+			    (:let ((expt_gamma_m (expt gamma m) rationalp)
+				   (expt_gamma_n (expt gamma n) rationalp)))
 			    (:hypothesize ((< expt_gamma_n expt_gamma_m)
 					   (> expt_gamma_m 0)
 					   (> expt_gamma_n 0))))))))
