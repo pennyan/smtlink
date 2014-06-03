@@ -1,0 +1,4 @@
+May 23.
+2 problems:
+1. let expression has newly introduced variables that user can not predict ahead of time, one approach is to leave it there and let the user decide what to feed to the new hypothesis.
+2. function B-term's lambda expression and only one parameter, then we replace a term in it with the newly introduced variable, this variable is created but the lambda expression's param list does not have it.

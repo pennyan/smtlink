@@ -14,8 +14,9 @@
 ; Define intermediate variables
 (defun equ-c ()
   (- (* (/ *f0* (* *beta* *N* *fref*)) (+ 1 (* *alpha* *v0*))) (/ 1 *beta*)))
-(defun gamma ()
-  (/ (- 1 *Kt*) (* 2 31415926/10000000)))
+;;(defun gamma ()
+;;  (/ (- 1 *Kt*) (* 2 31415926/10000000)))
+(defun gamma () (/ 1 2))
 (defun mu ()
   (/ *f0* (* *N* *fref*)))
 

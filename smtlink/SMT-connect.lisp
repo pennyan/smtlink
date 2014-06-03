@@ -36,7 +36,7 @@
 	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo)
 	      (if res
 		  (if (not (equal type-related-theorem nil))
-		      (let ((res-clause (list (cons (list 'not expanded-cl) cl) type-related-theorem)))
+		      (let ((res-clause (cons (cons (list 'not expanded-cl) cl) type-related-theorem)))
 			(prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause))
 		      (let ((res-clause (list (cons (list 'not expanded-cl) cl))))
 			(prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause)))

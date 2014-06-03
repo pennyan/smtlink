@@ -1,4 +1,4 @@
-;; There are two files for the proof of recurrence model of the 
+˘;; There are two files for the proof of recurrence model of the 
 ;; DPLL: global.lisp, DPLL_functions.lisp and DPLL_theorems.lisp.
 
 ;; DPLL_theorems.lisp 
@@ -439,12 +439,6 @@
                 (<= p0 (- (/ (* (mu) (+ 1 (* *alpha* *v0*))) (+ 1 (* *beta* (+ m 1) *g1*))) 1)))
            (< (p-2n-1 p0 m) 0))
   :rule-classes nil)
-
-;; ; Induction case
-;; (defthm B-smaller-than-0-lemma1-lemma1
-;;     (implies (and (and ())
-;; 		  ())
-;; 	     ()))
 
 ;; ;; B-smaller-than-0-lemma1
 ;; (defthm B-smaller-than-0-lemma1

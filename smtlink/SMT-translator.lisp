@@ -181,11 +181,15 @@
 	     (list '\(
 		   (translate-operator (caar expression))
 		   #\Space
-		   (make-lambda-list (cadr (car expression)))
+		   (if (endp (cadr (car expression)))
+		       #\Space
+		       (make-lambda-list (cadr (car expression))))
 		   '\:
 		   (translate-expression (caddr (car expression)))
 		   '\) '\(
-		   (translate-expression-long (cdr expression))
+		   (if (endp (cdr expression))
+		       #\Space
+		       (translate-expression-long (cdr expression)))
 		   '\)))
 	    ((and (is-SMT-operator (car expression))
 		  (equal (car expression) 'list))
@@ -201,11 +205,11 @@
 	    (t (list "s.unknown" '\( (translate-expression-long (cdr expression)) '\))))
     (cond ((is-SMT-number expression)
 	   (translate-number expression))
-	  ((equal expression 'nil) "False")
+	  ((equal expression 'nil) "False") ;; what if when 'nil is a list?
 	  ((equal expression 't) "True")
 	  ((is-SMT-variable expression)
 	   (translate-variable expression))
-	  (t (er soft 'top-level "Error(translator): Invalid number or variable: ~q0" expression)))))
+	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression)))))
 )
 
 ;; ----------------------- translate-hypothesis --------------------------:

@@ -130,11 +130,11 @@ new hypothesis in lambda expression"
   "create-type-theorem: create a theorem for proving types"
   (if (endp let-expr)
       nil
-      (cons (list 'implies
-		  (list 'if (cadr decl-hypo-list)
-			(append-and-hypo (caddr decl-hypo-list)
-					 (list (list 'equal (caar let-expr) (cadar let-expr))))
-			''nil)
+      (cons (list (list 'not
+			(list 'if (cadr decl-hypo-list)
+			      (append-and-hypo (caddr decl-hypo-list)
+					       (list (list 'equal (caar let-expr) (cadar let-expr))))
+			      ''nil))
 		  (list (car let-type) (caar let-expr)))
 	    (create-type-theorem decl-hypo-list (cdr let-expr) (cdr let-type)))))
 

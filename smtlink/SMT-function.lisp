@@ -12,7 +12,7 @@
 	(mv (intern-in-package-of-symbol
 	     (concatenate 'string "var" index) 'ACL2)
 	    (1+ num))
-      (prog2$ (er soft 'top-level "Error(function): create name failed: ~q0!" index)
+      (prog2$ (cw "Error(function): create name failed: ~q0!" index)
 	      (mv nil num)))))
 
 ;; replace-var
@@ -70,13 +70,19 @@
 	(body (end (meta-extract-formula fn state)))
 	;; the last element is the body
 	)
-    (mv-let (var-list num1)
-	    (make-var-list formal num)
-	    (mv (list 'lambda (assoc-fetch-value var-list)
-		      (set-fn-body body var-list))
-		(my-delete fn-waiting fn)
-		(cons fn fn-extended)
-		num1))))
+    (if (endp formal)
+	(prog2$ (cw "formal: ~q0, body: ~q1" formal body)
+	(mv body
+	    (my-delete fn-waiting fn)
+	    (cons fn fn-extended)
+	    num))
+	(mv-let (var-list num1)
+		(make-var-list formal num)
+		(mv (list 'lambda (assoc-fetch-value var-list)
+			  (set-fn-body body var-list))
+		    (my-delete fn-waiting fn)
+		    (cons fn fn-extended)
+		    num1)))))
 
 ;; lambdap
 (defun lambdap (expr)
@@ -140,10 +146,12 @@
 			   (expand-a-fn fn0 fn-waiting fn-extended num state) ;; expand a function
 			   (mv-let (res2 num3)
 				   (expand-fn-help res fn-lst fn-w-1 fn-e-1 num2 state)
-				   (mv-let (res3 num4)
-					   (expand-fn-help-list params fn-lst fn-waiting fn-extended num3 state)
-					   (mv (cons res2 res3) num4))))
-		   (prog2$ (er soft 'top-level "Error(function): possible recursive function call detected: ~q0" fn0)
+				   (if (endp params)
+				       (mv res2 num3)
+				       (mv-let (res3 num4)
+					       (expand-fn-help-list params fn-lst fn-waiting fn-extended num3 state)
+					       (mv (cons res2 res3) num4)))))
+		   (prog2$ (cw "Error(function): possible recursive function call detected: ~q0" fn0)
 			   (mv expr num))))
 	      ((atom fn0) ;; when expr is a un-expandable function
 	       (mv-let (res num2)
@@ -164,7 +172,7 @@
 			       (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
 			       (mv (cons res res2) num3))))
 	      )))
-	 (t (prog2$ (er soft 'top-level "Error(function): strange expression == ~q0" expr)
+	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
  		    (mv expr num)))))
 )
 
@@ -213,11 +221,10 @@
 	       ;; if first elem of expr is an atom
 	       (let ((res-pair (assoc-equal expr let-expr)))
 		 (if (not (equal res-pair nil))
-		     ;;(prog2$ (er soft 'top-level "~q0" (cadr res-pair))
 		     (cadr res-pair)
 		     (cons fn (rewrite-formula-params params let-expr)))))))
 	;; if expr is nil
-	(t (er soft 'top-level "Error(function): nil expression."))))
+	(t (cw "Error(function): nil expression."))))
 )
 
 ;; augment-formula
@@ -239,7 +246,7 @@
   (let ((inverted-let-expr (invert-assoc let-expr)))
   (if (assoc-no-repeat inverted-let-expr)
       inverted-let-expr
-      (er soft 'top-level "Error(function): there's repetition in the associate list's values ~q0" let-expr))))
+      (cw "Error(function): there's repetition in the associate list's values ~q0" let-expr))))
 
 ;; expand-fn
 (defun expand-fn (expr fn-lst let-expr let-type new-hypo state)

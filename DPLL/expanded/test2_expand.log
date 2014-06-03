@@ -1,0 +1,31 @@
+level 0:
+(IMPLIES 
+  (IF 
+    (RATIONALP Y) 
+    (< '1 Y) 'nil) 
+  (< '12 
+    (BAR2 
+      (FOO2 Y))))
+
+level 1:IMPLIES
+
+level 2:
+(IF 
+  (RATIONALP Y) 
+  (< '1 Y) 'nil)
+
+level 3:
+(< '12 
+  (
+    (LAMBDA 
+      (var0) 
+      (BINARY-* '2 
+        (
+          (LAMBDA 
+            (var1) 
+            (BINARY-+ var1 '3)) var0))) 
+    (
+      (LAMBDA 
+        (var2) 
+        (BINARY-+ var2 '3)) Y)))
+
