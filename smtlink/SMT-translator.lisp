@@ -1,6 +1,7 @@
 ;; translate-SMT-formula translate a SMT formula in ACL2 into Z3 python code
 (in-package "ACL2")
 (include-book "SMT-formula")
+(include-book "helper")
 
 ;; -------------- translate operator  -----------:
 
@@ -91,42 +92,42 @@
 	    (cons #\Newline (translate-constant-list (cdr const-list))))
     nil))
 
-;; check-const
-(defun check-const (expr)
-  "check-const: check to see if an expression is a constant"
-  (if (and (atom expr)
-	   (let ((expr-list (coerce (symbol-name expr) 'list)))
-	     (and (equal #\* (car expr-list))
-		  (equal #\* (nth (1- (len expr-list)) expr-list)))))
-      t
-    nil))
+;; ;; check-const
+;; (defun check-const (expr)
+;;   "check-const: check to see if an expression is a constant"
+;;   (if (and (atom expr)
+;; 	   (let ((expr-list (coerce (symbol-name expr) 'list)))
+;; 	     (and (equal #\* (car expr-list))
+;; 		  (equal #\* (nth (1- (len expr-list)) expr-list)))))
+;;       t
+;;     nil))
 
-;; get-constant-list-help
-(defun get-constant-list-help (expr const-list)
-  "get-constant-list-help: check all constants in a clause"
-  (cond
-    ( (consp expr)
-      (let ((const-list-2 (get-constant-list-help (car expr) const-list)))
-	(get-constant-list-help (cdr expr) const-list-2))
-    )
-    ( (check-const expr)
-      (mv-let (keyword name value)
-	      (pe expr) ;; pe will not be working for this
-	      (cons (list expr (translate-number value)) const-list))
-      )
-    ( (atom expr)
-      (get-constant-list-help (cdr expr) const-list)
-      )
-    ( t
-      const-list
-      )
-    )
-  )
+;; ;; get-constant-list-help
+;; (defun get-constant-list-help (expr const-list)
+;;   "get-constant-list-help: check all constants in a clause"
+;;   (cond
+;;     ( (consp expr)
+;;       (let ((const-list-2 (get-constant-list-help (car expr) const-list)))
+;; 	(get-constant-list-help (cdr expr) const-list-2))
+;;     )
+;;     ( (check-const expr)
+;;       (mv-let (keyword name value)
+;; 	      (pe expr) ;; pe will not be working for this
+;; 	      (cons (list expr (translate-number value)) const-list))
+;;       )
+;;     ( (atom expr)
+;;       (get-constant-list-help (cdr expr) const-list)
+;;       )
+;;     ( t
+;;       const-list
+;;       )
+;;     )
+;;   )
 
-;; get-constant-list
-(defun get-constant-list (expr)
-  "get-constant-list: get the list of constants in an associate list"
-  (get-constant-list-help expr '()))
+;; ;; get-constant-list
+;; (defun get-constant-list (expr)
+;;   "get-constant-list: get the list of constants in an associate list"
+;;   (get-constant-list-help expr '()))
 
 
 ;; ----------------------- translate-declaration ---------------------------:
@@ -180,11 +181,15 @@
 	     (list '\(
 		   (translate-operator (caar expression))
 		   #\Space
-		   (make-lambda-list (cadr (car expression)))
+		   (if (endp (cadr (car expression)))
+		       #\Space
+		       (make-lambda-list (cadr (car expression))))
 		   '\:
 		   (translate-expression (caddr (car expression)))
 		   '\) '\(
-		   (translate-expression-long (cdr expression))
+		   (if (endp (cdr expression))
+		       #\Space
+		       (translate-expression-long (cdr expression)))
 		   '\)))
 	    ((and (is-SMT-operator (car expression))
 		  (equal (car expression) 'list))
@@ -200,7 +205,7 @@
 	    (t (list "s.unknown" '\( (translate-expression-long (cdr expression)) '\))))
     (cond ((is-SMT-number expression)
 	   (translate-number expression))
-	  ((equal expression 'nil) "False")
+	  ((equal expression 'nil) "False") ;; what if when 'nil is a list?
 	  ((equal expression 't) "True")
 	  ((is-SMT-variable expression)
 	   (translate-variable expression))
@@ -233,7 +238,7 @@
 ;; translate-SMT-formula
 (defun translate-SMT-formula (formula)
   "translate-SMT-formula: translate a SMT formula into its Z3 code"
-  (let ((const-list (car formula))
+  (let (;(const-list (car formula))
 	(decl-list (cadr formula))
 	(hypo-list (caddr formula))
 	(concl-list (cadddr formula)))

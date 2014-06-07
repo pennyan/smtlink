@@ -1,0 +1,120 @@
+level 0:
+(IMPLIES 
+  (IF 
+    (IF 
+      (RATIONALP A) 
+      (IF 
+        (RATIONALP B) 
+        (IF 
+          (RATIONALP GAMMA) 
+          (IF 
+            (INTEGERP M) 
+            (INTEGERP N) 'nil) 'nil) 'nil) 'nil) 
+    (IF 
+      (< '0 GAMMA) 
+      (IF 
+        (< GAMMA '1) 
+        (IF 
+          (< '0 M) 
+          (< M N) 'nil) 'nil) 'nil) 'nil) 
+  (NOT 
+    (< 
+      (A6 
+        (EXPT GAMMA M) 
+        (F6 
+          (D6 
+            (C6 A B)) 
+          (A6 
+            (B6 A) B))) 
+      (A6 
+        (FOO6 GAMMA N) 
+        (A6 
+          (B6 A) B)))))
+
+level 1:IMPLIES
+
+level 2:
+(IF 
+  (IF 
+    (RATIONALP EXPT_GAMMA_N) 
+    (IF 
+      (RATIONALP EXPT_GAMMA_M) 
+      (IF 
+        (RATIONALP A) 
+        (IF 
+          (RATIONALP B) 
+          (IF 
+            (RATIONALP GAMMA) 
+            (IF 
+              (INTEGERP M) 
+              (INTEGERP N) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+  (IF 
+    (< '0 EXPT_GAMMA_N) 
+    (IF 
+      (< '0 EXPT_GAMMA_M) 
+      (IF 
+        (< EXPT_GAMMA_N EXPT_GAMMA_M) 
+        (IF 
+          (< '0 GAMMA) 
+          (IF 
+            (< GAMMA '1) 
+            (IF 
+              (< '0 M) 
+              (< M N) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+
+level 3:
+(NOT 
+  (< 
+    (
+      (LAMBDA 
+        (var0 var1) 
+        (BINARY-* var0 var1)) EXPT_GAMMA_M 
+      (
+        (LAMBDA 
+          (var2 var3) 
+          (
+            (LAMBDA 
+              (var4 var5) 
+              (BINARY-+ var4 var5)) var2 
+            (
+              (LAMBDA 
+                (var6) 
+                (UNARY-- var6)) var3))) 
+        (
+          (LAMBDA 
+            (var7) 
+            (
+              (LAMBDA 
+                (var8 var9) 
+                (BINARY-* var8 var9)) var7 var7)) 
+          (
+            (LAMBDA 
+              (var10 var11) 
+              (BINARY-+ var10 var11)) A B)) 
+        (
+          (LAMBDA 
+            (var12 var13) 
+            (BINARY-* var12 var13)) 
+          (
+            (LAMBDA 
+              (var14) 
+              (
+                (LAMBDA 
+                  (var15 var16) 
+                  (BINARY-* var15 var16)) '2 var14)) A) B))) 
+    (
+      (LAMBDA 
+        (var17 var18) 
+        (BINARY-* var17 var18)) EXPT_GAMMA_N 
+      (
+        (LAMBDA 
+          (var21 var22) 
+          (BINARY-* var21 var22)) 
+        (
+          (LAMBDA 
+            (var23) 
+            (
+              (LAMBDA 
+                (var24 var25) 
+                (BINARY-* var24 var25)) '2 var23)) A) B))))
+

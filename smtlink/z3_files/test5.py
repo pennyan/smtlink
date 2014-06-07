@@ -2,7 +2,7 @@ from sys import path
 path.insert(0,"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3_interface")
 from ACL2_translator import to_smt, Q
 s = to_smt()
-Y=s.isReal("Y")
-hypothesis=s.lt(1,Y)
-conclusion=s.lt(12,(lambda var0:s.times(2,(lambda var1:s.plus(var1,3))(var0)))((lambda var2:s.plus(var2,3))(Y)))
+A=s.isReal("A")
+hypothesis=s.notx(s.lt(A,10))
+conclusion=s.notx(s.lt((lambda var0:s.ifx(False,1,s.times(var0,False)))(A),20))
 s.prove(hypothesis, conclusion)

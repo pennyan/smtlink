@@ -1,10 +1,67 @@
-Todo list:
-1. generate test cases
-2. see how would constant declaration and function declarations work
-3. check if statement type mismatch
-4. check variable declarations
-5. get to use in DPLL proof
+1. SMT-function and SMT-translator have termination problem
+2. how to arrage the files, include and certify books?
 
+;; ====================================================
+When replacing part of the formula with the let expression,
+there are several places the replacement can occur:
+before the expansion, while the expansion and after the
+expassion.
+
+After the expansion make sense because functions defined
+by user can have terms that requires user simplification.
+And before the expansion also kind of make sense because
+it guides ACL2 to prove some given properties first and
+then this result may help prove the theorem. During the
+expansion may make sense too, and it can be cool, but we
+are just not so sure how to control that kind of rewriting.
+It can be convenient that part of the expansion is
+rewritten and part of it is not, and this is a better way
+to guide ACL2.
+
+So temporarily, we'll rewrite the formula before and after
+the expansion. No other time.
+
+;; ===================================================
+
+I'm not supporting recognizing lambda expression for let
+expressions. The reason is that, it's kind of weird that
+the user would think about what the expansion is like and
+take something spanning two function expansions as some
+hint hypothesis. It could be possible, but weird. And the
+implementation can be really tough. I can ask Mark this
+question tomorrow.
+
+-- actually, I think I can solve the problem by expanding
+   the let-expression's functions. ... tomorrow ... nope..
+   this is not a problem...
+
+
+05/13
+do we want type for hypothesis variables?
+helper.lisp : append-and-decl and append-and-hyp needs to
+combine. Need type information
+
+variable names in lisp, if has dashes, won't work in z3!!!!
+
+When giving new hypotheses, the format is not in the underneath
+form. I don't really want to user to figure out the form.
+How to do that?
+
+05/15
+I need to solve above three problems today!
+
+05/16
+(let (...) clause) -- not working
+I tried it in the command, cannot prove......
+done!
+
+05/17
+(let (...) clause) -- done
+new hypotheses -- done
+variable name? -- ??
+type inference? -- done
+
+<<<<<<< HEAD
 Function expansion todo list:
 1. variable creation, can it be a symbol not a string? -- probably fixed
 2. 
@@ -116,3 +173,5 @@ Here's a way you could handle most list operations:
     the expression by an exponential in k.
       Maybe it's best not to handle if's inside list constructing
     functions (at least not for now).
+=======
+>>>>>>> ACL22Z3

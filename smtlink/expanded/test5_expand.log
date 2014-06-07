@@ -1,0 +1,30 @@
+level 0:
+(IMPLIES 
+  (IF 
+    (INTEGERP A) 
+    (NOT 
+      (< A '10)) 'nil) 
+  (NOT 
+    (< 
+      (FAC A) '20)))
+
+level 1:IMPLIES
+
+level 2:
+(IF 
+  (INTEGERP A) 
+  (NOT 
+    (< A '10)) 'nil)
+
+level 3:
+(NOT 
+  (< 
+    (
+      (LAMBDA 
+        (var0) 
+        (IF 
+          (ZP var0) '1 
+          (BINARY-* var0 
+            (FAC 
+              (BINARY-+ '-1 var0))))) A) '20))
+
