@@ -66,16 +66,15 @@
 (defun expand-a-fn (fn fn-waiting fn-extended num state)
   "expand-a-fn: expand an expression with a function definition, num should be accumulated by 1. fn should be stored as a symbol"
   (let ((formal (cdr (cadr (meta-extract-formula fn state))))
-	;; the third element is the formals
+	;; the third element is the formalss
 	(body (end (meta-extract-formula fn state)))
 	;; the last element is the body
 	)
     (if (endp formal)
-	(prog2$ (cw "formal: ~q0, body: ~q1" formal body)
 	(mv body
 	    (my-delete fn-waiting fn)
 	    (cons fn fn-extended)
-	    num))
+	    num)
 	(mv-let (var-list num1)
 		(make-var-list formal num)
 		(mv (list 'lambda (assoc-fetch-value var-list)
