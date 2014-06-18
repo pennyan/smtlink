@@ -1,0 +1,95 @@
+level 0:
+(IMPLIES 
+  (IF 
+    (INTEGERP H) 
+    (NOT 
+      (< H '1)) 'nil) 
+  (< 
+    (BINARY-+ 
+      (BINARY-* 
+        (B-TERM-EXPT H) 
+        (B-TERM-REST H)) 
+      (BINARY-* 
+        (B-TERM-EXPT 
+          (UNARY-- H)) 
+        (B-TERM-REST 
+          (UNARY-- H)))) '0))
+
+level 1:IMPLIES
+
+level 2:
+(IF 
+  (IF 
+    (RATIONALP EXPT_GAMMA_MINUS_H) 
+    (IF 
+      (RATIONALP EXPT_GAMMA_H) 
+      (INTEGERP H) 'nil) 'nil) 
+  (IF 
+    (EQUAL EXPT_GAMMA_MINUS_H 
+      (UNARY-/ EXPT_GAMMA_H)) 
+    (IF 
+      (< '1 EXPT_GAMMA_H) 
+      (NOT 
+        (< H '1)) 'nil) 'nil) 'nil)
+
+level 3:
+(< 
+  (BINARY-+ 
+    (BINARY-* EXPT_GAMMA_H 
+      (
+        (LAMBDA 
+          (var0) 
+          (BINARY-+ '-1 
+            (BINARY-* 
+              (BINARY-* '1 
+                (UNARY-/ 
+                  (BINARY-* '1 '1))) 
+              (BINARY-* 
+                (BINARY-+ '1 
+                  (BINARY-* '1 '1)) 
+                (UNARY-/ 
+                  (BINARY-+ '1 
+                    (BINARY-* '1 
+                      (BINARY-+ 
+                        (BINARY-* var0 '1/3200) 
+                        (BINARY-+ 
+                          (BINARY-* 
+                            (BINARY-* '1 
+                              (UNARY-/ 
+                                (BINARY-* '1 
+                                  (BINARY-* '1 '1)))) 
+                            (BINARY-+ '1 
+                              (BINARY-* '1 '1))) 
+                          (UNARY-- 
+                            (BINARY-* '1 
+                              (UNARY-/ '1)))))))))))) H)) 
+    (BINARY-* EXPT_GAMMA_MINUS_H 
+      (
+        (LAMBDA 
+          (var1) 
+          (BINARY-+ '-1 
+            (BINARY-* 
+              (BINARY-* '1 
+                (UNARY-/ 
+                  (BINARY-* '1 '1))) 
+              (BINARY-* 
+                (BINARY-+ '1 
+                  (BINARY-* '1 '1)) 
+                (UNARY-/ 
+                  (BINARY-+ '1 
+                    (BINARY-* '1 
+                      (BINARY-+ 
+                        (BINARY-* var1 '1/3200) 
+                        (BINARY-+ 
+                          (BINARY-* 
+                            (BINARY-* '1 
+                              (UNARY-/ 
+                                (BINARY-* '1 
+                                  (BINARY-* '1 '1)))) 
+                            (BINARY-+ '1 
+                              (BINARY-* '1 '1))) 
+                          (UNARY-- 
+                            (BINARY-* '1 
+                              (UNARY-/ '1)))))))))))) 
+        (UNARY-- H)))) '0)
+

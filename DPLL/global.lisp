@@ -15,3 +15,14 @@
 (defconst *beta* 1)
 (defconst *f0* 1)
 (defconst *v0* 1)
+
+; Define intermediate variables
+(defun equ-c ()
+  (- (* (/ *f0* (* *beta* *N* *fref*)) (+ 1 (* *alpha* *v0*))) (/ 1 *beta*)))
+(defun gamma ()
+  (- 1 *Kt*))
+;;(defun gamma () (/ 1 2))
+(defun mu ()
+  (/ *f0* (* *N* *fref*)))
+(defun m (n)
+  (- (/ (equ-c) *g1*) n))

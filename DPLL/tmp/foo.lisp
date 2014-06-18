@@ -1,10 +1,10 @@
 (in-package "ACL2")
-(include-book "global")
-(include-book "DPLL-functions")
+(include-book "../global")
+(include-book "../old_code/DPLL-functions")
 (include-book "arithmetic/top-with-meta" :dir :system)
 
 ;; for the clause processor to work
-(include-book "../smtlink/SMT-connect")
+(include-book "../../smtlink/SMT-connect")
 (logic)
 :set-state-ok t
 
