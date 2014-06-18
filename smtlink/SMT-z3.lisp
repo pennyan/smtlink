@@ -138,6 +138,15 @@ new hypothesis in lambda expression"
 		  (list (car let-type) (caar let-expr)))
 	    (create-type-theorem decl-hypo-list (cdr let-expr) (cdr let-type)))))
 
+(defun create-hypo-theorem (decl-hypo-list let-expr hypo-expr orig-param)
+  "create-hypo-theorem: create a theorem for proving user added hypothesis"
+  (if (endp hypo-expr)
+      nil
+      (cons (list (list 'not decl-hypo-list)
+		  (cons	(list 'lambda (append (assoc-get-key let-expr) orig-param) (car hypo-expr))
+			(append (assoc-get-value let-expr) orig-param)))
+	    (create-hypo-theorem decl-hypo-list let-expr (cdr hypo-expr) orig-param))))
+
 ;; my-prove
 (defun my-prove (term fn-lst fname let-expr new-hypo)
   "my-prove: return the result of calling SMT procedure"
@@ -168,10 +177,14 @@ new hypothesis in lambda expression"
 					      (let ((type-theorem (create-type-theorem (cadr term)
 										       let-expr-translated
 										       let-type))
+						    (hypo-theorem (create-hypo-theorem (cadr term)
+										       let-expr-translated
+										       hypo-translated
+										       orig-param))
 						    (aug-theorem (augment-hypothesis expanded-term-list
 										     let-expr-translated
 										     orig-param)))
 						(if (car (SMT-interpreter file-dir))
-						    (mv t aug-theorem type-theorem)
-						    (mv nil aug-theorem type-theorem)))))))))))
+						    (mv t aug-theorem type-theorem hypo-theorem)
+						    (mv nil aug-theorem type-theorem hypo-theorem)))))))))))
   
