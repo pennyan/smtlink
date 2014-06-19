@@ -18,7 +18,8 @@
 	       (not not 1)
 	       (lambda lambda 2)
 	       (list list 0)
-	       (nth nth 2))))
+	       (nth nth 2)
+	       (implies implies 2))))
 
 (defun is-SMT-operator (opr)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"
