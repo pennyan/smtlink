@@ -22,7 +22,8 @@
 	       (not "s.notx" 1)
 	       (lambda "lambda" 2)
 	       (nth "s.nth" 2)
-	       (list "s.array" 0))))
+	       (list "s.array" 0)
+	       (implies "s.implies" 2))))
 
 ;; translate-operator
 (defun translate-operator (opr)
