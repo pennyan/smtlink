@@ -516,9 +516,23 @@
 	   (my-clause-processor clause
 				'( (:expand (m gamma mu equ-c fdco))
 				  (:python-file "delta-<-0-lemma1-lemma")
-				  (:let (
+				  (:let ((expt_gamma_2n
+					  (expt (gamma) (* 2 n))
+					   rationalp)
+					 (expt_gamma_2n_minus_1
+					  (expt (gamma) (- (* 2 n) 1))
+					   rationalp)
 					 (expt_gamma_2n_minus_2
 					  (expt (gamma) (+ -1 n -1 n))
+					   rationalp)
+					 (expt_gamma_2
+					  (expt (gamma) 2)
+					   rationalp)
+					 (expt_gamma_1
+					  (expt (gamma) 1)
+					   rationalp)
+					 (expt_gamma_2_minus_2n
+					  (expt (gamma) (- 2 (* 2 n)))
 					   rationalp)
 					 ))
 				  (:hypothesize ((> expt_gamma_2n_minus_2 0))))))))
