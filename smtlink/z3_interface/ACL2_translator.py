@@ -75,6 +75,8 @@ class to_smt:
     def equal(self, x,y): return x==y
     def notx(self, x): return Not(x)
 
+    def implies(self, x, y): return Implies(x,y)
+    
     def ifx(self, condx, thenx, elsex):
         v = 0
         if sort(thenx) == sort(elsex):
