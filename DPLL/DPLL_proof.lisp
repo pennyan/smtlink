@@ -6,6 +6,7 @@
 (include-book "../smtlink/SMT-connect")
 (logic)
 :set-state-ok t
+:set-ignore-ok t
 
 (defun fdco (n)
   (/ (* (mu) (+ 1 (* *alpha* *v0*))) (+ 1 (* *beta* n *g1*))))
@@ -206,6 +207,20 @@
 		 (1+ (* *beta* (+ (* *g1* (1- n)) (equ-c))))) 1))
 	(- (/ (* (mu) (1+ (* *alpha* *v0*)))
 	      (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1)))
+
+(defun delta-3-inside-transform (n)
+  (/ 
+   (+ (* (expt (gamma) 2)
+	 (- (fdco (1- (m n)))
+	    (fdco (m n))))
+      (* (expt (gamma) 1)
+	 (- (fdco (m n))
+	    (fdco (1+ (m n)))))
+      (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+	    (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1))
+   (- 1
+      (/ (* (mu) (1+ (* *alpha* *v0*)))
+	 (1+ (* *beta* (+ (* *g1* (1- n)) (equ-c))))))))
 
 ;; rewrite delta term
 (encapsulate ()
@@ -515,7 +530,7 @@
 	   :clause-processor
 	   (my-clause-processor clause
 				'( (:expand (m gamma mu equ-c fdco))
-				  (:python-file "delta-<-0-lemma1-lemma")
+				  (:python-file "delta-smaller-than-0-lemma1-lemma")
 				  (:let ((expt_gamma_2n
 					  (expt (gamma) (* 2 n))
 					   rationalp)
@@ -543,13 +558,256 @@
 	   (implies (< (delta-3-inside n) 0)
 		    (< (delta-3 n) 0))))
 
+(defthm delta-<-0-lemma2-lemma
+  (implies (and (integerp n)
+		(>= n 4))
+	   (implies (< (/ (+ (* (expt (gamma) 2)
+				(- (fdco (1- (m n)))
+				   (fdco (m n))))
+			     (* (expt (gamma) 1)
+				(- (fdco (m n))
+				   (fdco (1+ (m n)))))
+			     (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+				   (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1))
+			  (- 1
+			     (/ (* (mu) (1+ (* *alpha* *v0*)))
+				(1+ (* *beta* (+ (* *g1* (1- n)) (equ-c)))))))
+		       (expt (gamma) (- 2 (* 2 n))))
+		    (< (+ (* (expt (gamma) 2)
+			     (- (fdco (1- (m n)))
+				(fdco (m n))))
+			  (* (expt (gamma) 1)
+			     (- (fdco (m n))
+				(fdco (1+ (m n)))))
+			  (* (expt (gamma) (- 2 (* 2 n)))
+			     (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+				   (1+ (* *beta* (+ (* *g1* (1- n)) (equ-c))))) 1))
+			  (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+				(1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1))
+		       0)))
+  :hints (("Goal"
+	   :clause-processor
+	   (my-clause-processor clause
+				'( (:expand (m gamma mu equ-c fdco))
+				  (:python-file "delta-smaller-than-0-lemma2-lemma")
+				  (:let ((expt_gamma_2n
+					  (expt (gamma) (* 2 n))
+					   rationalp)
+					 (expt_gamma_2n_minus_1
+					  (expt (gamma) (- (* 2 n) 1))
+					   rationalp)
+					 (expt_gamma_2n_minus_2
+					  (expt (gamma) (+ -1 n -1 n))
+					   rationalp)
+					 (expt_gamma_2
+					  (expt (gamma) 2)
+					   rationalp)
+					 (expt_gamma_1
+					  (expt (gamma) 1)
+					   rationalp)
+					 (expt_gamma_2_minus_2n
+					  (expt (gamma) (- 2 (* 2 n)))
+					   rationalp)
+					 ))
+				  (:hypothesize ((> expt_gamma_2_minus_2n 0))))))))
+
+(defthm delta-<-0-lemma2
+  (implies (and (integerp n)
+		(>= n 4))
+	   (implies (< (delta-3-inside-transform n)
+		       (expt (gamma) (- 2 (* 2 n))))
+		    (< (delta-3-inside n) 0)))
+  :hints (("Goal"
+	   :use ((:instance delta-<-0-lemma2-lemma)))))
+
 (skip-proofs
+(defthm delta-<-0-lemma3
+  (implies (and (integerp n)
+		(>= n 4))
+	   (implies (< (/ (+ (* (expt (gamma) 2)
+				(- (fdco (1- (m n)))
+				   (fdco (m n))))
+			     (* (expt (gamma) 1)
+				(- (fdco (m n))
+				   (fdco (1+ (m n)))))
+			     (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+				   (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1))
+			  (- 1
+			     (/ (* (mu) (1+ (* *alpha* *v0*)))
+				(1+ (* *beta* (+ (* *g1* (1- n)) (equ-c)))))))
+		       (* 2 n))
+		    (< (/ (+ (* (expt (gamma) 2)
+				(- (fdco (1- (m n)))
+				   (fdco (m n))))
+			     (* (expt (gamma) 1)
+				(- (fdco (m n))
+				   (fdco (1+ (m n)))))
+			     (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+				   (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1))
+			  (- 1
+			     (/ (* (mu) (1+ (* *alpha* *v0*)))
+				(1+ (* *beta* (+ (* *g1* (1- n)) (equ-c)))))))
+		       (expt (gamma) (- 2 (* 2 n))))))
+  :hints (("Goal"
+	   :clause-processor
+	   (my-clause-processor clause
+				'( (:expand (m gamma mu equ-c fdco))
+				  (:python-file "delta-smaller-than-0-lemma3")
+				  (:let ((expt_gamma_2n
+					  (expt (gamma) (* 2 n))
+					   rationalp)
+					 (expt_gamma_2n_minus_1
+					  (expt (gamma) (- (* 2 n) 1))
+					   rationalp)
+					 (expt_gamma_2n_minus_2
+					  (expt (gamma) (+ -1 n -1 n))
+					   rationalp)
+					 (expt_gamma_2
+					  (expt (gamma) 2)
+					   rationalp)
+					 (expt_gamma_1
+					  (expt (gamma) 1)
+					   rationalp)
+					 (expt_gamma_2_minus_2n
+					  (expt (gamma) (- 2 (* 2 n)))
+					   rationalp))
+					 )
+				  (:hypothesize ((< (* 2 n) expt_gamma_2_minus_2n))))))))
+)
+
+(defthm delta-<-0-lemma4
+  (implies (and (integerp n)
+		(>= n 4))
+	   (< (/ (+ (* (expt (gamma) 2)
+		       (- (fdco (1- (m n)))
+			  (fdco (m n))))
+		    (* (expt (gamma) 1)
+		       (- (fdco (m n))
+			  (fdco (1+ (m n)))))
+		    (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+			  (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1))
+		 (- 1
+		    (/ (* (mu) (1+ (* *alpha* *v0*)))
+		       (1+ (* *beta* (+ (* *g1* (1- n)) (equ-c)))))))
+	      (* 2 n)))
+  :hints (("Goal"
+	   :clause-processor
+	   (my-clause-processor clause
+				'( (:expand (m gamma mu equ-c fdco))
+				  (:python-file "delta-smaller-than-0-lemma4")
+				  (:let ((expt_gamma_2n
+					  (expt (gamma) (* 2 n))
+					   rationalp)
+					 (expt_gamma_2n_minus_1
+					  (expt (gamma) (- (* 2 n) 1))
+					   rationalp)
+					 (expt_gamma_2n_minus_2
+					  (expt (gamma) (+ -1 n -1 n))
+					   rationalp)
+					 (expt_gamma_2
+					  (expt (gamma) 2)
+					   rationalp)
+					 (expt_gamma_1
+					  (expt (gamma) 1)
+					   rationalp)
+					 (expt_gamma_2_minus_2n
+					  (expt (gamma) (- 2 (* 2 n)))
+					   rationalp))
+					 )
+				  (:hypothesize ()))))))
+
 (defthm delta-<-0
   (implies (and (integerp n)
 		(>= n 4))
-	   (< (delta n) 0)))
-)
-)
+	   (< (delta n) 0))
+  :hints (("Goal"
+	   :use ((:instance delta-rewrite-5)
+		 (:instance delta-<-0-lemma4)
+		 (:instance delta-<-0-lemma3)
+		 (:instance delta-<-0-lemma2)
+		 (:instance delta-<-0-lemma1)))))
+) ;; delta < 0 thus is proved
+
+(encapsulate ()
+
+(defthm split-phi-2n+1-lemma1-lemma1
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+ 		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (equal (A (+ n 1) phi0)
+		  (+ (* (expt (gamma) (+ (* 2 n) 1)) phi0)
+		     (* (expt (gamma) (* 2 n))
+			(- (fdco (1- (m n))) 1))
+		     (* (expt (gamma) (- (* 2 n) 1))
+			(- (fdco (m n)) 1))))))
+
+(defthm split-phi-2n+1-lemma1-lemma2
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+ 		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (equal (+ (* (expt (gamma) (+ (* 2 n) 1)) phi0)
+		     (* (expt (gamma) (* 2 n))
+			(- (fdco (1- (m n))) 1))
+		     (* (expt (gamma) (- (* 2 n) 1))
+			(- (fdco (m n)) 1)))
+		  (+ (* (+ (* (expt (gamma) (- (* 2 n) 1)) phi0)
+			   (* (expt (gamma) (- (* 2 n) 2))
+			      (- (fdco (m n)) 1))
+			   (* (expt (gamma) (- (* 2 n) 3))
+			      (- (fdco (1+ (m n))) 1)))
+			(expt (gamma) 2))
+		     (- (* (expt (gamma) (* 2 n))
+			   (- (fdco (1- (m n))) 1))
+			(* (expt (gamma) (* 2 n))
+			   (- (fdco (m n)) 1)))
+		     (- (* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (m n)) 1))
+			(* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (1+ (m n))) 1))))))
+  :hints (("Goal"
+	   :hints (("Goal"
+	   :clause-processor
+	   (my-clause-processor clause
+				'( (:expand (m gamma mu equ-c fdco))
+				  (:python-file "delta-smaller-than-0-lemma4")
+				  (:let ((expt_gamma_2n_plus_1
+					  (expt (gamma) (+ (* 2 n) 1))
+					   rationalp)
+					 (expt_gamma_2n
+					  (expt (gamma) (* 2 n))
+					   rationalp)
+					 (expt_gamma_2n_minus_1
+					  (expt (gamma) (- (* 2 n) 1))
+					   rationalp)
+					 (expt_gamma_2n_minus_2
+					  (expt (gamma) (- (* 2 n) 2))
+					   rationalp)
+					 (expt_gamma_2n_minus_3
+					  (expt (gamma) (- (* 2 n) 3))
+					   rationalp)
+					 (expt_gamma_2
+					  (expt (gamma) 2)
+					   rationalp)))
+				  (:hypothesize ()))))))))
+
+(defthm split-phi-2n+1-lemma1
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+ 		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (equal (A (+ n 1) phi0)
+		  (+ (* (A n phi0) (gamma) (gamma))
+		     (- (* (expt (gamma) (* 2 n))
+			   (- (fdco (1- (m n))) 1))
+			(* (expt (gamma) (* 2 n))
+			   (- (fdco (m n)) 1)))
+		     (- (* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (m n)) 1))
+			(* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (1+ (m n))) 1))))))
+  )
 
 (skip-proofs
 (defthm split-phi-2n+1
@@ -559,6 +817,8 @@
  		(< phi0 (- (fdco (1+ (m n))) 1)))
 	   (equal (phi-2n-1 (1+ n) phi0)
  		  (+ (* (gamma) (gamma) (A n phi0)) (* (gamma) (B n)) (delta n)))))
+)
+
 )
 
 (defthm split-phi-2n-1
