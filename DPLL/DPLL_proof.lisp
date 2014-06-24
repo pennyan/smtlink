@@ -473,7 +473,9 @@
 					   (equal 1
 					  	  (* expt_gamma_2n_minus_2 expt_gamma_2_minus_2n))))
 			    (:use ((:type ())
-				   (:hypo ((delta-rewrite-3-lemma1) () ()))
+				   (:hypo ((delta-rewrite-3-lemma1)
+					   (delta-rewrite-3-lemma2)
+					   (delta-rewrite-3-lemma3)))
 				   (:main ()))))))))
 
 (defthm delta-rewrite-4
