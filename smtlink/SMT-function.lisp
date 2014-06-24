@@ -236,7 +236,8 @@
 			  (append-and-decl decl-list new-decl let-type)
 			  (append-and-hypo hypo-list new-hypo)
 			  ''nil)
-		    concl-list)
+		    concl-list
+		    )
 	      (get-orig-param decl-list))))
 
 ;; reform-let
