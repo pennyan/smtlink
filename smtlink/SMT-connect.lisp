@@ -37,9 +37,9 @@
 	  (let-hints (cadr (assoc ':type
 				  (cadr (assoc ':use hint)))))
 	  (hypo-hints (cadr (assoc ':hypo
-				   (caddr (assoc ':use hint)))))
+				   (cadr (assoc ':use hint)))))
 	  (main-hints (cadr (assoc ':main
-				   (cadddr (assoc ':use hint))))))
+				   (cadr (assoc ':use hint))))))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem)
 	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints)
 	      (if res
