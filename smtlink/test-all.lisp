@@ -219,5 +219,33 @@
 ;; Note:
 ;; Each theorem can have multiple hints.
 ;; 
-;; A test case:
-;; 2n 
+
+(defthm hint-thm-7-1
+  (implies (and (rationalp x)
+		(rationalp y))
+	   (>= (* (+ x y) (+ x y)) 0))
+  :rule-classes :linear)
+
+;; (defthm hint-thm-7-2
+;;   (implies (and (rationalp x)
+;; 		(rationalp y))
+;; 	   (equal (* (+ x y) (+ x y))
+;; 		  (expt (+ x y) 2))))
+
+(defthm test7
+  (implies (and (and (rationalp x)
+		     (rationalp y))
+		(and))
+	   (>= (expt (+ x y) 2) 0))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause
+			 '( (:expand ())
+			    (:python-file "test7")
+			    (:let ((expt_plus_x_y_square (expt (+ x y) 2) rationalp)))
+			    (:hypothesize ((>= expt_plus_x_y_square 0)))
+			    (:use ((:type ())
+			    	   (:hypo ((hint-thm-7-1)))
+			    	   (:main (hint-thm-7-1))))
+			   )))))
