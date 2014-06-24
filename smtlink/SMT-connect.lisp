@@ -40,14 +40,15 @@
 				   (cadr (assoc ':use hint)))))
 	  (main-hints (cadr (assoc ':main
 				   (cadr (assoc ':use hint))))))
+      (prog2$ (cw "~q0, ~q1, ~q2" let-hints hypo-hints main-hints)
       (mv-let (res expanded-cl type-related-theorem hypo-theorem)
 	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints)
 	      (if res
-		  (let ((res-clause (append (append type-related-theorem hypo-theorem) (list (cons (list 'not expanded-cl) cl)))))
+		  (let ((res-clause (append (append type-related-theorem hypo-theorem) (list (append expanded-cl cl)))))
 		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
-			  (list cl)))))))
+			  (list cl))))))))
   
   (push-untouchable acl2-my-prove t)
   )

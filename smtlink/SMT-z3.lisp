@@ -113,7 +113,7 @@
 (defun add-hints (hints clause)
   "add-hints: add a list of hint to a clause, in the form of ((not hint3) ((not hint2) ((not hint1) clause)))"
   (if (endp hints)
-      nil
+      clause
       (add-hints (cdr hints)
 		 (cons (list 'not (get-hint-formula (car hints))) clause))))
 
@@ -122,14 +122,15 @@
   "augment-hypothesis: augment the returned clause with \
 new hypothesis in lambda expression"
   (if (endp main-hints)
+      (list (list 'not
       (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
-	    (append (assoc-get-value let-expr) orig-param))
+	    (append (assoc-get-value let-expr) orig-param))))
       (if (endp let-expr)
 	  rewritten-term
 	  (add-hints main-hints
-		     (list
+		     (list (list 'not
 		      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
-			    (append (assoc-get-value let-expr) orig-param)))))))
+			    (append (assoc-get-value let-expr) orig-param))))))))
 
 ;;separate-type
 (defun separate-type (let-expr)
