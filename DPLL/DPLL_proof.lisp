@@ -413,6 +413,7 @@
 			    (r (gamma))
 			    (i (- (- 2 (* 2 n)))))))))
 
+;; here
 (defthm delta-rewrite-3
   (implies (and (integerp n)
 		(>= n 4))
@@ -470,8 +471,8 @@
 					  	  (* expt_gamma_2n_minus_2 expt_gamma_2))
 					   (equal expt_gamma_2n_minus_1
 					  	  (* expt_gamma_2n_minus_2 expt_gamma_1))
-					   (equal 1
-					  	  (* expt_gamma_2n_minus_2 expt_gamma_2_minus_2n))))
+					   (equal (* expt_gamma_2_minus_2n expt_gamma_2n_minus_2)
+						  1)))
 			    (:use ((:type ())
 				   (:hypo ((delta-rewrite-3-lemma1)
 					   (delta-rewrite-3-lemma2)
