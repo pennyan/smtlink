@@ -104,14 +104,32 @@
 		  (caddar let-expr))
 	    (translate-let (cdr let-expr)))))
 
+;; get-hint-formula
+(defun get-hint-formula (name)
+  "get-hint-formula: get the formula by a hint's name"
+  (formula name t (w state)))
+
+;; add-hints
+(defun add-hints (hints clause)
+  "add-hints: add a list of hint to a clause, in the form of ((not hint3) ((not hint2) ((not hint1) clause)))"
+  (if (endp hints)
+      nil
+      (add-hints (cdr hints)
+		 (cons (list 'not (get-hint-formula (car hints))) clause))))
+
 ;; construct augmented result
-(defun augment-hypothesis (rewritten-term let-expr orig-param)
+(defun augment-hypothesis (rewritten-term let-expr orig-param main-hints)
   "augment-hypothesis: augment the returned clause with \
 new hypothesis in lambda expression"
-  (if (endp let-expr)
-      rewritten-term
+  (if (endp main-hints)
       (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
-	    (append (assoc-get-value let-expr) orig-param))))
+	    (append (assoc-get-value let-expr) orig-param))
+      (if (endp let-expr)
+	  rewritten-term
+	  (add-hints main-hints
+		     (list
+		      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
+			    (append (assoc-get-value let-expr) orig-param)))))))
 
 ;;separate-type
 (defun separate-type (let-expr)
@@ -126,8 +144,13 @@ new hypothesis in lambda expression"
 			res-let-type)))))
 
 ;; create-type-theorem
-(defun create-type-theorem (decl-hypo-list let-expr let-type)
-  "create-type-theorem: create a theorem for proving types"
+(defun create-type-theorem (decl-hypo-list let-expr let-type let-hints)
+  "create-type-theorem"
+  (if (endp let-hints)
+      (create-type-theorem-helper-no-hints decl-hypo-list let-expr let-type)
+      (create-type-theorem-helper-with-hints decl-hypo-list let-expr let-type let-hints)))
+
+(defun create-type-theorem-helper-no-hints (decl-hypo-list let-expr let-type)
   (if (endp let-expr)
       nil
       (cons (list (list 'not
@@ -136,19 +159,46 @@ new hypothesis in lambda expression"
 					       (list (list 'equal (caar let-expr) (cadar let-expr))))
 			      ''nil))
 		  (list (car let-type) (caar let-expr)))
-	    (create-type-theorem decl-hypo-list (cdr let-expr) (cdr let-type)))))
+	    (create-type-theorem-helper-no-hints decl-hypo-list (cdr let-expr) (cdr let-type)))))
 
-(defun create-hypo-theorem (decl-hypo-list let-expr hypo-expr orig-param)
+(defun create-type-theorem-helper-with-hints (decl-hypo-list let-expr let-type let-hints)
+  (if (endp let-expr)
+      nil
+      (cons (add-hints (car let-hints)
+		       (list (list 'not
+				   (list 'if (cadr decl-hypo-list)
+					 (append-and-hypo (caddr decl-hypo-list)
+							  (list (list 'equal (caar let-expr) (cadar let-expr))))
+					 ''nil))
+			     (list (car let-type) (caar let-expr))))
+	    (create-type-theorem-helper-with-hints decl-hypo-list (cdr let-expr) (cdr let-type) (cdr let-hints)))))
+
+;; create-hypo-theorem
+(defun create-hypo-theorem (decl-hypo-list let-expr hypo-expr orig-param hypo-hints)
   "create-hypo-theorem: create a theorem for proving user added hypothesis"
+  (if (endp hypo-hints)
+      (create-hypo-theorem-helper-no-hints decl-hypo-list let-expr hypo-expr orig-param)
+      (create-hypo-theorem-helper-with-hints decl-hypo-list let-expr hypo-expr orig-param hypo-hints)))
+
+(defun create-hypo-theorem-helper-no-hints (decl-hypo-list let-expr hypo-expr orig-param)
   (if (endp hypo-expr)
       nil
       (cons (list (list 'not decl-hypo-list)
-		  (cons	(list 'lambda (append (assoc-get-key let-expr) orig-param) (car hypo-expr))
+		  (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) (car hypo-expr))
 			(append (assoc-get-value let-expr) orig-param)))
-	    (create-hypo-theorem decl-hypo-list let-expr (cdr hypo-expr) orig-param))))
+	    (create-hypo-theorem-helper-no-hints decl-hypo-list let-expr (cdr hypo-expr) orig-param))))
+
+(defun create-hypo-theorem-helper-with-hints (decl-hypo-list let-expr hypo-expr orig-param hypo-hints)
+  (if (endp hypo-expr)
+      nil
+      (cons (add-hints (car hypo-hints)
+	     (list (list 'not decl-hypo-list)
+		   (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) (car hypo-expr))
+			 (append (assoc-get-value let-expr) orig-param))))
+	    (create-hypo-theorem-helper-with-hints decl-hypo-list let-expr (cdr hypo-expr) orig-param (cdr hypo-hints)))))
 
 ;; my-prove
-(defun my-prove (term fn-lst fname let-expr new-hypo)
+(defun my-prove (term fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints)
   "my-prove: return the result of calling SMT procedure"
   (let ((file-dir (concatenate 'string
 			       *dir-files*
@@ -176,15 +226,17 @@ new hypothesis in lambda expression"
 					       file-dir)
 					      (let ((type-theorem (create-type-theorem (cadr term)
 										       let-expr-translated
-										       let-type))
+										       let-type
+						                                       let-hints))
 						    (hypo-theorem (create-hypo-theorem (cadr term)
 										       let-expr-translated
 										       hypo-translated
-										       orig-param))
+										       orig-param
+										       hypo-hints))
 						    (aug-theorem (augment-hypothesis expanded-term-list
 										     let-expr-translated
-										     orig-param)))
+										     orig-param
+										     main-hints)))
 						(if (car (SMT-interpreter file-dir))
 						    (mv t aug-theorem type-theorem hypo-theorem)
 						    (mv nil aug-theorem type-theorem hypo-theorem)))))))))))
-  

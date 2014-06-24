@@ -1,7 +1,7 @@
 
 (in-package "ACL2")
 
-(defstub acl2-my-prove (term fn-lst fname let-expr new-hypo) (mv t nil nil nil))
+(defstub acl2-my-prove (term fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints) (mv t nil nil nil))
 
 (program)
 
@@ -19,8 +19,8 @@
 
    (load "../smtlink/SMT-z3.lisp")
 
-   (defun acl2-my-prove (term fn-lst fname let-expr new-hypo)
-     (my-prove term fn-lst fname let-expr new-hypo)))
+   (defun acl2-my-prove (term fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints)
+     (my-prove term fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints)))
   
   ;; put fn-lst level and fname into the hint list
   (defun my-clause-processor (cl hint)
@@ -32,16 +32,23 @@
 	  (fname (cadr (assoc ':python-file hint)))
 	  (let-expr (cadr (assoc ':let hint)))
 	  ;; translate formulas in let associate list into underling representation
-	  (new-hypo (cadr (assoc ':hypothesize hint))))
+	  (new-hypo (cadr (assoc ':hypothesize hint)))
+	  ;; hints for let bindings' type assertion, hypothesis and the main theorem
+	  (let-hints (cadr (assoc ':type
+				  (cadr (assoc ':use hint)))))
+	  (hypo-hints (cadr (assoc ':hypo
+				   (caddr (assoc ':use hint)))))
+	  (main-hints (cadr (assoc ':main
+				   (cadddr (assoc ':use hint))))))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem)
-	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo)
+	      (acl2-my-prove (disjoin cl) fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints)
 	      (if res
 		  (let ((res-clause (append (append type-related-theorem hypo-theorem) (list (cons (list 'not expanded-cl) cl)))))
 		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
 			  (list cl)))))))
-
+  
   (push-untouchable acl2-my-prove t)
   )
 
