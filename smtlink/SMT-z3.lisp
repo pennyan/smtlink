@@ -234,7 +234,7 @@ new hypothesis in lambda expression"
 										       hypo-translated
 										       orig-param
 										       hypo-hints))
-						    (aug-theorem (augment-hypothesis expanded-term-list
+						    (aug-theorem (augment-hypothesis (caddr expanded-term-list)
 										     let-expr-translated
 										     orig-param
 										     main-hints)))
