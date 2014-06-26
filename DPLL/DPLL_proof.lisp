@@ -225,6 +225,7 @@
 ;; rewrite delta term
 (encapsulate ()
 
+(local
 ;; considering using smtlink for the proof, probably simpler
 (defthm delta-rewrite-1-lemma1
   (implies (and (integerp n)
@@ -263,7 +264,7 @@
     :clause-processor
     (my-clause-processor clause
 			 '( (:expand (m gamma mu equ-c fdco))
-			    (:python-file "delta-rewrite-1") ;;mktemp
+			    (:python-file "delta-rewrite-1-lemma1") ;;mktemp
 			    (:let ((expt_gamma_2n
 				    (expt (gamma) (* 2 n))
 				     rationalp)
@@ -279,13 +280,17 @@
 				   ))
 			    (:hypothesize ())))
     )))
+)
 
+(local
 (defthm delta-rewrite-1
   (implies (and (integerp n)
 		(>= n 4))
 	   (equal (delta n)
 		  (delta-1 n))))
+)
 
+(local
 (defthm delta-rewrite-2-lemma1
   (implies (and (integerp n)
 		(>= n 4))
@@ -296,7 +301,9 @@
 	   :use ((:instance expt-minus
 			    (r (gamma))
 			    (i (- (1+ (- n)))))))))
+)
 
+(local
 (defthm delta-rewrite-2-lemma2
   (implies (and (integerp n)
 		(>= n 4))
@@ -310,7 +317,9 @@
 			    (j (1- n))
 			    (r (gamma))))
 	   :in-theory (disable exponents-add-for-nonneg-exponents))))
+)
 
+(local
 (defthm delta-rewrite-2-lemma3
   (implies (and (integerp n)
 		(>= n 4))
@@ -327,7 +336,9 @@
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-2-lemma1)
 		 (:instance delta-rewrite-2-lemma2)))))
+)
 
+(local
 (defthm delta-rewrite-2
   (implies (and (integerp n)
 		(>= n 4))
@@ -345,7 +356,9 @@
 				     (1+ (* *beta* (+ (* *g1* (1- n)) (equ-c))))) 1))
 			    (D (- (/ (* (mu) (1+ (* *alpha* *v0*)))
 				     (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1)))))))
+)
 
+(local
 (defthm delta-rewrite-3-lemma1-lemma1
   (implies (and (integerp n)
 		(>= n 4))
@@ -359,19 +372,25 @@
 			    (r (gamma))))
 	   :in-theory (disable exponents-add-for-nonneg-exponents
 			       delta-rewrite-2-lemma2))))
+)
 
+(local
 (defthm delta-rewrite-3-lemma1-stupidlemma
   (implies (and (integerp n)
 		(>= n 4))
 	   (equal (* 2 n) (+ (+ -1 n -1 n) 2))))
+)
 
+(local
 (defthm delta-rewrite-3-lemma1
   (implies (and (integerp n)
 		(>= n 4))
 	   (equal (expt (gamma) (* 2 n))
 		  (* (expt (gamma) (+ -1 n -1 n))
 		     (expt (gamma) 2)))))
+)
 
+(local
 (defthm delta-rewrite-3-lemma2-lemma1
   (implies (and (integerp n)
 		(>= n 4))
@@ -385,12 +404,16 @@
 			    (r (gamma))))
 	   :in-theory (disable exponents-add-for-nonneg-exponents
 			       delta-rewrite-2-lemma2))))
+)
 
+(local
 (defthm delta-rewrite-3-lemma2-stupidlemma
   (implies (and (integerp n)
 		(>= n 4))
 	   (equal (- (* 2 n) 1) (+ (+ -1 n -1 n) 1))))
+)
 
+(local
 (defthm delta-rewrite-3-lemma2
   (implies (and (integerp n)
 		(>= n 4))
@@ -401,7 +424,9 @@
 	   :use ((:instance delta-rewrite-3-lemma2-lemma1)
 		 (:instance delta-rewrite-3-lemma2-stupidlemma))
 	   :in-theory (disable delta-rewrite-2-lemma1))))
+)
 
+(local
 (defthm delta-rewrite-3-lemma3
   (implies (and (integerp n)
 		(>= n 4))
@@ -412,8 +437,9 @@
 	   :use ((:instance expt-minus
 			    (r (gamma))
 			    (i (- (- 2 (* 2 n)))))))))
+)
 
-;; here
+(local
 (defthm delta-rewrite-3
   (implies (and (integerp n)
 		(>= n 4))
@@ -478,7 +504,9 @@
 					   (delta-rewrite-3-lemma2)
 					   (delta-rewrite-3-lemma3)))
 				   (:main ()))))))))
+)
 
+(local
 (defthm delta-rewrite-4
   (implies (and (integerp n)
 		(>= n 4))
@@ -486,6 +514,7 @@
 		  (delta-3 n)))
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-3)))))
+)
 
 (defthm delta-rewrite-5
   (implies (and (integerp n)
@@ -501,6 +530,7 @@
 
 (encapsulate ()
 
+(local
 (defthm delta-<-0-lemma1-lemma
   (implies (and (integerp n)
 		(>= n 4))
@@ -554,13 +584,17 @@
 					   rationalp)
 					 ))
 				  (:hypothesize ((> expt_gamma_2n_minus_2 0))))))))
+)
 
+(local
 (defthm delta-<-0-lemma1
   (implies (and (integerp n)
 		(>= n 4))
 	   (implies (< (delta-3-inside n) 0)
 		    (< (delta-3 n) 0))))
+)
 
+(local
 (defthm delta-<-0-lemma2-lemma
   (implies (and (integerp n)
 		(>= n 4))
@@ -613,7 +647,9 @@
 					   rationalp)
 					 ))
 				  (:hypothesize ((> expt_gamma_2_minus_2n 0))))))))
+)
 
+(local
 (defthm delta-<-0-lemma2
   (implies (and (integerp n)
 		(>= n 4))
@@ -622,8 +658,72 @@
 		    (< (delta-3-inside n) 0)))
   :hints (("Goal"
 	   :use ((:instance delta-<-0-lemma2-lemma)))))
+)
 
-(skip-proofs
+(local
+;; This is for proving 2n < gamma^(2-2n)
+(defthm delta-<-0-lemma3-lemma1
+  (implies (and (integerp k)
+		(>= k 8))
+	   (< k (expt (/ (gamma)) (- k 2)))))
+)
+
+(local
+(defthm delta-<-0-lemma3-lemma2
+  (implies (and (integerp n)
+		(>= n 4))
+	   (< (* 2 n)
+	      (expt (/ (gamma)) (- (* 2 n) 2))))
+  :hints (("Goal"
+	   :use ((:instance delta-<-0-lemma3-lemma1
+			   (k (* 2 n))))))
+  :rule-classes :linear)
+)
+
+(local
+(defthm delta-<-0-lemma3-lemma3-stupidlemma
+  (equal (expt a n) (expt (/ a) (- n))))
+)
+
+(local
+(defthm delta-<-0-lemma3-lemma3
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (expt (/ (gamma)) (- (* 2 n) 2))
+		  (expt (gamma) (- 2 (* 2 n)))))
+  :hints (("Goal"
+	   :use ((:instance delta-<-0-lemma3-lemma3-stupidlemma
+			    (a (/ (gamma)))
+			    (n (- (* 2 n) 2))))
+	   :in-theory (disable delta-<-0-lemma3-lemma3-stupidlemma))))
+)
+
+(local
+(defthm delta-<-0-lemma3-lemma4-stupidlemma
+  (implies (and (< a b) (equal b c)) (< a c)))
+)
+
+(local
+(defthm delta-<-0-lemma3-lemma4
+  (implies (and (integerp n)
+		(>= n 4))
+	   (< (* 2 n)
+	      (expt (gamma) (- 2 (* 2 n)))))
+  :hints (("Goal"
+	   :do-not '(preprocess simplify)
+	   :use ((:instance delta-<-0-lemma3-lemma2)
+		 (:instance delta-<-0-lemma3-lemma3)
+		 (:instance delta-<-0-lemma3-lemma4-stupidlemma
+			    (a (* 2 n))
+			    (b (expt (/ (gamma)) (- (* 2 n) 2)))
+			    (c (expt (gamma) (- 2 (* 2 n))))))
+	   :in-theory (disable delta-<-0-lemma3-lemma2
+			       delta-<-0-lemma3-lemma3
+			       delta-<-0-lemma3-lemma4-stupidlemma)))
+  :rule-classes :linear)
+)
+
+(local
 (defthm delta-<-0-lemma3
   (implies (and (integerp n)
 		(>= n 4))
@@ -652,6 +752,7 @@
 				(1+ (* *beta* (+ (* *g1* (1- n)) (equ-c)))))))
 		       (expt (gamma) (- 2 (* 2 n))))))
   :hints (("Goal"
+	   ;; :do-not '(preprocess)
 	   :clause-processor
 	   (my-clause-processor clause
 				'( (:expand (m gamma mu equ-c fdco))
@@ -675,9 +776,21 @@
 					  (expt (gamma) (- 2 (* 2 n)))
 					   rationalp))
 					 )
-				  (:hypothesize ((< (* 2 n) expt_gamma_2_minus_2n))))))))
+				  (:hypothesize ((< (* 2 n) expt_gamma_2_minus_2n)))
+				  (:use ((:type ())
+				   	 (:hypo ((delta-<-0-lemma3-lemma4)))
+				   	 (:main ())))
+				  ))
+	   :in-theory (disable delta-<-0-lemma3-lemma1
+	   		       delta-<-0-lemma3-lemma3-stupidlemma
+	   		       delta-<-0-lemma3-lemma2
+	   		       delta-<-0-lemma3-lemma3
+			       delta-<-0-lemma3-lemma4-stupidlemma)
+	   :do-not '(preprocess)
+	   )))
 )
 
+(local
 (defthm delta-<-0-lemma4
   (implies (and (integerp n)
 		(>= n 4))
@@ -717,7 +830,16 @@
 					  (expt (gamma) (- 2 (* 2 n)))
 					   rationalp))
 					 )
-				  (:hypothesize ()))))))
+				  (:hypothesize ())))
+	   :in-theory (disable delta-<-0-lemma3-lemma1
+	   		       delta-<-0-lemma3-lemma3-stupidlemma
+	   		       delta-<-0-lemma3-lemma2
+	   		       delta-<-0-lemma3-lemma3
+			       delta-<-0-lemma3-lemma4-stupidlemma
+			       delta-<-0-lemma3-lemma4)
+	   :do-not '(preprocess))))
+)
+
 
 (defthm delta-<-0
   (implies (and (integerp n)
@@ -728,11 +850,20 @@
 		 (:instance delta-<-0-lemma4)
 		 (:instance delta-<-0-lemma3)
 		 (:instance delta-<-0-lemma2)
-		 (:instance delta-<-0-lemma1)))))
+		 (:instance delta-<-0-lemma1))
+	   :in-theory (disable delta-<-0-lemma3-lemma1
+	   		       delta-<-0-lemma3-lemma3-stupidlemma
+	   		       delta-<-0-lemma3-lemma2
+	   		       delta-<-0-lemma3-lemma3
+			       delta-<-0-lemma3-lemma4-stupidlemma
+			       delta-<-0-lemma3-lemma4)
+	  )))
 ) ;; delta < 0 thus is proved
 
+;; prove phi(2n+1) = gamma^2*A+gamma*B+delta
 (encapsulate ()
 
+(local
 (defthm split-phi-2n+1-lemma1-lemma1
   (implies (and (integerp n)
 		(>= n 4)
@@ -744,7 +875,9 @@
 			(- (fdco (1- (m n))) 1))
 		     (* (expt (gamma) (- (* 2 n) 1))
 			(- (fdco (m n)) 1))))))
+)
 
+(local
 (defthm split-phi-2n+1-lemma1-lemma2
   (implies (and (integerp n)
 		(>= n 4)
@@ -770,11 +903,10 @@
 			(* (expt (gamma) (- (* 2 n) 1))
 			   (- (fdco (1+ (m n))) 1))))))
   :hints (("Goal"
-	   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
 				'( (:expand (m gamma mu equ-c fdco))
-				  (:python-file "delta-smaller-than-0-lemma4")
+				  (:python-file "split-phi-2n+1-lemma1-lemma2")
 				  (:let ((expt_gamma_2n_plus_1
 					  (expt (gamma) (+ (* 2 n) 1))
 					   rationalp)
@@ -793,9 +925,11 @@
 					 (expt_gamma_2
 					  (expt (gamma) 2)
 					   rationalp)))
-				  (:hypothesize ()))))))))
+				  (:hypothesize ()))))))
+)
 
-(defthm split-phi-2n+1-lemma1
+(local
+(defthm split-phi-2n+1-lemma1-A
   (implies (and (integerp n)
 		(>= n 4)
 		(>= phi0 0)
@@ -809,60 +943,379 @@
 		     (- (* (expt (gamma) (- (* 2 n) 1))
 			   (- (fdco (m n)) 1))
 			(* (expt (gamma) (- (* 2 n) 1))
-			   (- (fdco (1+ (m n))) 1))))))
-  )
+			   (- (fdco (1+ (m n))) 1)))))))
+)
 
-(skip-proofs
+(local
+(defthm split-phi-2n+1-lemma2-lemma1
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (B (+ n 1))
+		  (* (expt (gamma) (- n 1))
+		     (B-sum 1 (- n 1))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma2-lemma2
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (B (+ n 1))
+		  (* (expt (gamma) (- n 1))
+		     (+ (B-term (- n 1))
+			(B-term (- (- n 1)))
+			(B-sum 1 (- n 2)))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma2-lemma3
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (B (+ n 1))
+		  (+ (* (expt (gamma) (- n 1))
+			(B-sum 1 (- n 2)))
+		     (* (expt (gamma) (- n 1))
+			(B-term (- n 1)))
+		     (* (expt (gamma) (- n 1))
+			(B-term (- (- n 1))))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma2-lemma4
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (B (+ n 1))
+		  (+ (* (gamma) (expt (gamma) (- n 2))
+			(B-sum 1 (- n 2)))
+		     (* (expt (gamma) (- n 1))
+			(+ (B-term (- n 1))
+			   (B-term (- (- n 1)))))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma2-lemma5
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (B (+ n 1))
+		  (+ (* (gamma) (B n))
+		     (* (expt (gamma) (- n 1))
+			(+ (B-term (- n 1))
+			   (B-term (- (- n 1)))))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma2-B
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (B (+ n 1))
+		  (+ (* (gamma) (B n))
+		     (* (expt (gamma) (- n 1))
+			(+ (* (expt (gamma) (- (- n 1)))
+			      (B-term-rest (- n 1)))
+			   (* (expt (gamma) (- n 1))
+			      (B-term-rest (- (- n 1))))))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma3-delta-stupidlemma
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (+ (- (* (expt (gamma) (* 2 n))
+			   (- (fdco (1- (m n))) 1))
+			(* (expt (gamma) (* 2 n))
+			   (- (fdco (m n)) 1)))
+		     (- (* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (m n)) 1))
+			(* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (1+ (m n))) 1)))
+		     (* (expt (gamma) (- n 1))
+			(+ (* (expt (gamma) (- (- n 1)))
+			      (B-term-rest (- n 1)))
+			   (* (expt (gamma) (- n 1))
+			      (B-term-rest (- (- n 1)))))))
+		  (+ (- (* (expt (gamma) (* 2 n))
+			   (- (fdco (1- (m n))) 1))
+			(* (expt (gamma) (* 2 n))
+			   (- (fdco (m n)) 1)))
+		     (- (* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (m n)) 1))
+			(* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (1+ (m n))) 1)))
+		     (* (expt (gamma) (1- n))
+			(+ (* (expt (gamma) (1+ (- n)))
+			      (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+				    (1+ (* *beta* (+ (* *g1* (1- n)) (equ-c))))) 1))
+			   (* (expt (gamma) (1- n))
+			      (- (/ (* (mu) (1+ (* *alpha* *v0*)))
+				    (1+ (* *beta* (+ (* *g1* (- 1 n)) (equ-c))))) 1))))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma3-delta
+  (implies (and (integerp n)
+		(>= n 4))
+	   (equal (+ (- (* (expt (gamma) (* 2 n))
+			   (- (fdco (1- (m n))) 1))
+			(* (expt (gamma) (* 2 n))
+			   (- (fdco (m n)) 1)))
+		     (- (* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (m n)) 1))
+			(* (expt (gamma) (- (* 2 n) 1))
+			   (- (fdco (1+ (m n))) 1)))
+		     (* (expt (gamma) (- n 1))
+			(+ (* (expt (gamma) (- (- n 1)))
+			      (B-term-rest (- n 1)))
+			   (* (expt (gamma) (- n 1))
+			      (B-term-rest (- (- n 1)))))))
+		  (delta n)))
+  :hints (("Goal"
+	   :use ((:instance split-phi-2n+1-lemma3-delta-stupidlemma)
+		 (:functional-instance (:instance delta)))
+	   :in-theory '(minimal-theory))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma4
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (equal (phi-2n-1 (1+ n) phi0)
+		  (+ (A (+ n 1) phi0)
+		     (B (+ n 1))))))
+)
+
+(local
+(defthm split-phi-2n+1-lemma5
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (equal (phi-2n-1 (1+ n) phi0)
+		  (+ (+ (* (A n phi0) (gamma) (gamma))
+			(- (* (expt (gamma) (* 2 n))
+			      (- (fdco (1- (m n))) 1))
+			   (* (expt (gamma) (* 2 n))
+			      (- (fdco (m n)) 1)))
+			(- (* (expt (gamma) (- (* 2 n) 1))
+			      (- (fdco (m n)) 1))
+			   (* (expt (gamma) (- (* 2 n) 1))
+			      (- (fdco (1+ (m n))) 1))))
+		     (+ (* (gamma) (B n))
+			(* (expt (gamma) (- n 1))
+			   (+ (* (expt (gamma) (- (- n 1)))
+				 (B-term-rest (- n 1)))
+			      (* (expt (gamma) (- n 1))
+				 (B-term-rest (- (- n 1))))))))))
+  :hints (("Goal"
+	   :use ((:instance split-phi-2n+1-lemma1-A)
+		 (:instance split-phi-2n+1-lemma2-B)))))
+)
+
+(local 
+(defthm split-phi-2n+1-lemma6
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (equal (phi-2n-1 (1+ n) phi0)
+		  (+ (* (A n phi0) (gamma) (gamma))
+		     (* (gamma) (B n))
+		     (+ (- (* (expt (gamma) (* 2 n))
+			      (- (fdco (1- (m n))) 1))
+			   (* (expt (gamma) (* 2 n))
+			      (- (fdco (m n)) 1)))
+			(- (* (expt (gamma) (- (* 2 n) 1))
+			      (- (fdco (m n)) 1))
+			   (* (expt (gamma) (- (* 2 n) 1))
+			      (- (fdco (1+ (m n))) 1)))
+			(* (expt (gamma) (- n 1))
+			   (+ (* (expt (gamma) (- (- n 1)))
+				 (B-term-rest (- n 1)))
+			      (* (expt (gamma) (- n 1))
+				 (B-term-rest (- (- n 1)))))))))))
+)
+
 (defthm split-phi-2n+1
   (implies (and (integerp n)
  		(>= n 4)
  		(>= phi0 0)
  		(< phi0 (- (fdco (1+ (m n))) 1)))
 	   (equal (phi-2n-1 (1+ n) phi0)
- 		  (+ (* (gamma) (gamma) (A n phi0)) (* (gamma) (B n)) (delta n)))))
-)
+ 		  (+ (* (gamma) (gamma) (A n phi0)) (* (gamma) (B n)) (delta n))))
+  :hints (("Goal"
+	   :use ((:instance split-phi-2n+1-lemma6)
+		 (:instance split-phi-2n+1-lemma3-delta)))))
 
 )
 
-(defthm split-phi-2n-1
-  (implies (and (integerp n)
- 		(>= n 4)
- 		(>= phi0 0)
- 		(< phi0 (- (fdco (1+ (m n))) 1)))
-	   (equal (phi-2n-1 n phi0)
-		  (+ (A n phi0) (B n)))))
+;; prove gamma^2*A + gamma*B < 0
+(encapsulate ()
 
-(skip-proofs
-(defthm phi-2n+1-<-0
+(local
+(defthm except-for-delta-<-0-lemma1
+  (implies (and (and (rationalp c)
+		     (rationalp a)
+		     (rationalp b))
+		(and (> c 0)
+		     (< c 1)
+		     (< (+ A B) 0)
+		     (< B 0)))
+	   (< (+ (* c c A) (* c B)) 0))
+  :hints (("Goal"
+	   :clause-processor
+	   (my-clause-processor clause
+				'( (:expand ())
+				  (:python-file "except-for-delta-smaller-than-0-lemma1")
+				  (:let ())
+				  (:hypothesize ())))))
+  :rule-classes :linear)
+)
+
+(defthm except-for-delta-<-0
   (implies (and (integerp n)
 		(>= n 4)
 		(>= phi0 0)
-		(< phi0 (- (/ (* (mu) (+ 1 (* *alpha* *v0*))) (+ 1 (* *beta* (1+ (m n)) *g1*))) 1))
+		(< phi0 (- (fdco (1+ (m n))) 1))
+		(< (phi-2n-1 n phi0) 0))
+	   (< (+ (* (gamma) (gamma) (A n phi0))
+		 (* (gamma) (B n)))
+	      0))
+  :hints (("Goal"
+	   :use ((:instance except-for-delta-<-0-lemma1
+			    (c (gamma))
+			    (A (A n phi0))
+			    (B (B n)))
+		 (:instance B-neg)))))
+)
+
+;; for induction step 
+(encapsulate ()
+(defthm phi-2n+1-<-0-lemma1
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m n))) 1))
 		(< (phi-2n-1 n phi0) 0))
 	   (< (phi-2n-1 (1+ n) phi0) 0))
   :hints (("Goal"
- 	   :use ((:instance delta-<-0)
-		 (:instance split-phi-2n+1)
- 		 (:instance split-phi-2n-1)))))
+ 	   :use ((:instance split-phi-2n+1)
+		 (:instance delta-<-0)
+		 (:instance except-for-delta-<-0)))))
+
+(defthm phi-2n+1-<-0
+  (implies (and (integerp n)
+		(>= n 5)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m (- n 1)))) 1))
+		(< (phi-2n-1 (- n 1) phi0) 0))
+	   (< (phi-2n-1 n phi0) 0))
+  :hints (("Goal"
+	   :use ((:instance phi-2n+1-<-0-lemma1
+			    (n (- n 1)))))))
+
+(defthm phi-2n+1-<-0-corollary-1
+  (implies (and (integerp n)
+		(>= n 5)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m (- n 1)))) 1))
+		(< (+ (A (- n 1) phi0)
+		      (* (expt (gamma) (- (- n 1) 2))
+			 (B-sum 1 (- (- n 1) 2))))
+		   0))
+	   (< (+ (A n phi0)
+		 (* (expt (gamma) (- n 2))
+		    (B-sum 1 (- n 2))))
+	      0))
+  :hints (("Goal"
+	   :use ((:instance phi-2n+1-<-0)))))
+
+(defthm phi-2n+1-<-0-corollary-2
+  (implies (and (integerp n-minus-3)
+		(>= n-minus-3 2)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m (- (+ n-minus-3 3) 1)))) 1))
+		(< (+ (A (+ n-minus-3 2) phi0)
+		      (* (expt (gamma) n-minus-3)
+			 (B-sum 1 n-minus-3)))
+		   0))
+	   (< (+ (A (+ n-minus-3 3) phi0)
+		 (* (expt (gamma) (+ n-minus-3 1))
+		    (B-sum 1 (+ n-minus-3 1))))
+	      0))
+  :hints (("Goal"
+	   :use ((:instance phi-2n+1-<-0-corollary-1
+			    (n (+ n-minus-3 3)))))))
 )
 
-(defthm phi-2n-1-<-0-3
+(defthm phi-2n-1-<-0-base
   (implies (and (integerp n)
 		(equal n 3)
 		(>= phi0 0)
-		(< phi0 (- (/ (* (mu) (+ 1 (* *alpha* *v0*))) (+ 1 (* *beta* (1+ (m n)) *g1*))) 1)))
+		(< phi0 (- (fdco (1+ (m n))) 1)))
 	   (< (phi-2n-1 n phi0) 0)))
 
-(skip-proofs
-(defthm phi-2n-1-<-0
+;; induction step
+(encapsulate ()
+
+(defthm phi-2n-1-<-0-inductive-lemma1-lemma1-stupidlemma
+  (implies (and (integerp n-minus-3)
+		(equal n-minus-3 1)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m (+ n-minus-3 3)))) 1)))
+	   (< (+ (A (+ n-minus-3 3) phi0)
+		 (* (expt (gamma) (+ n-minus-3 1))
+		    (B-sum 1 (+ n-minus-3 1)))) 0)))
+
+(defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma1
+  (implies (integerp a) (integerp (+ a 1)))
+  :rule-classes :type-prescription)
+
+(defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma2
+  (implies (integerp (+ -1 n-minus-3))
+	   (integerp n-minus-3))
+  :hints (("Goal"
+	   :use ((:instance phi-2n-1-<-0-inductive-lemma1-lemma1-lemma1
+			    (a (+ -1 n-minus-3))))))
+  :rule-classes :type-prescription)
+
+(defthm phi-2n-1-<-0-inductive-lemma1-lemma1
+  (implies (and (integerp n-minus-3)
+		(>= n-minus-3 1)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m (+ n-minus-3 3)))) 1)))
+	   (< (+ (A (+ n-minus-3 3) phi0)
+		 (* (expt (gamma) (+ n-minus-3 1))
+		    (B-sum 1 (+ n-minus-3 1)))) 0))
+  :hints (("Goal"
+	   :do-not '(simplify)
+	   :induct (B-sum 1 n-minus-3))
+	  ("Subgoal *1/'"
+	   :use ((:instance phi-2n+1-<-0-corollary-2))
+	   :in-theory (disable phi-2n+1-<-0-corollary-2))
+	  ))
+
+(defthm phi-2n-1-<-0-inductive-lemma1
   (implies (and (integerp n)
 		(>= n 4)
-		(<= n 320)
 		(>= phi0 0)
-		(< phi0 (- (/ (* (mu) (+ 1 (* *alpha* *v0*))) (+ 1 (* *beta* (1+ (m n)) *g1*))) 1)))
-	   (< (phi-2n-1 n phi0) 0))
+		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (< (+ (A n phi0)
+		 (* (expt (gamma) (- n 2))
+		    (B-sum 1 (- n 2)))) 0))
   :hints (("Goal"
+	   :induct (B-sum 1 (- n 2)))))
 
-	   :use ((:instance phi-2n-1-<-0-3)
-		 (:instance phi-2n+1-<-0))
-	   ))))
+(defthm phi-2n-1-<-0-inductive-lemma2
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (< (+ (A n phi0) (B n)) 0)))
+
+(defthm phi-2n-1-<-0-inductive
+  (implies (and (integerp n)
+		(>= n 4)
+		(>= phi0 0)
+		(< phi0 (- (fdco (1+ (m n))) 1)))
+	   (< (phi-2n-1 n phi0) 0)))
+)

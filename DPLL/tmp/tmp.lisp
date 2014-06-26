@@ -1,11 +1,59 @@
-(implies (and (integerp n) (<= 4 n))
-         (< (+ (* 25 n) (* 25 n))
-            (denominator (* (/ (expt 5 n)) (/ (expt 5 n))))))
-
-50n < 5^2n
-
-2n < (1/5)^(2-2n)
-
-50n < 25^n
-1) n == 4, 200 < 25^4
-2) n >= 5, suppose n = k-1, 50(k-1) < 25^(k-1), 50k = 50(k-1) + 50 < 25^(k-1) + 50 < 25*25^(k-1) = 25^k
+(implies
+     (and (implies (and (integerp n-minus-3)
+                        (<= 2 n-minus-3)
+                        (<= 0 phi0)
+                        (< phi0
+                           (+ -1
+                              (* 2
+                                 (/ (+ 1
+                                       (fix (* (+ 1 3200 1 (- n-minus-3) -3)
+                                               1/3200)))))))
+                        (< (+ (a (+ n-minus-3 2) phi0)
+                              (* (/ (expt 5 n-minus-3))
+                                 (b-sum 1 n-minus-3)))
+                           0))
+                   (< (+ (a (+ n-minus-3 3) phi0)
+                         (* (/ (expt 5 (+ n-minus-3 1)))
+                            (b-sum 1 (+ n-minus-3 1))))
+                      0))
+          (implies (and (integerp n-minus-3)
+                        (equal n-minus-3 1)
+                        (<= 0 phi0)
+                        (< phi0
+                           (+ -1
+                              (* 2
+                                 (/ (+ 1
+                                       (fix (* (+ 1 3200 (- n-minus-3) -3)
+                                               1/3200))))))))
+                   (< (+ (a (+ n-minus-3 3) phi0)
+                         (* (/ (expt 5 (+ n-minus-3 1)))
+                            (b-sum 1 (+ n-minus-3 1))))
+                      0))
+          (not (or (not (integerp n-minus-3))
+                   (< n-minus-3 1)))
+          (implies (and (integerp (+ -1 n-minus-3))
+                        (<= 1 (+ -1 n-minus-3))
+                        (<= 0 phi0)
+                        (< phi0
+                           (+ -1
+                              (* 2
+                                 (/ (+ 1
+                                       (fix (* (+ 1 3200 1 (- n-minus-3) -3)
+                                               1/3200))))))))
+                   (< (+ (a (+ -1 n-minus-3 3) phi0)
+                         (* (/ (expt 5 (+ -1 n-minus-3 1)))
+                            (b-sum 1 (+ -1 n-minus-3 1))))
+                      0))
+          (integerp n-minus-3)
+          (<= 1 n-minus-3)
+          (<= 0 phi0)
+          (< phi0
+             (+ -1
+                (* 2
+                   (/ (+ 1
+                         (fix (* (+ 1 3200 (- n-minus-3) -3)
+                                 1/3200))))))))
+     (< (+ (a (+ n-minus-3 3) phi0)
+           (* (/ (expt 5 (+ n-minus-3 1)))
+              (b-sum 1 (+ n-minus-3 1))))
+        0))
