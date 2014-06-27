@@ -3,7 +3,7 @@ level 0:
   (IF 
     (INTEGERP N) 
     (NOT 
-      (< N '4)) 'nil) 
+      (< N '3)) 'nil) 
   (EQUAL 
     (BINARY-+ 
       (BINARY-+ 
@@ -169,7 +169,7 @@ level 2:
           (RATIONALP EXPT_GAMMA_2N) 
           (INTEGERP N) 'nil) 'nil) 'nil) 'nil) 
   (NOT 
-    (< N '4)) 'nil)
+    (< N '3)) 'nil)
 
 level 3:
 (EQUAL 

@@ -1,0 +1,117 @@
+level 0:
+(IMPLIES 
+  (IF 
+    (IF 
+      (INTEGERP N_MINUS_2) 
+      (RATIONALP PHI0) 'nil) 
+    (IF 
+      (NOT 
+        (< 
+          (BINARY-+ '-1 N_MINUS_2) '1)) 
+      (IF 
+        (NOT 
+          (< PHI0 '0)) 
+        (< PHI0 
+          (BINARY-+ '-1 
+            (FDCO 
+              (BINARY-+ '1 
+                (M 
+                  (BINARY-+ N_MINUS_2 '2)))))) 'nil) 'nil) 'nil) 
+  (< PHI0 
+    (BINARY-+ '-1 
+      (FDCO 
+        (BINARY-+ '1 
+          (M 
+            (BINARY-+ '-1 
+              (BINARY-+ N_MINUS_2 '2))))))))
+
+level 1:IMPLIES
+
+level 2:
+(IF 
+  (IF 
+    (INTEGERP N_MINUS_2) 
+    (RATIONALP PHI0) 'nil) 
+  (IF 
+    (NOT 
+      (< 
+        (BINARY-+ '-1 N_MINUS_2) '1)) 
+    (IF 
+      (NOT 
+        (< PHI0 '0)) 
+      (< PHI0 
+        (BINARY-+ '-1 
+          (
+            (LAMBDA 
+              (var0) 
+              (BINARY-* 
+                (BINARY-* 
+                  (BINARY-* '1 
+                    (UNARY-/ 
+                      (BINARY-* '1 '1))) 
+                  (BINARY-+ '1 
+                    (BINARY-* '1 '1))) 
+                (UNARY-/ 
+                  (BINARY-+ '1 
+                    (BINARY-* '1 
+                      (BINARY-* var0 '1/3200)))))) 
+            (BINARY-+ '1 
+              (
+                (LAMBDA 
+                  (var1) 
+                  (BINARY-+ 
+                    (BINARY-* 
+                      (BINARY-+ 
+                        (BINARY-* 
+                          (BINARY-* '1 
+                            (UNARY-/ 
+                              (BINARY-* '1 
+                                (BINARY-* '1 '1)))) 
+                          (BINARY-+ '1 
+                            (BINARY-* '1 '1))) 
+                        (UNARY-- 
+                          (BINARY-* '1 
+                            (UNARY-/ '1)))) 
+                      (UNARY-/ '1/3200)) 
+                    (UNARY-- var1))) 
+                (BINARY-+ N_MINUS_2 '2)))))) 'nil) 'nil) 'nil)
+
+level 3:
+(< PHI0 
+  (BINARY-+ '-1 
+    (
+      (LAMBDA 
+        (var2) 
+        (BINARY-* 
+          (BINARY-* 
+            (BINARY-* '1 
+              (UNARY-/ 
+                (BINARY-* '1 '1))) 
+            (BINARY-+ '1 
+              (BINARY-* '1 '1))) 
+          (UNARY-/ 
+            (BINARY-+ '1 
+              (BINARY-* '1 
+                (BINARY-* var2 '1/3200)))))) 
+      (BINARY-+ '1 
+        (
+          (LAMBDA 
+            (var3) 
+            (BINARY-+ 
+              (BINARY-* 
+                (BINARY-+ 
+                  (BINARY-* 
+                    (BINARY-* '1 
+                      (UNARY-/ 
+                        (BINARY-* '1 
+                          (BINARY-* '1 '1)))) 
+                    (BINARY-+ '1 
+                      (BINARY-* '1 '1))) 
+                  (UNARY-- 
+                    (BINARY-* '1 
+                      (UNARY-/ '1)))) 
+                (UNARY-/ '1/3200)) 
+              (UNARY-- var3))) 
+          (BINARY-+ '-1 
+            (BINARY-+ N_MINUS_2 '2)))))))
+

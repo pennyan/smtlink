@@ -3,7 +3,7 @@ level 0:
   (IF 
     (INTEGERP N) 
     (NOT 
-      (< N '4)) 'nil) 
+      (< N '3)) 'nil) 
   (IMPLIES 
     (< 
       (BINARY-* 
@@ -139,7 +139,7 @@ level 2:
     (< 
       (BINARY-* '2 N) EXPT_GAMMA_2_MINUS_2N) 
     (NOT 
-      (< N '4)) 'nil) 'nil)
+      (< N '3)) 'nil) 'nil)
 
 level 3:
 (IMPLIES 
