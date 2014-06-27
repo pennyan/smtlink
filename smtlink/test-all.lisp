@@ -236,7 +236,7 @@
   (implies (and (and (rationalp x)
 		     (rationalp y))
 		(and))
-	   (>= (expt (+ x y) 2) 0))
+	   (> (expt (+ x y) 2) 0))
   :hints
   (("Goal"
     :clause-processor

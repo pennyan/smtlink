@@ -1263,7 +1263,9 @@
 		(and (<= 1 (+ -1 n_minus_2))
 		     (<= 0 phi0)
 		     (< phi0 (+ -1 (fdco (+ 1 (m (+ n_minus_2 2))))))))
-	   (< phi0 (+ -1 (fdco (+ 1 (m (+ -1 n_minus_2 2)))))))
+	   (and (< phi0 (+ -1 (fdco (+ 1 (m (+ -1 n_minus_2 2))))))
+		(> (+ -1 (fdco (+ 1 (m (+ n_minus_2 2))))) 0)
+		(> (+ -1 (fdco (+ 1 (m (+ -1 n_minus_2 2))))) 0)))
   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
