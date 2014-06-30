@@ -1,9 +1,21 @@
 level 0:
 (IMPLIES 
   (IF 
-    (INTEGERP N) 
-    (NOT 
-      (< N '3)) 'nil) 
+    (IF 
+      (INTEGERP N) 
+      (IF 
+        (RATIONALP V0) 
+        (RATIONALP G1) 'nil) 'nil) 
+    (IF 
+      (NOT 
+        (< N '3)) 
+      (IF 
+        (NOT 
+          (< V0 '9/10)) 
+        (IF 
+          (NOT 
+            (< '11/10 V0)) 
+          (EQUAL G1 '1/3200) 'nil) 'nil) 'nil) 'nil) 
   (IMPLIES 
     (< 
       (BINARY-* 
@@ -14,35 +26,35 @@ level 0:
             (BINARY-+ 
               (FDCO 
                 (BINARY-+ '-1 
-                  (M N))) 
+                  (M N V0 G1)) V0 G1) 
               (UNARY-- 
                 (FDCO 
-                  (M N))))) 
+                  (M N V0 G1) V0 G1)))) 
           (BINARY-+ 
             (BINARY-* 
               (EXPT 
                 (GAMMA) '1) 
               (BINARY-+ 
                 (FDCO 
-                  (M N)) 
+                  (M N V0 G1) V0 G1) 
                 (UNARY-- 
                   (FDCO 
                     (BINARY-+ '1 
-                      (M N)))))) 
+                      (M N V0 G1)) V0 G1)))) 
             (BINARY-+ '-1 
               (BINARY-* 
                 (BINARY-* 
                   (MU) 
                   (BINARY-+ '1 
-                    (BINARY-* '1 '1))) 
+                    (BINARY-* '1 V0))) 
                 (UNARY-/ 
                   (BINARY-+ '1 
                     (BINARY-* '1 
                       (BINARY-+ 
-                        (BINARY-* '1/3200 
+                        (BINARY-* G1 
                           (BINARY-+ '1 
                             (UNARY-- N))) 
-                        (EQU-C))))))))) 
+                        (EQU-C V0))))))))) 
         (UNARY-/ 
           (BINARY-+ '1 
             (UNARY-- 
@@ -50,14 +62,14 @@ level 0:
                 (BINARY-* 
                   (MU) 
                   (BINARY-+ '1 
-                    (BINARY-* '1 '1))) 
+                    (BINARY-* '1 V0))) 
                 (UNARY-/ 
                   (BINARY-+ '1 
                     (BINARY-* '1 
                       (BINARY-+ 
-                        (BINARY-* '1/3200 
+                        (BINARY-* G1 
                           (BINARY-+ '-1 N)) 
-                        (EQU-C)))))))))) 
+                        (EQU-C V0)))))))))) 
       (BINARY-* '2 N)) 
     (< 
       (BINARY-* 
@@ -68,35 +80,35 @@ level 0:
             (BINARY-+ 
               (FDCO 
                 (BINARY-+ '-1 
-                  (M N))) 
+                  (M N V0 G1)) V0 G1) 
               (UNARY-- 
                 (FDCO 
-                  (M N))))) 
+                  (M N V0 G1) V0 G1)))) 
           (BINARY-+ 
             (BINARY-* 
               (EXPT 
                 (GAMMA) '1) 
               (BINARY-+ 
                 (FDCO 
-                  (M N)) 
+                  (M N V0 G1) V0 G1) 
                 (UNARY-- 
                   (FDCO 
                     (BINARY-+ '1 
-                      (M N)))))) 
+                      (M N V0 G1)) V0 G1)))) 
             (BINARY-+ '-1 
               (BINARY-* 
                 (BINARY-* 
                   (MU) 
                   (BINARY-+ '1 
-                    (BINARY-* '1 '1))) 
+                    (BINARY-* '1 V0))) 
                 (UNARY-/ 
                   (BINARY-+ '1 
                     (BINARY-* '1 
                       (BINARY-+ 
-                        (BINARY-* '1/3200 
+                        (BINARY-* G1 
                           (BINARY-+ '1 
                             (UNARY-- N))) 
-                        (EQU-C))))))))) 
+                        (EQU-C V0))))))))) 
         (UNARY-/ 
           (BINARY-+ '1 
             (UNARY-- 
@@ -104,14 +116,14 @@ level 0:
                 (BINARY-* 
                   (MU) 
                   (BINARY-+ '1 
-                    (BINARY-* '1 '1))) 
+                    (BINARY-* '1 V0))) 
                 (UNARY-/ 
                   (BINARY-+ '1 
                     (BINARY-* '1 
                       (BINARY-+ 
-                        (BINARY-* '1/3200 
+                        (BINARY-* G1 
                           (BINARY-+ '-1 N)) 
-                        (EQU-C)))))))))) 
+                        (EQU-C V0)))))))))) 
       (EXPT 
         (GAMMA) 
         (BINARY-+ '2 
@@ -134,12 +146,24 @@ level 2:
             (RATIONALP EXPT_GAMMA_2N_MINUS_1) 
             (IF 
               (RATIONALP EXPT_GAMMA_2N) 
-              (INTEGERP N) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+              (IF 
+                (INTEGERP N) 
+                (IF 
+                  (RATIONALP V0) 
+                  (RATIONALP G1) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
   (IF 
     (< 
       (BINARY-* '2 N) EXPT_GAMMA_2_MINUS_2N) 
-    (NOT 
-      (< N '3)) 'nil) 'nil)
+    (IF 
+      (NOT 
+        (< N '3)) 
+      (IF 
+        (NOT 
+          (< V0 '9/10)) 
+        (IF 
+          (NOT 
+            (< '11/10 V0)) 
+          (EQUAL G1 '1/3200) 'nil) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (IMPLIES 
@@ -150,126 +174,27 @@ level 3:
           (BINARY-+ 
             (
               (LAMBDA 
-                (var0) 
+                (var0 var1 var2) 
                 (BINARY-* 
                   (BINARY-* 
                     (BINARY-* '1 
                       (UNARY-/ 
                         (BINARY-* '1 '1))) 
                     (BINARY-+ '1 
-                      (BINARY-* '1 '1))) 
+                      (BINARY-* '1 var1))) 
                   (UNARY-/ 
                     (BINARY-+ '1 
                       (BINARY-* '1 
-                        (BINARY-* var0 '1/3200)))))) 
+                        (BINARY-* var0 var2)))))) 
               (BINARY-+ '-1 
                 (
                   (LAMBDA 
-                    (var1) 
+                    (var3 var4 var5) 
                     (BINARY-+ 
                       (BINARY-* 
-                        (BINARY-+ 
-                          (BINARY-* 
-                            (BINARY-* '1 
-                              (UNARY-/ 
-                                (BINARY-* '1 
-                                  (BINARY-* '1 '1)))) 
-                            (BINARY-+ '1 
-                              (BINARY-* '1 '1))) 
-                          (UNARY-- 
-                            (BINARY-* '1 
-                              (UNARY-/ '1)))) 
-                        (UNARY-/ '1/3200)) 
-                      (UNARY-- var1))) N))) 
-            (UNARY-- 
-              (
-                (LAMBDA 
-                  (var2) 
-                  (BINARY-* 
-                    (BINARY-* 
-                      (BINARY-* '1 
-                        (UNARY-/ 
-                          (BINARY-* '1 '1))) 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 '1))) 
-                    (UNARY-/ 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 
-                          (BINARY-* var2 '1/3200)))))) 
-                (
-                  (LAMBDA 
-                    (var3) 
-                    (BINARY-+ 
-                      (BINARY-* 
-                        (BINARY-+ 
-                          (BINARY-* 
-                            (BINARY-* '1 
-                              (UNARY-/ 
-                                (BINARY-* '1 
-                                  (BINARY-* '1 '1)))) 
-                            (BINARY-+ '1 
-                              (BINARY-* '1 '1))) 
-                          (UNARY-- 
-                            (BINARY-* '1 
-                              (UNARY-/ '1)))) 
-                        (UNARY-/ '1/3200)) 
-                      (UNARY-- var3))) N))))) 
-        (BINARY-+ 
-          (BINARY-* EXPT_GAMMA_1 
-            (BINARY-+ 
-              (
-                (LAMBDA 
-                  (var4) 
-                  (BINARY-* 
-                    (BINARY-* 
-                      (BINARY-* '1 
-                        (UNARY-/ 
-                          (BINARY-* '1 '1))) 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 '1))) 
-                    (UNARY-/ 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 
-                          (BINARY-* var4 '1/3200)))))) 
-                (
-                  (LAMBDA 
-                    (var5) 
-                    (BINARY-+ 
-                      (BINARY-* 
-                        (BINARY-+ 
-                          (BINARY-* 
-                            (BINARY-* '1 
-                              (UNARY-/ 
-                                (BINARY-* '1 
-                                  (BINARY-* '1 '1)))) 
-                            (BINARY-+ '1 
-                              (BINARY-* '1 '1))) 
-                          (UNARY-- 
-                            (BINARY-* '1 
-                              (UNARY-/ '1)))) 
-                        (UNARY-/ '1/3200)) 
-                      (UNARY-- var5))) N)) 
-              (UNARY-- 
-                (
-                  (LAMBDA 
-                    (var6) 
-                    (BINARY-* 
-                      (BINARY-* 
-                        (BINARY-* '1 
-                          (UNARY-/ 
-                            (BINARY-* '1 '1))) 
-                        (BINARY-+ '1 
-                          (BINARY-* '1 '1))) 
-                      (UNARY-/ 
-                        (BINARY-+ '1 
-                          (BINARY-* '1 
-                            (BINARY-* var6 '1/3200)))))) 
-                  (BINARY-+ '1 
-                    (
-                      (LAMBDA 
-                        (var7) 
-                        (BINARY-+ 
-                          (BINARY-* 
+                        (
+                          (LAMBDA 
+                            (var6) 
                             (BINARY-+ 
                               (BINARY-* 
                                 (BINARY-* '1 
@@ -277,12 +202,123 @@ level 3:
                                     (BINARY-* '1 
                                       (BINARY-* '1 '1)))) 
                                 (BINARY-+ '1 
-                                  (BINARY-* '1 '1))) 
+                                  (BINARY-* '1 var6))) 
                               (UNARY-- 
                                 (BINARY-* '1 
-                                  (UNARY-/ '1)))) 
-                            (UNARY-/ '1/3200)) 
-                          (UNARY-- var7))) N)))))) 
+                                  (UNARY-/ '1))))) var4) 
+                        (UNARY-/ var5)) 
+                      (UNARY-- var3))) N V0 G1)) V0 G1) 
+            (UNARY-- 
+              (
+                (LAMBDA 
+                  (var7 var8 var9) 
+                  (BINARY-* 
+                    (BINARY-* 
+                      (BINARY-* '1 
+                        (UNARY-/ 
+                          (BINARY-* '1 '1))) 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 var8))) 
+                    (UNARY-/ 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 
+                          (BINARY-* var7 var9)))))) 
+                (
+                  (LAMBDA 
+                    (var10 var11 var12) 
+                    (BINARY-+ 
+                      (BINARY-* 
+                        (
+                          (LAMBDA 
+                            (var13) 
+                            (BINARY-+ 
+                              (BINARY-* 
+                                (BINARY-* '1 
+                                  (UNARY-/ 
+                                    (BINARY-* '1 
+                                      (BINARY-* '1 '1)))) 
+                                (BINARY-+ '1 
+                                  (BINARY-* '1 var13))) 
+                              (UNARY-- 
+                                (BINARY-* '1 
+                                  (UNARY-/ '1))))) var11) 
+                        (UNARY-/ var12)) 
+                      (UNARY-- var10))) N V0 G1) V0 G1)))) 
+        (BINARY-+ 
+          (BINARY-* EXPT_GAMMA_1 
+            (BINARY-+ 
+              (
+                (LAMBDA 
+                  (var14 var15 var16) 
+                  (BINARY-* 
+                    (BINARY-* 
+                      (BINARY-* '1 
+                        (UNARY-/ 
+                          (BINARY-* '1 '1))) 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 var15))) 
+                    (UNARY-/ 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 
+                          (BINARY-* var14 var16)))))) 
+                (
+                  (LAMBDA 
+                    (var17 var18 var19) 
+                    (BINARY-+ 
+                      (BINARY-* 
+                        (
+                          (LAMBDA 
+                            (var20) 
+                            (BINARY-+ 
+                              (BINARY-* 
+                                (BINARY-* '1 
+                                  (UNARY-/ 
+                                    (BINARY-* '1 
+                                      (BINARY-* '1 '1)))) 
+                                (BINARY-+ '1 
+                                  (BINARY-* '1 var20))) 
+                              (UNARY-- 
+                                (BINARY-* '1 
+                                  (UNARY-/ '1))))) var18) 
+                        (UNARY-/ var19)) 
+                      (UNARY-- var17))) N V0 G1) V0 G1) 
+              (UNARY-- 
+                (
+                  (LAMBDA 
+                    (var21 var22 var23) 
+                    (BINARY-* 
+                      (BINARY-* 
+                        (BINARY-* '1 
+                          (UNARY-/ 
+                            (BINARY-* '1 '1))) 
+                        (BINARY-+ '1 
+                          (BINARY-* '1 var22))) 
+                      (UNARY-/ 
+                        (BINARY-+ '1 
+                          (BINARY-* '1 
+                            (BINARY-* var21 var23)))))) 
+                  (BINARY-+ '1 
+                    (
+                      (LAMBDA 
+                        (var24 var25 var26) 
+                        (BINARY-+ 
+                          (BINARY-* 
+                            (
+                              (LAMBDA 
+                                (var27) 
+                                (BINARY-+ 
+                                  (BINARY-* 
+                                    (BINARY-* '1 
+                                      (UNARY-/ 
+                                        (BINARY-* '1 
+                                          (BINARY-* '1 '1)))) 
+                                    (BINARY-+ '1 
+                                      (BINARY-* '1 var27))) 
+                                  (UNARY-- 
+                                    (BINARY-* '1 
+                                      (UNARY-/ '1))))) var25) 
+                            (UNARY-/ var26)) 
+                          (UNARY-- var24))) N V0 G1)) V0 G1)))) 
           (BINARY-+ '-1 
             (BINARY-* 
               (BINARY-* 
@@ -290,25 +326,28 @@ level 3:
                   (UNARY-/ 
                     (BINARY-* '1 '1))) 
                 (BINARY-+ '1 
-                  (BINARY-* '1 '1))) 
+                  (BINARY-* '1 V0))) 
               (UNARY-/ 
                 (BINARY-+ '1 
                   (BINARY-* '1 
                     (BINARY-+ 
-                      (BINARY-* '1/3200 
+                      (BINARY-* G1 
                         (BINARY-+ '1 
                           (UNARY-- N))) 
-                      (BINARY-+ 
-                        (BINARY-* 
-                          (BINARY-* '1 
-                            (UNARY-/ 
+                      (
+                        (LAMBDA 
+                          (var28) 
+                          (BINARY-+ 
+                            (BINARY-* 
                               (BINARY-* '1 
-                                (BINARY-* '1 '1)))) 
-                          (BINARY-+ '1 
-                            (BINARY-* '1 '1))) 
-                        (UNARY-- 
-                          (BINARY-* '1 
-                            (UNARY-/ '1)))))))))))) 
+                                (UNARY-/ 
+                                  (BINARY-* '1 
+                                    (BINARY-* '1 '1)))) 
+                              (BINARY-+ '1 
+                                (BINARY-* '1 var28))) 
+                            (UNARY-- 
+                              (BINARY-* '1 
+                                (UNARY-/ '1))))) V0))))))))) 
       (UNARY-/ 
         (BINARY-+ '1 
           (UNARY-- 
@@ -318,24 +357,27 @@ level 3:
                   (UNARY-/ 
                     (BINARY-* '1 '1))) 
                 (BINARY-+ '1 
-                  (BINARY-* '1 '1))) 
+                  (BINARY-* '1 V0))) 
               (UNARY-/ 
                 (BINARY-+ '1 
                   (BINARY-* '1 
                     (BINARY-+ 
-                      (BINARY-* '1/3200 
+                      (BINARY-* G1 
                         (BINARY-+ '-1 N)) 
-                      (BINARY-+ 
-                        (BINARY-* 
-                          (BINARY-* '1 
-                            (UNARY-/ 
+                      (
+                        (LAMBDA 
+                          (var29) 
+                          (BINARY-+ 
+                            (BINARY-* 
                               (BINARY-* '1 
-                                (BINARY-* '1 '1)))) 
-                          (BINARY-+ '1 
-                            (BINARY-* '1 '1))) 
-                        (UNARY-- 
-                          (BINARY-* '1 
-                            (UNARY-/ '1))))))))))))) 
+                                (UNARY-/ 
+                                  (BINARY-* '1 
+                                    (BINARY-* '1 '1)))) 
+                              (BINARY-+ '1 
+                                (BINARY-* '1 var29))) 
+                            (UNARY-- 
+                              (BINARY-* '1 
+                                (UNARY-/ '1))))) V0)))))))))) 
     (BINARY-* '2 N)) 
   (< 
     (BINARY-* 
@@ -344,126 +386,27 @@ level 3:
           (BINARY-+ 
             (
               (LAMBDA 
-                (var8) 
+                (var30 var31 var32) 
                 (BINARY-* 
                   (BINARY-* 
                     (BINARY-* '1 
                       (UNARY-/ 
                         (BINARY-* '1 '1))) 
                     (BINARY-+ '1 
-                      (BINARY-* '1 '1))) 
+                      (BINARY-* '1 var31))) 
                   (UNARY-/ 
                     (BINARY-+ '1 
                       (BINARY-* '1 
-                        (BINARY-* var8 '1/3200)))))) 
+                        (BINARY-* var30 var32)))))) 
               (BINARY-+ '-1 
                 (
                   (LAMBDA 
-                    (var9) 
+                    (var33 var34 var35) 
                     (BINARY-+ 
                       (BINARY-* 
-                        (BINARY-+ 
-                          (BINARY-* 
-                            (BINARY-* '1 
-                              (UNARY-/ 
-                                (BINARY-* '1 
-                                  (BINARY-* '1 '1)))) 
-                            (BINARY-+ '1 
-                              (BINARY-* '1 '1))) 
-                          (UNARY-- 
-                            (BINARY-* '1 
-                              (UNARY-/ '1)))) 
-                        (UNARY-/ '1/3200)) 
-                      (UNARY-- var9))) N))) 
-            (UNARY-- 
-              (
-                (LAMBDA 
-                  (var10) 
-                  (BINARY-* 
-                    (BINARY-* 
-                      (BINARY-* '1 
-                        (UNARY-/ 
-                          (BINARY-* '1 '1))) 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 '1))) 
-                    (UNARY-/ 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 
-                          (BINARY-* var10 '1/3200)))))) 
-                (
-                  (LAMBDA 
-                    (var11) 
-                    (BINARY-+ 
-                      (BINARY-* 
-                        (BINARY-+ 
-                          (BINARY-* 
-                            (BINARY-* '1 
-                              (UNARY-/ 
-                                (BINARY-* '1 
-                                  (BINARY-* '1 '1)))) 
-                            (BINARY-+ '1 
-                              (BINARY-* '1 '1))) 
-                          (UNARY-- 
-                            (BINARY-* '1 
-                              (UNARY-/ '1)))) 
-                        (UNARY-/ '1/3200)) 
-                      (UNARY-- var11))) N))))) 
-        (BINARY-+ 
-          (BINARY-* EXPT_GAMMA_1 
-            (BINARY-+ 
-              (
-                (LAMBDA 
-                  (var12) 
-                  (BINARY-* 
-                    (BINARY-* 
-                      (BINARY-* '1 
-                        (UNARY-/ 
-                          (BINARY-* '1 '1))) 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 '1))) 
-                    (UNARY-/ 
-                      (BINARY-+ '1 
-                        (BINARY-* '1 
-                          (BINARY-* var12 '1/3200)))))) 
-                (
-                  (LAMBDA 
-                    (var13) 
-                    (BINARY-+ 
-                      (BINARY-* 
-                        (BINARY-+ 
-                          (BINARY-* 
-                            (BINARY-* '1 
-                              (UNARY-/ 
-                                (BINARY-* '1 
-                                  (BINARY-* '1 '1)))) 
-                            (BINARY-+ '1 
-                              (BINARY-* '1 '1))) 
-                          (UNARY-- 
-                            (BINARY-* '1 
-                              (UNARY-/ '1)))) 
-                        (UNARY-/ '1/3200)) 
-                      (UNARY-- var13))) N)) 
-              (UNARY-- 
-                (
-                  (LAMBDA 
-                    (var14) 
-                    (BINARY-* 
-                      (BINARY-* 
-                        (BINARY-* '1 
-                          (UNARY-/ 
-                            (BINARY-* '1 '1))) 
-                        (BINARY-+ '1 
-                          (BINARY-* '1 '1))) 
-                      (UNARY-/ 
-                        (BINARY-+ '1 
-                          (BINARY-* '1 
-                            (BINARY-* var14 '1/3200)))))) 
-                  (BINARY-+ '1 
-                    (
-                      (LAMBDA 
-                        (var15) 
-                        (BINARY-+ 
-                          (BINARY-* 
+                        (
+                          (LAMBDA 
+                            (var36) 
                             (BINARY-+ 
                               (BINARY-* 
                                 (BINARY-* '1 
@@ -471,12 +414,123 @@ level 3:
                                     (BINARY-* '1 
                                       (BINARY-* '1 '1)))) 
                                 (BINARY-+ '1 
-                                  (BINARY-* '1 '1))) 
+                                  (BINARY-* '1 var36))) 
                               (UNARY-- 
                                 (BINARY-* '1 
-                                  (UNARY-/ '1)))) 
-                            (UNARY-/ '1/3200)) 
-                          (UNARY-- var15))) N)))))) 
+                                  (UNARY-/ '1))))) var34) 
+                        (UNARY-/ var35)) 
+                      (UNARY-- var33))) N V0 G1)) V0 G1) 
+            (UNARY-- 
+              (
+                (LAMBDA 
+                  (var37 var38 var39) 
+                  (BINARY-* 
+                    (BINARY-* 
+                      (BINARY-* '1 
+                        (UNARY-/ 
+                          (BINARY-* '1 '1))) 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 var38))) 
+                    (UNARY-/ 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 
+                          (BINARY-* var37 var39)))))) 
+                (
+                  (LAMBDA 
+                    (var40 var41 var42) 
+                    (BINARY-+ 
+                      (BINARY-* 
+                        (
+                          (LAMBDA 
+                            (var43) 
+                            (BINARY-+ 
+                              (BINARY-* 
+                                (BINARY-* '1 
+                                  (UNARY-/ 
+                                    (BINARY-* '1 
+                                      (BINARY-* '1 '1)))) 
+                                (BINARY-+ '1 
+                                  (BINARY-* '1 var43))) 
+                              (UNARY-- 
+                                (BINARY-* '1 
+                                  (UNARY-/ '1))))) var41) 
+                        (UNARY-/ var42)) 
+                      (UNARY-- var40))) N V0 G1) V0 G1)))) 
+        (BINARY-+ 
+          (BINARY-* EXPT_GAMMA_1 
+            (BINARY-+ 
+              (
+                (LAMBDA 
+                  (var44 var45 var46) 
+                  (BINARY-* 
+                    (BINARY-* 
+                      (BINARY-* '1 
+                        (UNARY-/ 
+                          (BINARY-* '1 '1))) 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 var45))) 
+                    (UNARY-/ 
+                      (BINARY-+ '1 
+                        (BINARY-* '1 
+                          (BINARY-* var44 var46)))))) 
+                (
+                  (LAMBDA 
+                    (var47 var48 var49) 
+                    (BINARY-+ 
+                      (BINARY-* 
+                        (
+                          (LAMBDA 
+                            (var50) 
+                            (BINARY-+ 
+                              (BINARY-* 
+                                (BINARY-* '1 
+                                  (UNARY-/ 
+                                    (BINARY-* '1 
+                                      (BINARY-* '1 '1)))) 
+                                (BINARY-+ '1 
+                                  (BINARY-* '1 var50))) 
+                              (UNARY-- 
+                                (BINARY-* '1 
+                                  (UNARY-/ '1))))) var48) 
+                        (UNARY-/ var49)) 
+                      (UNARY-- var47))) N V0 G1) V0 G1) 
+              (UNARY-- 
+                (
+                  (LAMBDA 
+                    (var51 var52 var53) 
+                    (BINARY-* 
+                      (BINARY-* 
+                        (BINARY-* '1 
+                          (UNARY-/ 
+                            (BINARY-* '1 '1))) 
+                        (BINARY-+ '1 
+                          (BINARY-* '1 var52))) 
+                      (UNARY-/ 
+                        (BINARY-+ '1 
+                          (BINARY-* '1 
+                            (BINARY-* var51 var53)))))) 
+                  (BINARY-+ '1 
+                    (
+                      (LAMBDA 
+                        (var54 var55 var56) 
+                        (BINARY-+ 
+                          (BINARY-* 
+                            (
+                              (LAMBDA 
+                                (var57) 
+                                (BINARY-+ 
+                                  (BINARY-* 
+                                    (BINARY-* '1 
+                                      (UNARY-/ 
+                                        (BINARY-* '1 
+                                          (BINARY-* '1 '1)))) 
+                                    (BINARY-+ '1 
+                                      (BINARY-* '1 var57))) 
+                                  (UNARY-- 
+                                    (BINARY-* '1 
+                                      (UNARY-/ '1))))) var55) 
+                            (UNARY-/ var56)) 
+                          (UNARY-- var54))) N V0 G1)) V0 G1)))) 
           (BINARY-+ '-1 
             (BINARY-* 
               (BINARY-* 
@@ -484,25 +538,28 @@ level 3:
                   (UNARY-/ 
                     (BINARY-* '1 '1))) 
                 (BINARY-+ '1 
-                  (BINARY-* '1 '1))) 
+                  (BINARY-* '1 V0))) 
               (UNARY-/ 
                 (BINARY-+ '1 
                   (BINARY-* '1 
                     (BINARY-+ 
-                      (BINARY-* '1/3200 
+                      (BINARY-* G1 
                         (BINARY-+ '1 
                           (UNARY-- N))) 
-                      (BINARY-+ 
-                        (BINARY-* 
-                          (BINARY-* '1 
-                            (UNARY-/ 
+                      (
+                        (LAMBDA 
+                          (var58) 
+                          (BINARY-+ 
+                            (BINARY-* 
                               (BINARY-* '1 
-                                (BINARY-* '1 '1)))) 
-                          (BINARY-+ '1 
-                            (BINARY-* '1 '1))) 
-                        (UNARY-- 
-                          (BINARY-* '1 
-                            (UNARY-/ '1)))))))))))) 
+                                (UNARY-/ 
+                                  (BINARY-* '1 
+                                    (BINARY-* '1 '1)))) 
+                              (BINARY-+ '1 
+                                (BINARY-* '1 var58))) 
+                            (UNARY-- 
+                              (BINARY-* '1 
+                                (UNARY-/ '1))))) V0))))))))) 
       (UNARY-/ 
         (BINARY-+ '1 
           (UNARY-- 
@@ -512,22 +569,25 @@ level 3:
                   (UNARY-/ 
                     (BINARY-* '1 '1))) 
                 (BINARY-+ '1 
-                  (BINARY-* '1 '1))) 
+                  (BINARY-* '1 V0))) 
               (UNARY-/ 
                 (BINARY-+ '1 
                   (BINARY-* '1 
                     (BINARY-+ 
-                      (BINARY-* '1/3200 
+                      (BINARY-* G1 
                         (BINARY-+ '-1 N)) 
-                      (BINARY-+ 
-                        (BINARY-* 
-                          (BINARY-* '1 
-                            (UNARY-/ 
+                      (
+                        (LAMBDA 
+                          (var59) 
+                          (BINARY-+ 
+                            (BINARY-* 
                               (BINARY-* '1 
-                                (BINARY-* '1 '1)))) 
-                          (BINARY-+ '1 
-                            (BINARY-* '1 '1))) 
-                        (UNARY-- 
-                          (BINARY-* '1 
-                            (UNARY-/ '1))))))))))))) EXPT_GAMMA_2_MINUS_2N))
+                                (UNARY-/ 
+                                  (BINARY-* '1 
+                                    (BINARY-* '1 '1)))) 
+                              (BINARY-+ '1 
+                                (BINARY-* '1 var59))) 
+                            (UNARY-- 
+                              (BINARY-* '1 
+                                (UNARY-/ '1))))) V0)))))))))) EXPT_GAMMA_2_MINUS_2N))
 
