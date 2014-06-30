@@ -5,7 +5,7 @@
 ;; called in a lot of the functions.
 
 (in-package "ACL2")
-(defconst *g1* 1/3200)
+;; (defconst *g1* 1/3200)
 (defconst *g2* (- (/ 1/3200 5)))
 (defconst *ccode* 1)
 (defconst *Kt* 4/5)
@@ -14,15 +14,15 @@
 (defconst *alpha* 1)
 (defconst *beta* 1)
 (defconst *f0* 1)
-(defconst *v0* 1)
+;; (defconst *v0* 1)
 
 ; Define intermediate variables
-(defun equ-c ()
-  (- (* (/ *f0* (* *beta* *N* *fref*)) (+ 1 (* *alpha* *v0*))) (/ 1 *beta*)))
+(defun equ-c (v0)
+  (- (* (/ *f0* (* *beta* *N* *fref*)) (+ 1 (* *alpha* v0))) (/ 1 *beta*)))
 (defun gamma ()
   (- 1 *Kt*))
 ;;(defun gamma () (/ 1 2))
 (defun mu ()
   (/ *f0* (* *N* *fref*)))
-(defun m (n)
-  (- (/ (equ-c) *g1*) n))
+(defun m (n v0 g1)
+  (- (/ (equ-c v0) g1) n))
