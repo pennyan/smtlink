@@ -25,6 +25,20 @@ level 3:
         (IF 
           (ZP var0) '1 
           (BINARY-* var0 
-            (FAC 
+            (
+              (LAMBDA 
+                (var1) 
+                (IF 
+                  (ZP var1) '1 
+                  (BINARY-* var1 
+                    (
+                      (LAMBDA 
+                        (var2) 
+                        (IF 
+                          (ZP var2) '1 
+                          (BINARY-* var2 
+                            (FAC 
+                              (BINARY-+ '-1 var2))))) 
+                      (BINARY-+ '-1 var1))))) 
               (BINARY-+ '-1 var0))))) A) '20))
 

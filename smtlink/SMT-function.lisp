@@ -59,11 +59,24 @@
       nil
     (cons (cadr (car assoc-list)) (assoc-fetch-value (cdr assoc-list)))))
 
+;; decrease-level-by-1
+(defun decrease-level-by-1 (fn fn-level-lst)
+  "decrease-level-by-1: decrease a function's expansion level by 1."
+  (if (endp fn-level-lst)
+      nil
+      (if (equal (car (car fn-level-lst)) fn)
+	  (cons (list fn (1- (cadr (car fn-level-lst))))
+		(cdr fn-level-lst))
+	  (cons (car fn-level-lst)
+		(decrease-level-by-1 fn (cdr fn-level-lst))))))
+
 ;; expand-a-fn
 ;; e.g.(defun double (x y) (+ (* 2 x) y))
 ;;     (double a b) -> (let ((var1 a) (var2 b)) (+ (* 2 var1) var2))
 ;;     (double a b) -> ((lambda (var1 var2) (+ (* 2 var1) var2)) a b)
-(defun expand-a-fn (fn fn-waiting fn-extended num state)
+;; 2014-07-01
+;; added code for decreasing level for function expanded
+(defun expand-a-fn (fn fn-level-lst fn-waiting fn-extended num state)
   "expand-a-fn: expand an expression with a function definition, num should be accumulated by 1. fn should be stored as a symbol"
   (let ((formal (cdr (cadr (meta-extract-formula fn state))))
 	;; the third element is the formalss
@@ -74,6 +87,7 @@
 	(mv body
 	    (my-delete fn-waiting fn)
 	    (cons fn fn-extended)
+	    (decrease-level-by-1 fn fn-level-lst)
 	    num)
 	(mv-let (var-list num1)
 		(make-var-list formal num)
@@ -81,6 +95,7 @@
 			  (set-fn-body body var-list))
 		    (my-delete fn-waiting fn)
 		    (cons fn fn-extended)
+		    (decrease-level-by-1 fn fn-level-lst)
 		    num1)))))
 
 ;; lambdap
@@ -99,15 +114,15 @@
 
 (mutual-recursion
  ;; expand-fn-help-list
- (defun expand-fn-help-list (expr fn-lst fn-waiting fn-extended num state)
+ (defun expand-fn-help-list (expr fn-lst fn-level-lst fn-waiting fn-extended num state)
    "expand-fn-help-list"
    (declare (xargs :measure (list (acl2-count (len fn-waiting)) (acl2-count expr))))
    (if (endp expr)
        (mv nil num)
      (mv-let (res-expr1 res-num1)
-	     (expand-fn-help (car expr) fn-lst fn-waiting fn-extended num state)
+	     (expand-fn-help (car expr) fn-lst fn-level-lst fn-waiting fn-extended num state)
 	     (mv-let (res-expr2 res-num2)
-		     (expand-fn-help-list (cdr expr) fn-lst fn-waiting fn-extended res-num1 state)
+		     (expand-fn-help-list (cdr expr) fn-lst fn-level-lst fn-waiting fn-extended res-num1 state)
 		     (mv (cons res-expr1 res-expr2) res-num2)))))
 
  ;; expand-fn-help
@@ -131,7 +146,7 @@
  ;   detection. We note the length of fn-lst, then we want to
  ;   count down the level of expansion. Any path exceeding this
  ;   length is a sign for recursive call. 
- (defun expand-fn-help (expr fn-lst fn-waiting fn-extended num state)
+ (defun expand-fn-help (expr fn-lst fn-level-lst fn-waiting fn-extended num state)
    "expand-fn-help: expand an expression"
    (declare (xargs :measure (list (acl2-count (len fn-waiting)) (acl2-count expr))))
    (cond ((atom expr) ;; base case, when expr is an atom
@@ -140,35 +155,35 @@
 	  (let ((fn0 (car expr)) (params (cdr expr)))
 	    (cond
 	      ((and (atom fn0) (exist fn0 fn-lst)) ;; function exists in the list
-	       (if (and (exist fn0 fn-waiting) (not (exist fn0 fn-extended))) ;; if fn0 exist in waiting list and not in extended list
-		   (mv-let (res fn-w-1 fn-e-1 num2)
-			   (expand-a-fn fn0 fn-waiting fn-extended num state) ;; expand a function
+	       (if (> (cadr (assoc fn0 fn-level-lst)) 0) ;; if fn0's level number is still larger than 0
+		   (mv-let (res fn-w-1 fn-e-1 fn-l-l-1 num2)
+			   (expand-a-fn fn0 fn-level-lst fn-waiting fn-extended num state) ;; expand a function
 			   (mv-let (res2 num3)
-				   (expand-fn-help res fn-lst fn-w-1 fn-e-1 num2 state)
+				   (expand-fn-help res fn-lst fn-l-l-1 fn-w-1 fn-e-1 num2 state)
 				   (if (endp params)
 				       (mv res2 num3)
 				       (mv-let (res3 num4)
-					       (expand-fn-help-list params fn-lst fn-waiting fn-extended num3 state)
+					       (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num3 state)
 					       (mv (cons res2 res3) num4)))))
-		   (prog2$ (cw "Error(function): possible recursive function call detected: ~q0" fn0)
+		   (prog2$ (cw "Error(function): recursive function expansion level has reached 0: ~q0" fn0)
 			   (mv expr num))))
 	      ((atom fn0) ;; when expr is a un-expandable function
 	       (mv-let (res num2)
-		       (expand-fn-help-list (cdr expr) fn-lst fn-waiting fn-extended num state)
+		       (expand-fn-help-list (cdr expr) fn-lst fn-level-lst fn-waiting fn-extended num state)
 		       (mv (cons (car expr) res) num2)))
 	      ((lambdap fn0) ;; function is a lambda expression, expand the body
 	       (let ((lambdax fn0) (params (cdr expr)))
 		 (let ((formals (cadr lambdax)) (body (caddr lambdax)))
 		   (mv-let (res num2)
-			   (expand-fn-help body fn-lst fn-waiting fn-extended num state)
+			   (expand-fn-help body fn-lst fn-level-lst fn-waiting fn-extended num state)
 			   (mv-let (res2 num3)
-				   (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
-				   (mv (cons (list 'lambda formals res) res2) num3))))))
+				   (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num2 state)
+				   (mv (cons (list 'lambda formals res) res2)  num3))))))
 	      ((and (not (lambdap fn0)) (consp fn0))
 	       (mv-let (res num2)
-		       (expand-fn-help fn0 fn-lst fn-waiting fn-extended num state)
+		       (expand-fn-help fn0 fn-lst fn-level-lst fn-waiting fn-extended num state)
 		       (mv-let (res2 num3)
-			       (expand-fn-help-list params fn-lst fn-waiting fn-extended num2 state)
+			       (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num2 state)
 			       (mv (cons res res2) num3))))
 	      )))
 	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
@@ -248,17 +263,34 @@
       inverted-let-expr
       (cw "Error(function): there's repetition in the associate list's values ~q0" let-expr))))
 
+;; initial-level-help
+(defun initial-level-help (fn-lst fn-level)
+  "initial-level-help: binding a level to each function for expansion. fn-lst is a list of functions, fn-level is the number of levels we want to expand the functions."
+  (if (endp fn-lst)
+      nil
+      (cons (list (car fn-lst) fn-level)
+	    (initial-level-help (cdr fn-lst) fn-level))))
+
+;; initial-level
+(defun initial-level (fn-lst fn-level)
+  "initial-level: binding a level to each function for expansion"
+  (if (not (integerp fn-level))
+      (initial-level-help fn-lst 1)
+      (initial-level-help fn-lst fn-level)))
+
 ;; expand-fn
-(defun expand-fn (expr fn-lst let-expr let-type new-hypo state)
+(defun expand-fn (expr fn-lst fn-level let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
   (let ((reformed-let-expr (reform-let let-expr)))
-    (mv-let (res-expr res-num)
-	    (expand-fn-help (rewrite-formula expr reformed-let-expr)
-			    fn-lst fn-lst nil 0 state)
-	    (mv-let (rewritten-expr orig-param)
-		    (augment-formula (rewrite-formula res-expr reformed-let-expr)
-				     (assoc-get-value reformed-let-expr)
-				     let-type
-				     new-hypo)
-		    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
-		    (mv rewritten-expr res-num orig-param))))))
+    (mv-let (fn-level-lst)
+	    (initial-level fn-lst fn-level)
+	    (mv-let (res-expr res-num)
+		    (expand-fn-help (rewrite-formula expr reformed-let-expr)
+				    fn-lst fn-level-lst fn-lst nil 0 state)
+		    (mv-let (rewritten-expr orig-param)
+			    (augment-formula (rewrite-formula res-expr reformed-let-expr)
+					     (assoc-get-value reformed-let-expr)
+					     let-type
+					     new-hypo)
+			    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
+				    (mv rewritten-expr res-num orig-param)))))))

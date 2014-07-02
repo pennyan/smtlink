@@ -199,7 +199,7 @@ new hypothesis in lambda expression"
 	    (create-hypo-theorem-helper-with-hints decl-hypo-list let-expr (cdr hypo-expr) orig-param (cdr hypo-hints)))))
 
 ;; my-prove
-(defun my-prove (term fn-lst fname let-expr new-hypo let-hints hypo-hints main-hints)
+(defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
   "my-prove: return the result of calling SMT procedure"
   (let ((file-dir (concatenate 'string
 			       *dir-files*
@@ -216,7 +216,7 @@ new hypothesis in lambda expression"
       (mv-let (let-expr-translated let-type)
 	      (separate-type let-expr-translated-with-type)
 	      (mv-let (expanded-term-list num orig-param)
-		      (expand-fn term fn-lst let-expr-translated let-type hypo-translated state)
+		      (expand-fn term fn-lst fn-level let-expr-translated let-type hypo-translated state)
 		      (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
 			      (prog2$ (my-prove-write-expander-file
 				       (my-prove-build-log-file
