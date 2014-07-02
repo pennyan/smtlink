@@ -4,5 +4,5 @@ from ACL2_translator import to_smt, Q
 s = to_smt()
 A=s.isReal("A")
 hypothesis=s.notx(s.lt(A,10))
-conclusion=s.notx(s.lt((lambda var0:s.ifx(False,1,s.times(var0,False)))(A),20))
+conclusion=s.notx(s.lt((lambda var0:s.ifx(False,1,s.times(var0,(lambda var1:s.ifx(False,1,s.times(var1,(lambda var2:s.ifx(False,1,s.times(var2,False)))(s.plus(-1,var1)))))(s.plus(-1,var0)))))(A),20))
 s.prove(hypothesis, conclusion)

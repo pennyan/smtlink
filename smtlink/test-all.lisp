@@ -1,3 +1,22 @@
+;; 2014-07-01
+;; add an expand level for function expansion
+;; :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (my-clause-processor clause
+;; 			 '( (:expand (:functions ())
+;;                                   (:expansion-level 1))
+;; 			   (:python-file "test")
+;; 			   (:let ())
+;; 			   (:hypothesize ())
+;; 			   (:use ((:type ())
+;; 				  (:hypo ())
+;; 				  (:main ()))))
+;; 			 )))
+;; 1. default: if no level provided, just onelevel
+;; 2. if level provided, each function can be expanded
+;; for that many levels
+
 ;; test cases
 (in-package "ACL2")
 (logic)
@@ -7,49 +26,51 @@
 (include-book "arithmetic/top-with-meta" :dir :system)
 (include-book "./SMT-connect")
 
-;; test0
-(defconst *a* 1)
-(defun bar0 (x) (* 2 x))
+;; ;; test0
+;; (defconst *a* 1)
+;; (defun bar0 (x) (* 2 x))
 
-;; a very simple theorem
-(defthm test0
-  (implies (and (and (rationalp x)) (and))
-	   (equal (+ x x) (* *a* (bar0 x))))
-  :hints
-  (("Goal"
-    :clause-processor
-    (my-clause-processor clause
-			 '( (:expand (bar0))
-			   (:python-file "test0")
-			   (:let ())
-			   (:hypothesize ())
-			   (:use ((:type ())
-				  (:hypo ())
-				  (:main ()))))
-			 ))))
+;; ;; a very simple theorem
+;; (defthm test0
+;;   (implies (and (and (rationalp x)) (and))
+;; 	   (equal (+ x x) (* *a* (bar0 x))))
+;;   :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (my-clause-processor clause
+;; 			 '( (:expand ((:functions (bar0))
+;; 				      (:expansion-level 1)))
+;; 			   (:python-file "test0")
+;; 			   (:let ())
+;; 			   (:hypothesize ())
+;; 			   (:use ((:type ())
+;; 				  (:hypo ())
+;; 				  (:main ()))))
+;; 			 ))))
 
-;; test1
-(defun foo1 (x y) (* x (+ 1 y)))
+;; ;; test1
+;; (defun foo1 (x y) (* x (+ 1 y)))
 
-;; very first piece of test case
-(defthm test1 (implies (and (and (rationalp x)
-				 (integerp y)
-				 (integerp z))
-			    (and (not (<= x 0))
-				 (equal z (+ 3/2 4))
-				 (or (> x y) (> x (+ y 40/3)))))
-		       (> (foo1 x (foo1 x z)) (foo1 x y)))
-  :hints
-  (("Goal"
-    :clause-processor
-    (my-clause-processor clause
-			 '( (:expand (foo1))
-			   (:python-file "test1")
-			   (:let ())
-			   (:hypothesize ())
-			   (:use ((:type ())
-				  (:hypo ())
-				  (:main ()))))))))
+;; ;; very first piece of test case
+;; (defthm test1 (implies (and (and (rationalp x)
+;; 				 (integerp y)
+;; 				 (integerp z))
+;; 			    (and (not (<= x 0))
+;; 				 (equal z (+ 3/2 4))
+;; 				 (or (> x y) (> x (+ y 40/3)))))
+;; 		       (> (foo1 x (foo1 x z)) (foo1 x y)))
+;;   :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (my-clause-processor clause
+;; 			 '( (:expand ((:functions (foo1))
+;; 				      (:expansion-level 1)))
+;; 			   (:python-file "test1")
+;; 			   (:let ())
+;; 			   (:hypothesize ())
+;; 			   (:use ((:type ())
+;; 				  (:hypo ())
+;; 				  (:main ()))))))))
 
 ;; test2
 (defun foo2 (x) (+ x 3))
@@ -63,7 +84,8 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand (foo2 bar2))
+			 '( (:expand ((:functions (foo2 bar2))
+				      (:expansion-level 1)))
 			    (:python-file "test2")
 			    (:let ())
 			    (:hypothesize ())
@@ -86,7 +108,8 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand (foo3))
+			 '( (:expand ((:functions (foo3))
+				      (:expansion-level 1)))
 			    (:python-file "test3")
 			    (:let ())
 			    (:hypothesize ())
@@ -120,7 +143,9 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand (a4 b4 c4 d4 e4 f4))
+			 '( (:expand ((:functions (a4 b4 c4 d4 e4 f4)))
+			             ;;(:expansion-level 1)
+			     )
 			    (:python-file "test4")
 			    (:let ())
 			    (:hypothesize ())
@@ -140,7 +165,8 @@
 ;;   (("Goal"
 ;;     :clause-processor
 ;;     (my-clause-processor clause
-;; 			 '( (:expand (fac))
+;; 			 '( (:expand ((:functions (fac))
+;; 				      (:expansion-level 3)))
 ;; 			    (:python-file "test5")
 ;; 			    (:let ())
 ;; 			    (:hypothesize ())
@@ -187,7 +213,8 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand (a6 b6 c6 d6 e6 f6 foo6))
+			 '( (:expand ((:functions (a6 b6 c6 d6 e6 f6 foo6))
+				      (:expansion-level 1)))
 			    (:python-file "test6")
 			    (:let ((expt_gamma_m (expt gamma m) rationalp)
 				   (expt_gamma_n (expt gamma n) rationalp)))
