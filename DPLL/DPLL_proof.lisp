@@ -8,6 +8,7 @@
 :set-state-ok t
 :set-ignore-ok t
 
+;; functions
 (defun fdco (n v0 g1)
   (/ (* (mu) (+ 1 (* *alpha* v0))) (+ 1 (* *beta* n g1))))
 
@@ -36,6 +37,53 @@
   (* (expt (gamma) (- n 2))
      (B-sum 1 (- n 2) v0 g1)))
 
+;; parameter list functions
+(defmacro basic-params-equal (n n-value &optional (v0 'nil) (g1 'nil) (phi0 'nil) (n-4-phi0 'nil) (other 'nil))
+  (list 'and
+	(append
+	 (append
+	  (append (list 'and
+			(list 'integerp n))
+		  (if (equal g1 'nil) nil (list (list 'rationalp g1))))
+	  (if (equal v0 'nil) nil (list (list 'rationalp v0))))
+	 (if (equal phi0 'nil) nil (list (list 'rationalp phi0))))
+	(append
+	 (append
+	  (append
+	   (append
+	    (append
+	     (append (list 'and
+			   (list 'equal n n-value))
+		     (if (equal g1 'nil) nil (list (list 'equal g1 '1/3200))))
+	     (if (equal v0 'nil) nil (list (list '>= v0 '9/10))))
+	    (if (equal v0 'nil) nil (list (list '<= v0 '11/10))))
+	   (if (equal phi0 'nil) nil (list (list '>= phi0 '0))))
+	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm n-4-phi0 v0 g1)) v0 g1) '1)))))
+	 (if (equal other 'nil) nil (list other)))))
+
+(defmacro basic-params (n n-value &optional (v0 'nil) (g1 'nil) (phi0 'nil) (n-4-phi0 'nil) (other 'nil))
+  (list 'and
+	(append
+	 (append
+	  (append (list 'and
+			(list 'integerp n))
+		  (if (equal g1 'nil) nil (list (list 'rationalp g1))))
+	  (if (equal v0 'nil) nil (list (list 'rationalp v0))))
+	 (if (equal phi0 'nil) nil (list (list 'rationalp phi0))))
+	(append
+	 (append
+	  (append
+	   (append
+	    (append
+	     (append (list 'and
+			   (list '>= n n-value))
+		     (if (equal g1 'nil) nil (list (list 'equal g1 '1/3200))))
+	     (if (equal v0 'nil) nil (list (list '>= v0 '9/10))))
+	    (if (equal v0 'nil) nil (list (list '<= v0 '11/10))))
+	   (if (equal phi0 'nil) nil (list (list '>= phi0 '0))))
+	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm n-4-phi0 v0 g1)) v0 g1) '1)))))
+	 (if (equal other 'nil) nil (list other)))))
+
 (encapsulate ()
 
 (local
@@ -48,8 +96,7 @@
 
 (local
 (defthm B-term-neg-lemma3
-  (implies (and (and (integerp h) (rationalp v0) (rationalp g1))
-		(and (>= h 1) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params h 1 v0 g1)
 	   (< (+ (* (B-term-expt h) (B-term-rest h v0 g1))
 		 (* (B-term-expt (- h)) (B-term-rest (- h) v0 g1)))
 	      0))
@@ -67,8 +114,7 @@
 )
 
 (defthm B-term-neg
-  (implies (and (and (integerp h) (rationalp v0) (rationalp g1))
-		(and (>= h 1) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params h 1 v0 g1)
 	   (< (+ (B-term h v0 g1) (B-term (- h) v0 g1)) 0))
   :hints (("Goal"
 	   :use ((:instance B-term-neg-lemma1)
@@ -78,8 +124,7 @@
 )
 
 (defthm B-sum-neg
-  (implies (and (and (integerp n-minus-2) (rationalp v0) (rationalp g1))
-		(and (>= n-minus-2 1) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n-minus-2 1 v0 g1)
 	   (< (B-sum 1 n-minus-2 v0 g1) 0))
   :hints (("Goal"
 	   :in-theory (disable B-term)))
@@ -89,15 +134,15 @@
 	     
 (local ;; B = B-expt*B-sum
  (defthm B-neg-lemma1
-   (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		 (and (> n 2) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+   (implies (basic-params n 3 v0 g1)
 	    (equal (B n v0 g1)
 		   (* (B-expt n)
 		      (B-sum 1 (- n 2) v0 g1))))))
 
 (local
  (defthm B-expt->-0
-   (implies (and (integerp n) (> n 2)) (> (B-expt n) 0))
+   (implies (basic-params n 3)
+	    (> (B-expt n) 0))
    :rule-classes :linear))
 
 (local
@@ -118,13 +163,12 @@
 
 (local
  (defthm B-neg-type-lemma4
-   (implies (and (integerp n) (> n 2))
+   (implies (basic-params n 3)
 	    (rationalp (B-expt n)))
    :rule-classes :type-prescription))
 
 (defthm B-neg
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (> n 2) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (< (B n v0 g1) 0))
   :hints (("Goal"
 	   :do-not-induct t
@@ -240,8 +284,7 @@
 (local
 ;; considering using smtlink for the proof, probably simpler
 (defthm delta-rewrite-1-lemma1
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (+ (- (* (expt (gamma) (* 2 n))
 			   (- (fdco (1- (m n v0 g1)) v0 g1) 1))
 			(* (expt (gamma) (* 2 n))
@@ -296,16 +339,14 @@
 
 (local
 (defthm delta-rewrite-1
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (delta n v0 g1)
 		  (delta-1 n v0 g1))))
 )
 
 (local
 (defthm delta-rewrite-2-lemma1
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (* (expt (gamma) (1- n))
 		     (expt (gamma) (1+ (- n))))
 		  1))
@@ -317,8 +358,7 @@
 
 (local
 (defthm delta-rewrite-2-lemma2
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
  	   (equal (* (expt (gamma) (1- n))
  		     (expt (gamma) (1- n)))
 		  (expt (gamma) (+ -1 n -1 n))))
@@ -333,8 +373,7 @@
 
 (local
 (defthm delta-rewrite-2-lemma3
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (+ A
 		     B
 		     (* (* (expt (gamma) (1- n))
@@ -352,8 +391,7 @@
 
 (local
 (defthm delta-rewrite-2
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (delta-1 n v0 g1)
 		  (delta-2 n v0 g1)))
   :hints (("Goal"
@@ -372,8 +410,7 @@
 
 (local
 (defthm delta-rewrite-3-lemma1-lemma1
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (expt (gamma) (+ (+ -1 n -1 n) 2))
 		  (* (expt (gamma) (+ -1 n -1 n))
 		     (expt (gamma) 2))))
@@ -388,15 +425,13 @@
 
 (local
 (defthm delta-rewrite-3-lemma1-stupidlemma
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (* 2 n) (+ (+ -1 n -1 n) 2))))
 )
 
 (local
 (defthm delta-rewrite-3-lemma1
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (expt (gamma) (* 2 n))
 		  (* (expt (gamma) (+ -1 n -1 n))
 		     (expt (gamma) 2)))))
@@ -404,8 +439,7 @@
 
 (local
 (defthm delta-rewrite-3-lemma2-lemma1
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (expt (gamma) (+ (+ -1 n -1 n) 1))
 		  (* (expt (gamma) (+ -1 n -1 n))
 		     (expt (gamma) 1))))
@@ -420,15 +454,13 @@
 
 (local
 (defthm delta-rewrite-3-lemma2-stupidlemma
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (- (* 2 n) 1) (+ (+ -1 n -1 n) 1))))
 )
 
 (local
 (defthm delta-rewrite-3-lemma2
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (expt (gamma) (- (* 2 n) 1))
 		  (* (expt (gamma) (+ -1 n -1 n))
 		     (expt (gamma) 1))))
@@ -440,8 +472,7 @@
 
 (local
 (defthm delta-rewrite-3-lemma3
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (* (expt (gamma) (- 2 (* 2 n)))
 		     (expt (gamma) (+ -1 n -1 n)))
 		  1))
@@ -453,8 +484,7 @@
 
 (local
 (defthm delta-rewrite-3
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (+ (* (expt (gamma) (* 2 n))
 			(- (fdco (1- (m n v0 g1)) v0 g1)
 			   (fdco (m n v0 g1) v0 g1)))
@@ -521,8 +551,7 @@
 
 (local
 (defthm delta-rewrite-4
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (delta-2 n v0 g1)
 		  (delta-3 n v0 g1)))
   :hints (("Goal"
@@ -530,8 +559,7 @@
 )
 
 (defthm delta-rewrite-5
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (delta n v0 g1)
 		  (delta-3 n v0 g1)))
   :hints (("Goal"
@@ -545,8 +573,7 @@
 
 (local
 (defthm delta-<-0-lemma1-lemma
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (implies (< (+ (* (expt (gamma) 2)
 			     (- (fdco (1- (m n v0 g1)) v0 g1)
 				(fdco (m n v0 g1) v0 g1)))
@@ -601,16 +628,14 @@
 
 (local
 (defthm delta-<-0-lemma1
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (implies (< (delta-3-inside n v0 g1) 0)
 		    (< (delta-3 n v0 g1) 0))))
 )
 
 (local
 (defthm delta-<-0-lemma2-lemma
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (implies (< (/ (+ (* (expt (gamma) 2)
 				(- (fdco (1- (m n v0 g1)) v0 g1)
 				   (fdco (m n v0 g1) v0 g1)))
@@ -664,8 +689,7 @@
 
 (local
 (defthm delta-<-0-lemma2
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (implies (< (delta-3-inside-transform n v0 g1)
 		       (expt (gamma) (- 2 (* 2 n))))
 		    (< (delta-3-inside n v0 g1) 0)))
@@ -676,15 +700,13 @@
 (local
 ;; This is for proving 2n < gamma^(2-2n)
 (defthm delta-<-0-lemma3-lemma1
-  (implies (and (integerp k)
-		(>= k 6))
+  (implies (basic-params k 6)
 	   (< k (expt (/ (gamma)) (- k 2)))))
 )
 
 (local
 (defthm delta-<-0-lemma3-lemma2
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (< (* 2 n)
 	      (expt (/ (gamma)) (- (* 2 n) 2))))
   :hints (("Goal"
@@ -700,8 +722,7 @@
 
 (local
 (defthm delta-<-0-lemma3-lemma3
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (equal (expt (/ (gamma)) (- (* 2 n) 2))
 		  (expt (gamma) (- 2 (* 2 n)))))
   :hints (("Goal"
@@ -718,8 +739,7 @@
 
 (local
 (defthm delta-<-0-lemma3-lemma4
-  (implies (and (integerp n)
-		(>= n 3))
+  (implies (basic-params n 3)
 	   (< (* 2 n)
 	      (expt (gamma) (- 2 (* 2 n)))))
   :hints (("Goal"
@@ -738,8 +758,7 @@
 
 (local
 (defthm delta-<-0-lemma3
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (implies (< (/ (+ (* (expt (gamma) 2)
 				(- (fdco (1- (m n v0 g1)) v0 g1)
 				   (fdco (m n v0 g1) v0 g1)))
@@ -803,8 +822,7 @@
 
 (local
 (defthm delta-<-0-lemma4
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (< (/ (+ (* (expt (gamma) 2)
 		       (- (fdco (1- (m n v0 g1)) v0 g1)
 			  (fdco (m n v0 g1) v0 g1)))
@@ -852,8 +870,7 @@
 
 
 (defthm delta-<-0
-  (implies (and (and (integerp n) (rationalp v0) (rationalp g1))
-		(and (>= n 3) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
+  (implies (basic-params n 3 v0 g1)
 	   (< (delta n v0 g1) 0))
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-5)
@@ -875,16 +892,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma1-lemma1
-  (implies (and (rationalp v0)
-		(rationalp g1)
-		(>= v0 9/10)
-		(<= v0 11/10)
-		(equal g1 1/3200)
-		(integerp n)
-		(>= n 3)
-		(rationalp phi0)
-		(>= phi0 0)
- 		(< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1)))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (equal (A (+ n 1) phi0 v0 g1)
 		  (+ (* (expt (gamma) (+ (* 2 n) 1)) phi0)
 		     (* (expt (gamma) (* 2 n))
@@ -895,16 +903,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma1-lemma2
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (equal (+ (* (expt (gamma) (+ (* 2 n) 1)) phi0)
 		     (* (expt (gamma) (* 2 n))
 			(- (fdco (1- (m n v0 g1)) v0 g1) 1))
@@ -929,16 +928,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma1-A
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (equal (A (+ n 1) phi0 v0 g1)
 		  (+ (* (A n phi0 v0 g1) (gamma) (gamma))
 		     (- (* (expt (gamma) (* 2 n))
@@ -953,13 +943,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma2-lemma1
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (B (+ n 1) v0 g1)
 		  (* (expt (gamma) (- n 1))
 		     (B-sum 1 (- n 1) v0 g1)))))
@@ -967,13 +951,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma2-lemma2
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (B (+ n 1) v0 g1)
 		  (* (expt (gamma) (- n 1))
 		     (+ (B-term (- n 1) v0 g1)
@@ -983,13 +961,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma2-lemma3
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (B (+ n 1) v0 g1)
 		  (+ (* (expt (gamma) (- n 1))
 			(B-sum 1 (- n 2) v0 g1))
@@ -1001,13 +973,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma2-lemma4
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (B (+ n 1) v0 g1)
 		  (+ (* (gamma) (expt (gamma) (- n 2))
 			(B-sum 1 (- n 2) v0 g1))
@@ -1018,13 +984,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma2-lemma5
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (B (+ n 1) v0 g1)
 		  (+ (* (gamma) (B n v0 g1))
 		     (* (expt (gamma) (- n 1))
@@ -1034,13 +994,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma2-B
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (B (+ n 1) v0 g1)
 		  (+ (* (gamma) (B n v0 g1))
 		     (* (expt (gamma) (- n 1))
@@ -1052,13 +1006,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma3-delta-stupidlemma
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (+ (- (* (expt (gamma) (* 2 n))
 			   (- (fdco (1- (m n v0 g1)) v0 g1) 1))
 			(* (expt (gamma) (* 2 n))
@@ -1091,13 +1039,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma3-delta
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)))
+  (implies (basic-params n 3 v0 g1)
 	   (equal (+ (- (* (expt (gamma) (* 2 n))
 			   (- (fdco (1- (m n v0 g1)) v0 g1) 1))
 			(* (expt (gamma) (* 2 n))
@@ -1120,16 +1062,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma4
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 g1)
 		  (+ (A (+ n 1) phi0 v0 g1)
 		     (B (+ n 1) v0 g1)))))
@@ -1137,16 +1070,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma5
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 g1)
 		  (+ (+ (* (A n phi0 v0 g1) (gamma) (gamma))
 			(- (* (expt (gamma) (* 2 n))
@@ -1170,16 +1094,7 @@
 
 (local 
 (defthm split-phi-2n+1-lemma6
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 g1)
 		  (+ (* (A n phi0 v0 g1) (gamma) (gamma))
 		     (* (gamma) (B n v0 g1))
@@ -1199,16 +1114,7 @@
 )
 
 (defthm split-phi-2n+1
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 g1)
  		  (+ (* (gamma) (gamma) (A n phi0 v0 g1)) (* (gamma) (B n v0 g1)) (delta n v0 g1))))
   :hints (("Goal"
@@ -1241,21 +1147,12 @@
 )
 
 (defthm except-for-delta-<-0
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))
-		     (< (phi-2n-1 n phi0 v0 g1) 0)))
+  (implies (basic-params n 3 v0 g1 phi0 n (< (phi-2n-1 n phi0 v0 g1) 0))
 	   (< (+ (* (gamma) (gamma) (A n phi0 v0 g1))
 		 (* (gamma) (B n v0 g1)))
 	      0))
   :hints (("Goal"
+	   :do-not-induct t
 	   :use ((:instance except-for-delta-<-0-lemma1
 			    (c (gamma))
 			    (A (A n phi0 v0 g1))
@@ -1266,17 +1163,7 @@
 ;; for induction step 
 (encapsulate ()
 (defthm phi-2n+1-<-0-lemma1
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 3)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))
-		     (< (phi-2n-1 n phi0 v0 g1) 0)))
+  (implies (basic-params n 3 v0 g1 phi0 n (< (phi-2n-1 n phi0 v0 g1) 0))
 	   (< (phi-2n-1 (1+ n) phi0 v0 g1) 0))
   :hints (("Goal"
  	   :use ((:instance split-phi-2n+1)
@@ -1284,37 +1171,18 @@
 		 (:instance except-for-delta-<-0)))))
 
 (defthm phi-2n+1-<-0
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 4)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m (- n 1) v0 g1)) v0 g1) 1))
-		     (< (phi-2n-1 (- n 1) phi0 v0 g1) 0)))
+  (implies (basic-params n 4 v0 g1 phi0 (- n 1) (< (phi-2n-1 (- n 1) phi0 v0 g1) 0))
 	   (< (phi-2n-1 n phi0 v0 g1) 0))
   :hints (("Goal"
 	   :use ((:instance phi-2n+1-<-0-lemma1
 			    (n (- n 1)))))))
 
 (defthm phi-2n+1-<-0-corollary-1
-  (implies (and (and (integerp n)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= n 4)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m (- n 1) v0 g1)) v0 g1) 1))
-		     (< (+ (A (- n 1) phi0 v0 g1)
-			   (* (expt (gamma) (- (- n 1) 2))
-			      (B-sum 1 (- (- n 1) 2) v0 g1)))
-			0)))
+  (implies (basic-params n 4 v0 g1 phi0 (- n 1) 
+			 (< (+ (A (- n 1) phi0 v0 g1)
+			       (* (expt (gamma) (- (- n 1) 2))
+				  (B-sum 1 (- (- n 1) 2) v0 g1)))
+			    0))
 	   (< (+ (A n phi0 v0 g1)
 		 (* (expt (gamma) (- n 2))
 		    (B-sum 1 (- n 2) v0 g1)))
@@ -1323,20 +1191,11 @@
 	   :use ((:instance phi-2n+1-<-0)))))
 
 (defthm phi-2n+1-<-0-corollary-2
-  (implies (and (integerp n-minus-2)
-		(rationalp v0)
-		(rationalp g1)
-		(rationalp phi0)
-		(>= n-minus-2 2)
-		(>= v0 9/10)
-		(<= v0 11/10)
-		(equal g1 1/3200)
-		(>= phi0 0)
-		(< phi0 (- (fdco (1+ (m (- (+ n-minus-2 2) 1) v0 g1)) v0 g1) 1))
-		(< (+ (A (+ n-minus-2 1) phi0 v0 g1)
-		      (* (expt (gamma) (- n-minus-2 1))
-			 (B-sum 1 (- n-minus-2 1) v0 g1)))
-		   0))
+  (implies (basic-params n-minus-2 2 v0 g1 phi0 (- (+ n-minus-2 2) 1)
+			 (< (+ (A (+ n-minus-2 1) phi0 v0 g1)
+			       (* (expt (gamma) (- n-minus-2 1))
+				  (B-sum 1 (- n-minus-2 1) v0 g1)))
+			    0))
 	   (< (+ (A (+ n-minus-2 2) phi0 v0 g1)
 		 (* (expt (gamma) n-minus-2)
 		    (B-sum 1 n-minus-2 v0 g1)))
@@ -1349,16 +1208,7 @@
 ;; CANNOT PROVE
 (skip-proofs
 (defthm phi-2n-1-<-0-base
-  (implies (and (and (integerp n)
-		     (rationalp v0)
-		     (rationalp g1)
-		     (rationalp phi0))
-		(and (equal n 3)
-		     (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (>= phi0 0)
-		     (< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1))))
+  (implies (basic-params-equal n 3 v0 g1 phi0 n)
 	   (< (phi-2n-1 n phi0 v0 g1) 0))
   :hints (("Goal"
 	   :clause-processor
@@ -1375,32 +1225,14 @@
 ;; CANNOT PROVE
 (skip-proofs
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-stupidlemma
-  (implies (and (integerp n-minus-2)
-		(rationalp v0)
-		(rationalp g1)
-		(rationalp phi0)
-		(equal n-minus-2 1)
-		(>= v0 9/10)
-		(<= v0 11/10)
-		(equal g1 1/3200)
-		(>= phi0 0)
-		(< phi0 (- (fdco (1+ (m (+ n-minus-2 2) v0 g1)) v0 g1) 1)))
+  (implies (basic-params-equal n-minus-2 1 v0 g1 phi0 (+ n-minus-2 2))
 	   (< (+ (A (+ n-minus-2 2) phi0 v0 g1)
 		 (* (expt (gamma) n-minus-2)
 		    (B-sum 1 n-minus-2 v0 g1))) 0)))
 )
 
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma1
-  (implies (and (and (integerp n_minus_2)
-		     (rationalp phi0)
-		     (rationalp v0)
-		     (rationalp g1))
-		(and (<= 1 (+ -1 n_minus_2))
-		     (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200)
-		     (<= 0 phi0)
-		     (< phi0 (+ -1 (fdco (+ 1 (m (+ n_minus_2 2) v0 g1)) v0 g1)))))
+  (implies (basic-params n_minus_2 2 v0 g1 phi0 (+ n_minus_2 2))
 	   (and (< phi0 (+ -1 (fdco (+ 1 (m (+ -1 n_minus_2 2) v0 g1)) v0 g1)))
 		(> (+ -1 (fdco (+ 1 (m (+ n_minus_2 2) v0 g1)) v0 g1)) 0)
 		(> (+ -1 (fdco (+ 1 (m (+ -1 n_minus_2 2) v0 g1)) v0 g1)) 0)))
@@ -1433,51 +1265,21 @@
   :rule-classes nil)
 
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma3
-  (implies (and (implies (and (integerp n-minus-2) ;; a
-                            (<= 2 n-minus-2)       ;; b
-                            (rationalp phi0)       ;; c
-                            (<= 0 phi0)            ;; d
-			    (and (rationalp v0)
-				 (rationalp g1)
-				 (>= v0 9/10)
-				 (<= v0 11/10)
-				 (equal g1 1/3200)) ;; k
-                            (< phi0
-                               (+ -1 (fdco (+ 1 (m (+ -1 n-minus-2 2) v0 g1)) v0 g1))) ;; e
-                            (< (+ (a (+ n-minus-2 1) phi0 v0 g1)
-                                  (* (/ (expt 5 (+ -1 n-minus-2)))
-                                     (b-sum 1 (+ -1 n-minus-2) v0 g1)))
-                               0))   ;; f
+  (implies (and (implies (basic-params n-minus-2 2 v0 g1 phi0 (+ -1 n-minus-2 2)
+				       (< (+ (a (+ n-minus-2 1) phi0 v0 g1)
+					     (* (/ (expt 5 (+ -1 n-minus-2)))
+						(b-sum 1 (+ -1 n-minus-2) v0 g1)))
+					  0))   ;; f
                        (< (+ (a (+ n-minus-2 2) phi0 v0 g1)
                              (* (/ (expt 5 n-minus-2))
                                 (b-sum 1 n-minus-2 v0 g1)))
                           0)) ;; g
-              (implies (and (integerp n-minus-2) ;; a
-                            (equal n-minus-2 1)  ;; h
-                            (rationalp phi0) ;; c
-			    (and (rationalp v0)
-				 (rationalp g1)
-				 (>= v0 9/10)
-				 (<= v0 11/10)
-				 (equal g1 1/3200)) ;; k
-                            (<= 0 phi0) ;; d
-                            (< phi0
-                               (+ -1 (fdco (+ 1 (m (+ n-minus-2 2) v0 g1)) v0 g1)))) ;; i
+              (implies (basic-params-equal n-minus-2 1 v0 g1 phi0 (+ n-minus-2 2))
                        (< (+ (a (+ n-minus-2 2) phi0 v0 g1)
                              (* (/ (expt 5 n-minus-2))
                                 (b-sum 1 n-minus-2 v0 g1)))
                           0)) ;; g
-              (implies (and (and (integerp n-minus-2) ;; a
-                                 (rationalp phi0)) ;; c
-                            (<= 1 (+ -1 n-minus-2)) ;; b
-			    (and (rationalp v0)
-				 (rationalp g1)
-				 (>= v0 9/10)
-				 (<= v0 11/10)
-				 (equal g1 1/3200)) ;; k
-                            (<= 0 phi0) ;; d
-                            (< phi0
-                               (+ -1 (fdco (+ 1 (m (+ n-minus-2 2) v0 g1)) v0 g1)))) ;; i
+              (implies (basic-params n-minus-2 2 v0 g1 phi0 (+ n-minus-2 2))
                        (< phi0
                           (+ -1
                              (fdco (+ 1 (m (+ -1 n-minus-2 2) v0 g1)) v0 g1)))) ;; e
@@ -1485,33 +1287,12 @@
                        (integerp (+ -1 n-minus-2))) ;; j
               (not (or (not (integerp n-minus-2))  ;; a
                        (< n-minus-2 1))) ;; (or b h)
-              (implies (and (integerp (+ -1 n-minus-2)) ;; j
-                            (<= 1 (+ -1 n-minus-2)) ;; b
-                            (rationalp phi0) ;; c
-			    (and (rationalp v0)
-				 (rationalp g1)
-				 (>= v0 9/10)
-				 (<= v0 11/10)
-				 (equal g1 1/3200)) ;; k
-                            (<= 0 phi0) ;; d
-                            (< phi0
-                               (+ -1
-                                  (fdco (+ 1 (m (+ -1 n-minus-2 2) v0 g1)) v0 g1)))) ;; e
+              (implies (basic-params (+ -1 n-minus-2) 1 v0 g1 phi0 (+ -1 n-minus-2 2))
                        (< (+ (a (+ -1 n-minus-2 2) phi0 v0 g1)
                              (* (/ (expt 5 (+ -1 n-minus-2)))
                                 (b-sum 1 (+ -1 n-minus-2) v0 g1)))
                           0)) ;; f
-              (integerp n-minus-2) ;;a
-              (<= 1 n-minus-2) ;; (or b h)
-              (rationalp phi0) ;; c
-	      (and (rationalp v0)
-		   (rationalp g1)
-		   (>= v0 9/10)
-		   (<= v0 11/10)
-		   (equal g1 1/3200)) ;; k
-              (<= 0 phi0) ;; d
-              (< phi0
-                 (+ -1 (fdco (+ 1 (m (+ n-minus-2 2) v0 g1)) v0 g1)))) ;; i
+              (basic-params n-minus-2 1 v0 g1 phi0 (+ n-minus-2 2)))
          (< (+ (a (+ n-minus-2 2) phi0 v0 g1)
                (* (/ (expt 5 n-minus-2))
                   (b-sum 1 n-minus-2 v0 g1)))
@@ -1545,16 +1326,7 @@
   )
 
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1
-  (implies (and (integerp n-minus-2)
-		(rationalp v0)
-		(rationalp g1)
-		(rationalp phi0)
-		(>= n-minus-2 1)
-		(>= v0 9/10)
-		(<= v0 11/10)
-		(equal g1 1/3200)
-		(>= phi0 0)
-		(< phi0 (- (fdco (1+ (m (+ n-minus-2 2) v0 g1)) v0 g1) 1)))
+  (implies (basic-params n-minus-2 1 v0 g1 phi0 (+ n-minus-2 2))
 	   (< (+ (A (+ n-minus-2 2) phi0 v0 g1)
 		 (* (expt (gamma) n-minus-2)
 		    (B-sum 1 n-minus-2 v0 g1))) 0))
@@ -1563,6 +1335,7 @@
 	   :induct (B-sum 1 n-minus-2 v0 g1)
 	   :in-theory (disable fdco m))
 	  ("Subgoal *1/'"
+	   :do-not-induct t
 	   :use ((:instance phi-2n+1-<-0-corollary-2)
 		 (:instance phi-2n-1-<-0-inductive-lemma1-lemma1-stupidlemma)
 		 (:instance phi-2n-1-<-0-inductive-lemma1-lemma1-lemma1
@@ -1579,16 +1352,7 @@
 	  ))
 
 (defthm phi-2n-1-<-0-inductive-lemma1
-  (implies (and (integerp n)
-		(and (rationalp v0)
-		     (rationalp g1)
-		     (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200))
-		(>= n 3)
-		(rationalp phi0)
-		(>= phi0 0)
-		(< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1)))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (< (+ (A n phi0 v0 g1)
 		 (* (expt (gamma) (- n 2))
 		    (B-sum 1 (- n 2) v0 g1))) 0))
@@ -1597,31 +1361,13 @@
 			    (n-minus-2 (- n 2)))))))
 
 (defthm phi-2n-1-<-0-inductive-lemma2
-  (implies (and (integerp n)
-		(and (rationalp v0)
-		     (rationalp g1)
-		     (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200))
-		(>= n 3)
-		(rationalp phi0)
-		(>= phi0 0)
-		(< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1)))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (< (+ (A n phi0 v0 g1) (B n v0 g1)) 0))
   :hints (("Goal"
 	   :use ((:instance phi-2n-1-<-0-inductive-lemma1)))))
 
 (defthm phi-2n-1-<-0-inductive
-  (implies (and (integerp n)
-		(and (rationalp v0)
-		     (rationalp g1)
-		     (>= v0 9/10)
-		     (<= v0 11/10)
-		     (equal g1 1/3200))
-		(>= n 3)
-		(rationalp phi0)
-		(>= phi0 0)
-		(< phi0 (- (fdco (1+ (m n v0 g1)) v0 g1) 1)))
+  (implies (basic-params n 3 v0 g1 phi0 n)
 	   (< (phi-2n-1 n phi0 v0 g1) 0))
   :hints (("Goal"
 	   :use ((:instance phi-2n-1-<-0-inductive-lemma2)))))

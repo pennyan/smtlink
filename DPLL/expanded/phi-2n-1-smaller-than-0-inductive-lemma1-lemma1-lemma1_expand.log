@@ -4,22 +4,21 @@ level 0:
     (IF 
       (INTEGERP N_MINUS_2) 
       (IF 
-        (RATIONALP PHI0) 
+        (RATIONALP G1) 
         (IF 
           (RATIONALP V0) 
-          (RATIONALP G1) 'nil) 'nil) 'nil) 
+          (RATIONALP PHI0) 'nil) 'nil) 'nil) 
     (IF 
       (NOT 
-        (< 
-          (BINARY-+ '-1 N_MINUS_2) '1)) 
+        (< N_MINUS_2 '2)) 
       (IF 
-        (NOT 
-          (< V0 '9/10)) 
+        (EQUAL G1 '1/3200) 
         (IF 
           (NOT 
-            (< '11/10 V0)) 
+            (< V0 '9/10)) 
           (IF 
-            (EQUAL G1 '1/3200) 
+            (NOT 
+              (< '11/10 V0)) 
             (IF 
               (NOT 
                 (< PHI0 '0)) 
@@ -59,22 +58,21 @@ level 2:
   (IF 
     (INTEGERP N_MINUS_2) 
     (IF 
-      (RATIONALP PHI0) 
+      (RATIONALP G1) 
       (IF 
         (RATIONALP V0) 
-        (RATIONALP G1) 'nil) 'nil) 'nil) 
+        (RATIONALP PHI0) 'nil) 'nil) 'nil) 
   (IF 
     (NOT 
-      (< 
-        (BINARY-+ '-1 N_MINUS_2) '1)) 
+      (< N_MINUS_2 '2)) 
     (IF 
-      (NOT 
-        (< V0 '9/10)) 
+      (EQUAL G1 '1/3200) 
       (IF 
         (NOT 
-          (< '11/10 V0)) 
+          (< V0 '9/10)) 
         (IF 
-          (EQUAL G1 '1/3200) 
+          (NOT 
+            (< '11/10 V0)) 
           (IF 
             (NOT 
               (< PHI0 '0)) 

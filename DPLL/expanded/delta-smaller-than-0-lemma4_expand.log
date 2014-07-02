@@ -4,18 +4,18 @@ level 0:
     (IF 
       (INTEGERP N) 
       (IF 
-        (RATIONALP V0) 
-        (RATIONALP G1) 'nil) 'nil) 
+        (RATIONALP G1) 
+        (RATIONALP V0) 'nil) 'nil) 
     (IF 
       (NOT 
         (< N '3)) 
       (IF 
-        (NOT 
-          (< V0 '9/10)) 
+        (EQUAL G1 '1/3200) 
         (IF 
           (NOT 
-            (< '11/10 V0)) 
-          (EQUAL G1 '1/3200) 'nil) 'nil) 'nil) 'nil) 
+            (< V0 '9/10)) 
+          (NOT 
+            (< '11/10 V0)) 'nil) 'nil) 'nil) 'nil) 
   (< 
     (BINARY-* 
       (BINARY-+ 
@@ -90,18 +90,18 @@ level 2:
               (IF 
                 (INTEGERP N) 
                 (IF 
-                  (RATIONALP V0) 
-                  (RATIONALP G1) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+                  (RATIONALP G1) 
+                  (RATIONALP V0) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
   (IF 
     (NOT 
       (< N '3)) 
     (IF 
-      (NOT 
-        (< V0 '9/10)) 
+      (EQUAL G1 '1/3200) 
       (IF 
         (NOT 
-          (< '11/10 V0)) 
-        (EQUAL G1 '1/3200) 'nil) 'nil) 'nil) 'nil)
+          (< V0 '9/10)) 
+        (NOT 
+          (< '11/10 V0)) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (< 
