@@ -204,7 +204,7 @@
 ;; rewrite the formula according to given hypothesis and let-expression
 (defun rewrite-formula (expr let-expr)
   "rewrite-formula rewrites an expression by replacing corresponding terms in the let expression"
-  (prog2$ (cw "expr: ~q0, let-expr: ~q1" expt let-expr)
+  (prog2$ (cw "expr: ~q0, let-expr: ~q1" expr let-expr)
   (cond ((atom expr) ;; if expr is an atom
 	 (let ((res-pair (assoc-equal expr let-expr)))
 	   (if (equal res-pair nil)
