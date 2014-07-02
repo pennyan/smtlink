@@ -1205,23 +1205,78 @@
 			    (n (+ n-minus-2 2)))))))
 )
 
+(encapsulate ()
 ;; CANNOT PROVE
+(local
+(defthm phi-2n-1-<-0-base-lemma
+  (implies (and (and (rationalp v0)
+		     (rationalp phi0))
+		(and (<= 1 (* 10/9 v0))
+		     (<= v0 11/10)
+		     (<= 0 phi0)
+		     (< phi0
+			(+ -1 (* (+ 1 v0) (/ (+ 1599/1600 v0)))))))
+	   (< (+ (* 1/3125 phi0)
+		 (* (+ 1 v0) (/ (+ 3201/3200 v0)))
+		 (* 1/125 (+ 1 v0) (/ (+ 1599/1600 v0)))
+		 (* 1/25 (+ 1 v0) (/ (+ 3199/3200 v0)))
+		 (* 1/625 (+ 1 v0) (/ (+ 3197/3200 v0))))
+	      656/625))
+  :hints (("Goal"
+	   :clause-processor
+	   (my-clause-processor clause
+				'( (:expand ())
+				  (:python-file "phi-2n-1-smaller-than-0-base-lemma")
+				  (:let ())
+				  (:hypothesize ()))))))
+)
+
 (defthm phi-2n-1-<-0-base
   (implies (basic-params-equal n 3 v0 g1 phi0 n)
-	   (< (phi-2n-1 3 phi0 v0 g1) 0)))
+	   (< (phi-2n-1 n phi0 v0 g1) 0))
+  :hints (("Goal''"
+	   :use (:instance phi-2n-1-<-0-base-lemma))))
+)
 
 ;; induction step
 (encapsulate ()
 
 ;; CANNOT PROVE
-(skip-proofs
+(local
+(defthm phi-2n-1-<-0-inductive-lemma1-lemma1-stupidlemma-lemma
+  (implies (and (and (rationalp v0)
+		     (rationalp phi0))
+		(and (<= 1 (* 10/9 v0))
+		     (<= v0 11/10)
+		     (<= 0 phi0)
+		     (< phi0
+			(+ -1 (* (+ 1 v0) (/ (+ 1599/1600 v0)))))))
+         (< (+ (* 1/3125 phi0)
+               (* (+ 1 v0) (/ (+ 3201/3200 v0)))
+               (* 1/125 (+ 1 v0) (/ (+ 1599/1600 v0)))
+               (* 1/25 (+ 1 v0) (/ (+ 3199/3200 v0)))
+               (* 1/625 (+ 1 v0) (/ (+ 3197/3200 v0))))
+            656/625))
+  :hints (("Goal"
+	   :clause-processor
+	   (my-clause-processor clause
+				'( (:expand ())
+				  (:python-file "phi-2n-1-smaller-than-0-lemma1-lemma1-stupidlemma-lemma")
+				  (:let ())
+				  (:hypothesize ()))))))
+)
+
+(local
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-stupidlemma
   (implies (basic-params-equal n-minus-2 1 v0 g1 phi0 (+ n-minus-2 2))
 	   (< (+ (A (+ n-minus-2 2) phi0 v0 g1)
 		 (* (expt (gamma) n-minus-2)
-		    (B-sum 1 n-minus-2 v0 g1))) 0)))
+		    (B-sum 1 n-minus-2 v0 g1))) 0))
+  :hints (("Goal''"
+	   :use ((:instance phi-2n-1-<-0-inductive-lemma1-lemma1-stupidlemma-lemma)))))
 )
 
+(local
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma1
   (implies (basic-params n_minus_2 2 v0 g1 phi0 (+ n_minus_2 2))
 	   (and (< phi0 (+ -1 (fdco (+ 1 (m (+ -1 n_minus_2 2) v0 g1)) v0 g1)))
@@ -1234,11 +1289,15 @@
 				  (:python-file "phi-2n-1-smaller-than-0-inductive-lemma1-lemma1-lemma1")
 				  (:let ())
 				  (:hypothesize ()))))))
+)
 
+(local
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma2
   (implies (integerp n-minus-2)
 	   (integerp (+ -1 n-minus-2))))
+)
 
+(local
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma3-stupidlemma
   (implies (and (implies (and a b c d e f k) g)
 		(implies (and a h c d i k) g)
@@ -1254,7 +1313,9 @@
 		i)
 	   g)
   :rule-classes nil)
+)
 
+(local
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma3
   (implies (and (implies (basic-params n-minus-2 2 v0 g1 phi0 (+ -1 n-minus-2 2)
 				       (< (+ (a (+ n-minus-2 1) phi0 v0 g1)
@@ -1289,6 +1350,7 @@
                   (b-sum 1 n-minus-2 v0 g1)))
             0)) ;; g
   :hints (("Goal"
+	   :in-theory (disable phi-2n-1-<-0-inductive-lemma1-lemma1-stupidlemma-lemma)
 	   :use ((:instance phi-2n-1-<-0-inductive-lemma1-lemma1-lemma3-stupidlemma
 			    (a (integerp n-minus-2))
 			    (b (<= 2 n-minus-2))
@@ -1315,7 +1377,9 @@
 				 (<= v0 11/10)
 				 (equal g1 1/3200)))))))
   )
+)
 
+(local
 (defthm phi-2n-1-<-0-inductive-lemma1-lemma1
   (implies (basic-params n-minus-2 1 v0 g1 phi0 (+ n-minus-2 2))
 	   (< (+ (A (+ n-minus-2 2) phi0 v0 g1)
@@ -1341,7 +1405,9 @@
 			       phi-2n-1-<-0-inductive-lemma1-lemma1-lemma3
 			       fdco m))
 	  ))
+)
 
+(local
 (defthm phi-2n-1-<-0-inductive-lemma1
   (implies (basic-params n 3 v0 g1 phi0 n)
 	   (< (+ (A n phi0 v0 g1)
@@ -1350,12 +1416,15 @@
   :hints (("Goal"
 	   :use ((:instance phi-2n-1-<-0-inductive-lemma1-lemma1
 			    (n-minus-2 (- n 2)))))))
+)
 
+(local
 (defthm phi-2n-1-<-0-inductive-lemma2
   (implies (basic-params n 3 v0 g1 phi0 n)
 	   (< (+ (A n phi0 v0 g1) (B n v0 g1)) 0))
   :hints (("Goal"
 	   :use ((:instance phi-2n-1-<-0-inductive-lemma1)))))
+)
 
 (defthm phi-2n-1-<-0-inductive
   (implies (basic-params n 3 v0 g1 phi0 n)
