@@ -4,20 +4,20 @@ level 0:
     (IF 
       (INTEGERP N) 
       (IF 
-        (RATIONALP V0) 
+        (RATIONALP G1) 
         (IF 
-          (RATIONALP G1) 
+          (RATIONALP V0) 
           (RATIONALP PHI0) 'nil) 'nil) 'nil) 
     (IF 
       (EQUAL N '3) 
       (IF 
-        (NOT 
-          (< V0 '9/10)) 
+        (EQUAL G1 '1/3200) 
         (IF 
           (NOT 
-            (< '11/10 V0)) 
+            (< V0 '9/10)) 
           (IF 
-            (EQUAL G1 '1/3200) 
+            (NOT 
+              (< '11/10 V0)) 
             (IF 
               (NOT 
                 (< PHI0 '0)) 
@@ -36,20 +36,20 @@ level 2:
   (IF 
     (INTEGERP N) 
     (IF 
-      (RATIONALP V0) 
+      (RATIONALP G1) 
       (IF 
-        (RATIONALP G1) 
+        (RATIONALP V0) 
         (RATIONALP PHI0) 'nil) 'nil) 'nil) 
   (IF 
     (EQUAL N '3) 
     (IF 
-      (NOT 
-        (< V0 '9/10)) 
+      (EQUAL G1 '1/3200) 
       (IF 
         (NOT 
-          (< '11/10 V0)) 
+          (< V0 '9/10)) 
         (IF 
-          (EQUAL G1 '1/3200) 
+          (NOT 
+            (< '11/10 V0)) 
           (IF 
             (NOT 
               (< PHI0 '0)) 
@@ -284,7 +284,355 @@ level 3:
                                                     (BINARY-* '1 
                                                       (UNARY-/ '1))))) var41)))))))))) 
                           (UNARY-- var33) var34 var35) 
-                        (B-SUM var32 
+                        (
+                          (LAMBDA 
+                            (var44 var45 var46 var47) 
+                            (IF 
+                              (IF 
+                                (NOT 
+                                  (INTEGERP var45)) 
+                                (NOT 
+                                  (INTEGERP var45)) 
+                                (IF 
+                                  (NOT 
+                                    (INTEGERP var44)) 
+                                  (NOT 
+                                    (INTEGERP var44)) 
+                                  (< var45 var44))) '0 
+                              (BINARY-+ 
+                                (
+                                  (LAMBDA 
+                                    (var48 var49 var50) 
+                                    (BINARY-* 
+                                      (EXPT 
+                                        (GAMMA) 
+                                        (UNARY-- var48)) 
+                                      (BINARY-+ '-1 
+                                        (BINARY-* 
+                                          (BINARY-* '1 
+                                            (UNARY-/ 
+                                              (BINARY-* '1 '1))) 
+                                          (BINARY-* 
+                                            (BINARY-+ '1 
+                                              (BINARY-* '1 var49)) 
+                                            (UNARY-/ 
+                                              (BINARY-+ '1 
+                                                (BINARY-* '1 
+                                                  (BINARY-+ 
+                                                    (BINARY-* var48 var50) 
+                                                    (
+                                                      (LAMBDA 
+                                                        (var51) 
+                                                        (BINARY-+ 
+                                                          (BINARY-* 
+                                                            (BINARY-* '1 
+                                                              (UNARY-/ 
+                                                                (BINARY-* '1 
+                                                                  (BINARY-* '1 '1)))) 
+                                                            (BINARY-+ '1 
+                                                              (BINARY-* '1 var51))) 
+                                                          (UNARY-- 
+                                                            (BINARY-* '1 
+                                                              (UNARY-/ '1))))) var49)))))))))) var45 var46 var47) 
+                                (BINARY-+ 
+                                  (
+                                    (LAMBDA 
+                                      (var52 var53 var54) 
+                                      (BINARY-* 
+                                        (EXPT 
+                                          (GAMMA) 
+                                          (UNARY-- var52)) 
+                                        (BINARY-+ '-1 
+                                          (BINARY-* 
+                                            (BINARY-* '1 
+                                              (UNARY-/ 
+                                                (BINARY-* '1 '1))) 
+                                            (BINARY-* 
+                                              (BINARY-+ '1 
+                                                (BINARY-* '1 var53)) 
+                                              (UNARY-/ 
+                                                (BINARY-+ '1 
+                                                  (BINARY-* '1 
+                                                    (BINARY-+ 
+                                                      (BINARY-* var52 var54) 
+                                                      (
+                                                        (LAMBDA 
+                                                          (var55) 
+                                                          (BINARY-+ 
+                                                            (BINARY-* 
+                                                              (BINARY-* '1 
+                                                                (UNARY-/ 
+                                                                  (BINARY-* '1 
+                                                                    (BINARY-* '1 '1)))) 
+                                                              (BINARY-+ '1 
+                                                                (BINARY-* '1 var55))) 
+                                                            (UNARY-- 
+                                                              (BINARY-* '1 
+                                                                (UNARY-/ '1))))) var53)))))))))) 
+                                    (UNARY-- var45) var46 var47) 
+                                  (
+                                    (LAMBDA 
+                                      (var56 var57 var58 var59) 
+                                      (IF 
+                                        (IF 
+                                          (NOT 
+                                            (INTEGERP var57)) 
+                                          (NOT 
+                                            (INTEGERP var57)) 
+                                          (IF 
+                                            (NOT 
+                                              (INTEGERP var56)) 
+                                            (NOT 
+                                              (INTEGERP var56)) 
+                                            (< var57 var56))) '0 
+                                        (BINARY-+ 
+                                          (
+                                            (LAMBDA 
+                                              (var60 var61 var62) 
+                                              (BINARY-* 
+                                                (EXPT 
+                                                  (GAMMA) 
+                                                  (UNARY-- var60)) 
+                                                (BINARY-+ '-1 
+                                                  (BINARY-* 
+                                                    (BINARY-* '1 
+                                                      (UNARY-/ 
+                                                        (BINARY-* '1 '1))) 
+                                                    (BINARY-* 
+                                                      (BINARY-+ '1 
+                                                        (BINARY-* '1 var61)) 
+                                                      (UNARY-/ 
+                                                        (BINARY-+ '1 
+                                                          (BINARY-* '1 
+                                                            (BINARY-+ 
+                                                              (BINARY-* var60 var62) 
+                                                              (
+                                                                (LAMBDA 
+                                                                  (var63) 
+                                                                  (BINARY-+ 
+                                                                    (BINARY-* 
+                                                                      (BINARY-* '1 
+                                                                        (UNARY-/ 
+                                                                          (BINARY-* '1 
+                                                                            (BINARY-* '1 '1)))) 
+                                                                      (BINARY-+ '1 
+                                                                        (BINARY-* '1 var63))) 
+                                                                    (UNARY-- 
+                                                                      (BINARY-* '1 
+                                                                        (UNARY-/ '1))))) var61)))))))))) var57 var58 var59) 
+                                          (BINARY-+ 
+                                            (
+                                              (LAMBDA 
+                                                (var64 var65 var66) 
+                                                (BINARY-* 
+                                                  (EXPT 
+                                                    (GAMMA) 
+                                                    (UNARY-- var64)) 
+                                                  (BINARY-+ '-1 
+                                                    (BINARY-* 
+                                                      (BINARY-* '1 
+                                                        (UNARY-/ 
+                                                          (BINARY-* '1 '1))) 
+                                                      (BINARY-* 
+                                                        (BINARY-+ '1 
+                                                          (BINARY-* '1 var65)) 
+                                                        (UNARY-/ 
+                                                          (BINARY-+ '1 
+                                                            (BINARY-* '1 
+                                                              (BINARY-+ 
+                                                                (BINARY-* var64 var66) 
+                                                                (
+                                                                  (LAMBDA 
+                                                                    (var67) 
+                                                                    (BINARY-+ 
+                                                                      (BINARY-* 
+                                                                        (BINARY-* '1 
+                                                                          (UNARY-/ 
+                                                                            (BINARY-* '1 
+                                                                              (BINARY-* '1 '1)))) 
+                                                                        (BINARY-+ '1 
+                                                                          (BINARY-* '1 var67))) 
+                                                                      (UNARY-- 
+                                                                        (BINARY-* '1 
+                                                                          (UNARY-/ '1))))) var65)))))))))) 
+                                              (UNARY-- var57) var58 var59) 
+                                            (
+                                              (LAMBDA 
+                                                (var68 var69 var70 var71) 
+                                                (IF 
+                                                  (IF 
+                                                    (NOT 
+                                                      (INTEGERP var69)) 
+                                                    (NOT 
+                                                      (INTEGERP var69)) 
+                                                    (IF 
+                                                      (NOT 
+                                                        (INTEGERP var68)) 
+                                                      (NOT 
+                                                        (INTEGERP var68)) 
+                                                      (< var69 var68))) '0 
+                                                  (BINARY-+ 
+                                                    (
+                                                      (LAMBDA 
+                                                        (var72 var73 var74) 
+                                                        (BINARY-* 
+                                                          (EXPT 
+                                                            (GAMMA) 
+                                                            (UNARY-- var72)) 
+                                                          (BINARY-+ '-1 
+                                                            (BINARY-* 
+                                                              (BINARY-* '1 
+                                                                (UNARY-/ 
+                                                                  (BINARY-* '1 '1))) 
+                                                              (BINARY-* 
+                                                                (BINARY-+ '1 
+                                                                  (BINARY-* '1 var73)) 
+                                                                (UNARY-/ 
+                                                                  (BINARY-+ '1 
+                                                                    (BINARY-* '1 
+                                                                      (BINARY-+ 
+                                                                        (BINARY-* var72 var74) 
+                                                                        (
+                                                                          (LAMBDA 
+                                                                            (var75) 
+                                                                            (BINARY-+ 
+                                                                              (BINARY-* 
+                                                                                (BINARY-* '1 
+                                                                                  (UNARY-/ 
+                                                                                    (BINARY-* '1 
+                                                                                      (BINARY-* '1 '1)))) 
+                                                                                (BINARY-+ '1 
+                                                                                  (BINARY-* '1 var75))) 
+                                                                              (UNARY-- 
+                                                                                (BINARY-* '1 
+                                                                                  (UNARY-/ '1))))) var73)))))))))) var69 var70 var71) 
+                                                    (BINARY-+ 
+                                                      (
+                                                        (LAMBDA 
+                                                          (var76 var77 var78) 
+                                                          (BINARY-* 
+                                                            (EXPT 
+                                                              (GAMMA) 
+                                                              (UNARY-- var76)) 
+                                                            (BINARY-+ '-1 
+                                                              (BINARY-* 
+                                                                (BINARY-* '1 
+                                                                  (UNARY-/ 
+                                                                    (BINARY-* '1 '1))) 
+                                                                (BINARY-* 
+                                                                  (BINARY-+ '1 
+                                                                    (BINARY-* '1 var77)) 
+                                                                  (UNARY-/ 
+                                                                    (BINARY-+ '1 
+                                                                      (BINARY-* '1 
+                                                                        (BINARY-+ 
+                                                                          (BINARY-* var76 var78) 
+                                                                          (
+                                                                            (LAMBDA 
+                                                                              (var79) 
+                                                                              (BINARY-+ 
+                                                                                (BINARY-* 
+                                                                                  (BINARY-* '1 
+                                                                                    (UNARY-/ 
+                                                                                      (BINARY-* '1 
+                                                                                        (BINARY-* '1 '1)))) 
+                                                                                  (BINARY-+ '1 
+                                                                                    (BINARY-* '1 var79))) 
+                                                                                (UNARY-- 
+                                                                                  (BINARY-* '1 
+                                                                                    (UNARY-/ '1))))) var77)))))))))) 
+                                                        (UNARY-- var69) var70 var71) 
+                                                      (
+                                                        (LAMBDA 
+                                                          (var80 var81 var82 var83) 
+                                                          (IF 
+                                                            (IF 
+                                                              (NOT 
+                                                                (INTEGERP var81)) 
+                                                              (NOT 
+                                                                (INTEGERP var81)) 
+                                                              (IF 
+                                                                (NOT 
+                                                                  (INTEGERP var80)) 
+                                                                (NOT 
+                                                                  (INTEGERP var80)) 
+                                                                (< var81 var80))) '0 
+                                                            (BINARY-+ 
+                                                              (
+                                                                (LAMBDA 
+                                                                  (var84 var85 var86) 
+                                                                  (BINARY-* 
+                                                                    (EXPT 
+                                                                      (GAMMA) 
+                                                                      (UNARY-- var84)) 
+                                                                    (BINARY-+ '-1 
+                                                                      (BINARY-* 
+                                                                        (BINARY-* '1 
+                                                                          (UNARY-/ 
+                                                                            (BINARY-* '1 '1))) 
+                                                                        (BINARY-* 
+                                                                          (BINARY-+ '1 
+                                                                            (BINARY-* '1 var85)) 
+                                                                          (UNARY-/ 
+                                                                            (BINARY-+ '1 
+                                                                              (BINARY-* '1 
+                                                                                (BINARY-+ 
+                                                                                  (BINARY-* var84 var86) 
+                                                                                  (
+                                                                                    (LAMBDA 
+                                                                                      (var87) 
+                                                                                      (BINARY-+ 
+                                                                                        (BINARY-* 
+                                                                                          (BINARY-* '1 
+                                                                                            (UNARY-/ 
+                                                                                              (BINARY-* '1 
+                                                                                                (BINARY-* '1 '1)))) 
+                                                                                          (BINARY-+ '1 
+                                                                                            (BINARY-* '1 var87))) 
+                                                                                        (UNARY-- 
+                                                                                          (BINARY-* '1 
+                                                                                            (UNARY-/ '1))))) var85)))))))))) var81 var82 var83) 
+                                                              (BINARY-+ 
+                                                                (
+                                                                  (LAMBDA 
+                                                                    (var88 var89 var90) 
+                                                                    (BINARY-* 
+                                                                      (EXPT 
+                                                                        (GAMMA) 
+                                                                        (UNARY-- var88)) 
+                                                                      (BINARY-+ '-1 
+                                                                        (BINARY-* 
+                                                                          (BINARY-* '1 
+                                                                            (UNARY-/ 
+                                                                              (BINARY-* '1 '1))) 
+                                                                          (BINARY-* 
+                                                                            (BINARY-+ '1 
+                                                                              (BINARY-* '1 var89)) 
+                                                                            (UNARY-/ 
+                                                                              (BINARY-+ '1 
+                                                                                (BINARY-* '1 
+                                                                                  (BINARY-+ 
+                                                                                    (BINARY-* var88 var90) 
+                                                                                    (
+                                                                                      (LAMBDA 
+                                                                                        (var91) 
+                                                                                        (BINARY-+ 
+                                                                                          (BINARY-* 
+                                                                                            (BINARY-* '1 
+                                                                                              (UNARY-/ 
+                                                                                                (BINARY-* '1 
+                                                                                                  (BINARY-* '1 '1)))) 
+                                                                                            (BINARY-+ '1 
+                                                                                              (BINARY-* '1 var91))) 
+                                                                                          (UNARY-- 
+                                                                                            (BINARY-* '1 
+                                                                                              (UNARY-/ '1))))) var89)))))))))) 
+                                                                  (UNARY-- var81) var82 var83) 
+                                                                (B-SUM var80 
+                                                                  (BINARY-+ '-1 var81) var82 var83))))) var68 
+                                                        (BINARY-+ '-1 var69) var70 var71))))) var56 
+                                              (BINARY-+ '-1 var57) var58 var59))))) var44 
+                                    (BINARY-+ '-1 var45) var46 var47))))) var32 
                           (BINARY-+ '-1 var33) var34 var35))))) '1 
                 (BINARY-+ '-2 var29) var30 var31))) var7 var9 var10))) N PHI0 V0 G1) '0)
 

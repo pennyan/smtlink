@@ -104,7 +104,7 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand (B-term-rest gamma mu equ-c))
+			 '( (:expand ((:functions (B-term-rest gamma mu equ-c))))
 			    (:python-file "B-term-neg-lemma3") ;;mktemp
 			    (:let ((expt_gamma_h (B-term-expt h) rationalp)
 				   (expt_gamma_minus_h (B-term-expt (- h)) rationalp)))
@@ -318,7 +318,7 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand (m gamma mu equ-c fdco))
+			 '( (:expand ((:functions (m gamma mu equ-c fdco))))
 			    (:python-file "delta-rewrite-1-lemma1") ;;mktemp
 			    (:let ((expt_gamma_2n
 				    (expt (gamma) (* 2 n))
@@ -515,7 +515,7 @@
     :do-not-induct t
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand (m gamma mu equ-c fdco))
+			 '( (:expand ((:functions (m gamma mu equ-c fdco))))
 			    (:python-file "delta-rewrite-3")
 			    (:let ((expt_gamma_2n
 				    (expt (gamma) (* 2 n))
@@ -602,7 +602,7 @@
   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
-				'( (:expand (m gamma mu equ-c fdco))
+				'( (:expand ((:functions (m gamma mu equ-c fdco))))
 				  (:python-file "delta-smaller-than-0-lemma1-lemma")
 				  (:let ((expt_gamma_2n
 					  (expt (gamma) (* 2 n))
@@ -663,7 +663,7 @@
   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
-				'( (:expand (m gamma mu equ-c fdco))
+				'( (:expand ((:functions (m gamma mu equ-c fdco))))
 				  (:python-file "delta-smaller-than-0-lemma2-lemma")
 				  (:let ((expt_gamma_2n
 					  (expt (gamma) (* 2 n))
@@ -786,7 +786,7 @@
   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
-				'( (:expand (m gamma mu equ-c fdco))
+				'( (:expand ((:functions (m gamma mu equ-c fdco))))
 				  (:python-file "delta-smaller-than-0-lemma3")
 				  (:let ((expt_gamma_2n
 					  (expt (gamma) (* 2 n))
@@ -838,7 +838,7 @@
   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
-				'( (:expand (m gamma mu equ-c fdco))
+				'( (:expand ((:functions (m gamma mu equ-c fdco))))
 				  (:python-file "delta-smaller-than-0-lemma4")
 				  (:let ((expt_gamma_2n
 					  (expt (gamma) (* 2 n))
@@ -1206,18 +1206,17 @@
 )
 
 ;; CANNOT PROVE
-(skip-proofs
 (defthm phi-2n-1-<-0-base
   (implies (basic-params-equal n 3 v0 g1 phi0 n)
 	   (< (phi-2n-1 n phi0 v0 g1) 0))
   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
-				'( (:expand (phi-2n-1 m fdco A B B-sum B-term equ-c mu))
+				'( (:expand ((:functions (phi-2n-1 m fdco A B B-sum B-term equ-c mu))
+					     (:expansion-level 5)))
 				  (:python-file "phi-2n-1-<-0-base")
-				  (:let ())
-				  (:hypothesize ()))))))
-)
+				  (:let ((3 n integerp)))
+				  (:hypothesize ((equal n 3))))))))
 
 ;; induction step
 (encapsulate ()
@@ -1239,7 +1238,7 @@
   :hints (("Goal"
 	   :clause-processor
 	   (my-clause-processor clause
-				'( (:expand (fdco m mu equ-c))
+				'( (:expand ((:functions (fdco m mu equ-c))))
 				  (:python-file "phi-2n-1-smaller-than-0-inductive-lemma1-lemma1-lemma1")
 				  (:let ())
 				  (:hypothesize ()))))))
