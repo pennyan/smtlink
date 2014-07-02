@@ -1208,15 +1208,7 @@
 ;; CANNOT PROVE
 (defthm phi-2n-1-<-0-base
   (implies (basic-params-equal n 3 v0 g1 phi0 n)
-	   (< (phi-2n-1 n phi0 v0 g1) 0))
-  :hints (("Goal"
-	   :clause-processor
-	   (my-clause-processor clause
-				'( (:expand ((:functions (phi-2n-1 m fdco A B B-sum B-term equ-c mu))
-					     (:expansion-level 5)))
-				  (:python-file "phi-2n-1-<-0-base")
-				  (:let ((3 n integerp)))
-				  (:hypothesize ((equal n 3))))))))
+	   (< (phi-2n-1 3 phi0 v0 g1) 0)))
 
 ;; induction step
 (encapsulate ()
