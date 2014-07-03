@@ -12,9 +12,9 @@ level 1:IMPLIES
 
 level 2:
 (IF 
-  (INTEGERP A) 
+  (INTEGERP var3) 
   (NOT 
-    (< A '10)) 'nil)
+    (< A '10)))
 
 level 3:
 (NOT 
@@ -36,9 +36,7 @@ level 3:
                         (var2) 
                         (IF 
                           (ZP var2) '1 
-                          (BINARY-* var2 
-                            (FAC 
-                              (BINARY-+ '-1 var2))))) 
+                          (BINARY-* var2 var3))) 
                       (BINARY-+ '-1 var1))))) 
               (BINARY-+ '-1 var0))))) A) '20))
 
