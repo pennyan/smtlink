@@ -23,7 +23,9 @@
 	       (lambda "lambda" 2)
 	       (nth "s.nth" 2)
 	       (list "s.array" 0)
-	       (implies "s.implies" 2))))
+	       (implies "s.implies" 2)
+	       (integerp "s.integerp" 1)
+	       (rationalp "s.rationalp" 1))))
 
 ;; translate-operator
 (defun translate-operator (opr)

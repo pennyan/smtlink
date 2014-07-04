@@ -19,7 +19,9 @@
 	       (lambda lambda 2)
 	       (list list 0)
 	       (nth nth 2)
-	       (implies implies 2))))
+	       (implies implies 2)
+	       (integerp integerp 1)
+	       (rationalp rationalp 1))))
 
 (defun is-SMT-operator (opr)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"

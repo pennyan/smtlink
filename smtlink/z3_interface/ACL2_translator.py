@@ -76,6 +76,10 @@ class to_smt:
     def notx(self, x): return Not(x)
 
     def implies(self, x, y): return Implies(x,y)
+
+    # type related functions
+    def integerp(self, x): return x.sort() == z3.IntSort()
+    def rationalp(self, x): return x.sort() == z3.RealSort()
     
     def ifx(self, condx, thenx, elsex):
         v = 0
