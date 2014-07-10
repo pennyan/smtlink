@@ -78,8 +78,9 @@ class to_smt:
     def implies(self, x, y): return Implies(x,y)
 
     # type related functions
-    def integerp(self, x): return x.sort() == z3.IntSort()
-    def rationalp(self, x): return x.sort() == z3.RealSort()
+    def integerp(self, x): return x.sort() == IntSort()
+    def rationalp(self, x): return x.sort() == RealSort()
+    def booleanp(self, x): return x.sort() == BoolSort()
     
     def ifx(self, condx, thenx, elsex):
         v = 0

@@ -123,8 +123,8 @@
 new hypothesis in lambda expression"
   (if (endp main-hints)
       (list (list 'not
-		  (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
-			(append (assoc-get-value let-expr) orig-param))))
+      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
+	    (append (assoc-get-value let-expr) orig-param))))
       (if (endp let-expr)
 	  rewritten-term
 	  (add-hints main-hints
@@ -198,37 +198,9 @@ new hypothesis in lambda expression"
 			 (append (assoc-get-value let-expr) orig-param))))
 	    (create-hypo-theorem-helper-with-hints decl-hypo-list let-expr (cdr hypo-expr) orig-param (cdr hypo-hints)))))
 
-;; separate-fn
-(defun separate-fn (fn-lst-with-type)
-  "separate-fn: separate from function-type associate list into a list of function names"
-  (if (endp fn-lst-with-type)
-      nil
-      (cons (caar fn-lst-with-type)
-	    (separate-fn (cdr fn-lst-with-type)))))
-
-;; add-fn-var-decl-helper
-(defun add-fn-var-decl-helper (decl-term fn-var-decl)
-  "add-fn-var-decl-helper: add function variable type declarations to the declaration term of the main theorem"
-  (if (endp (cdr fn-var-decl))
-      (list (caddar fn-var-decl) (caar fn-var-decl))
-      (list 'if
-	    (list (caddar fn-var-decl) (caar fn-var-decl))
-	    (add-fn-var-decl-helper decl-term (cdr fn-var-decl))
-	    'nil)))
-
-;; add-fn-var-decl
-(defun add-fn-var-decl (term fn-var-decl)
-  "add-fn-var-decl: add function variable type declarations to the main theorem expression"
-  (prog2$ (cw "1: ~q0, 2: ~q1, 4: ~q2" (car term) (cadr term) (caddr term))
-  (list (car term)
-	(list (caadr term)
-	      (add-fn-var-decl-helper (cadadr term) fn-var-decl)
-	      (caddr (cadr term)))
-	(caddr term))))
-
-;; create-fn-type-theorem, similar to create-type-theorem
+;;create-fn-type-theorem
 (defun create-fn-type-theorem (decl-hypo-list fn-var-decl)
-  "create-fn-type-theorem: create theorems for proving types of functions"
+  ""
   (if (endp fn-var-decl)
       nil
       (cons (list (list 'not
@@ -239,8 +211,28 @@ new hypothesis in lambda expression"
 		  (list (caddar fn-var-decl) (caar fn-var-decl)))
 	    (create-fn-type-theorem decl-hypo-list (cdr fn-var-decl)))))
 
+;;add-fn-var-decl-helper
+(defun add-fn-var-decl-helper (decl-term fn-var-decl)
+  ""
+  (if (endp fn-var-decl)
+      decl-term
+      (list 'if
+	    (list (caddar fn-var-decl) (caar fn-var-decl))
+	    (add-fn-var-decl-helper decl-term (cdr fn-var-decl))
+	    ''nil)))
+
+;;add-fn-var-decl
+(defun add-fn-var-decl (term fn-var-decl)
+  ""
+  (list (car term)
+	(list (caadr term)
+	      (add-fn-var-decl-helper (cadadr term) fn-var-decl)
+	      (caddr (cadr term))
+	      (cadddr (cadr term)))
+	(caddr term)))
+
 ;; my-prove
-(defun my-prove (term fn-lst-with-type fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
+(defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
   "my-prove: return the result of calling SMT procedure"
   (let ((file-dir (concatenate 'string
 			       *dir-files*
@@ -256,36 +248,35 @@ new hypothesis in lambda expression"
 	  (hypo-translated (translate-hypo new-hypo)))
       (mv-let (let-expr-translated let-type)
 	      (separate-type let-expr-translated-with-type)
-	      (mv-let (fn-lst)
-		      (separate-fn fn-lst-with-type)
-		      (mv-let (expanded-term1 num orig-param fn-var-decl) ;; fn-var-decl = (name (fn a b) rationalp)
-			      (expand-fn term fn-lst fn-level fn-lst-with-type let-expr-translated let-type hypo-translated state)
-			      (prog2$ (cw "expanded-term1: ~q0" expanded-term1)
-			      (mv-let (expanded-term)
-				      (add-fn-var-decl expanded-term1 fn-var-decl)
-				      (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term num)
-					      (prog2$ (my-prove-write-expander-file
-						       (my-prove-build-log-file
-							(cons term expanded-term) 0)
-						       expand-dir)
-						      (prog2$ (my-prove-write-file
-							       expanded-term
-							       file-dir)
-							      (let ((type-theorem (create-type-theorem (cadr term)
-												       let-expr-translated
-												       let-type
-												       let-hints))
-								    (fn-type-theorem (create-fn-type-theorem (cadr term) 
-													     fn-var-decl))
-								    (hypo-theorem (create-hypo-theorem (cadr term)
-												       let-expr-translated
-												       hypo-translated
-												       orig-param
-												       hypo-hints))
-								    (aug-theorem (augment-hypothesis (caddr expanded-term)
-												     let-expr-translated
-												     orig-param
-												     main-hints)))
-								(if (car (SMT-interpreter file-dir))
-								    (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem)
-								    (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem))))))))))))))
+	      (mv-let (expanded-term-list-1 num orig-param fn-var-decl)
+		      (expand-fn term fn-lst fn-level let-expr-translated let-type hypo-translated state)
+		      (mv-let (expanded-term-list)
+			      (add-fn-var-decl expanded-term-list-1 fn-var-decl)
+			      (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
+				      (prog2$ (my-prove-write-expander-file
+					       (my-prove-build-log-file
+						(cons term expanded-term-list) 0)
+					       expand-dir)
+					      (prog2$ (my-prove-write-file
+						       expanded-term-list
+						       file-dir)
+						      (prog2$ (cw "here, fn-var-decl: ~q0" fn-var-decl)
+						      (let ((type-theorem (create-type-theorem (cadr term)
+											       let-expr-translated
+											       let-type
+											       let-hints))
+							    (hypo-theorem (create-hypo-theorem (cadr term)
+											       let-expr-translated
+											       hypo-translated
+											       orig-param
+											       hypo-hints))
+							    (fn-type-theorem (create-fn-type-theorem (cadr term)
+												     fn-var-decl))
+							    (aug-theorem (augment-hypothesis expanded-term-list
+											     let-expr-translated
+											     orig-param
+											     main-hints
+											     )))
+							(if (car (SMT-interpreter file-dir))
+							    (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem)
+							    (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem)))))))))))))

@@ -112,32 +112,19 @@
 	    t
 	    nil))))
 
-;; replace-rec-fn
-(defun replace-rec-fn (fn0 expr fn-type num fn-var-decl)
-  "replace-res-fn: replace a function with a new variable name, store the information in fn-var-decl, (name (fn) type)."
-  (mv-let (new-var num2)
-	  (create-name num)
-	  (prog2$ (cw "new-var: ~q0, num2: ~q1, res: ~q2" new-var num2 (cons (list new-var expr (cadr (assoc fn0 fn-type))) fn-var-decl))
-	  (mv new-var
-	      num2
-	      (cons (list new-var expr (cadr (assoc fn0 fn-type)))
-		    fn-var-decl)))))
-
-
 (mutual-recursion
  ;; expand-fn-help-list
- (defun expand-fn-help-list (expr fn-lst fn-level-lst fn-type fn-waiting fn-extended num fn-var-decl state)
+ (defun expand-fn-help-list (expr fn-lst fn-level-lst fn-waiting fn-extended num state)
    "expand-fn-help-list"
    (declare (xargs :measure (list (acl2-count (len fn-waiting)) (acl2-count expr))))
    (if (endp expr)
-       (mv nil num fn-var-decl)
-     (mv-let (res-expr1 res-num1 res-fn-var-decl1)
-	     (expand-fn-help (car expr) fn-lst fn-level-lst fn-type fn-waiting fn-extended num fn-var-decl state)
-	     (mv-let (res-expr2 res-num2 res-fn-var-decl2)
-		     (expand-fn-help-list (cdr expr) fn-lst fn-level-lst fn-type fn-waiting fn-extended res-num1 res-fn-var-decl1 state)
-		     (mv (cons res-expr1 res-expr2) res-num2 res-fn-var-decl2)))))
+       (mv nil num)
+     (mv-let (res-expr1 res-num1)
+	     (expand-fn-help (car expr) fn-lst fn-level-lst fn-waiting fn-extended num state)
+	     (mv-let (res-expr2 res-num2)
+		     (expand-fn-help-list (cdr expr) fn-lst fn-level-lst fn-waiting fn-extended res-num1 state)
+		     (mv (cons res-expr1 res-expr2) res-num2)))))
 
- 
  ;; expand-fn-help
  ;; This function should keep three lists of function names.
  ;   First one stores all functions possible for expansion.
@@ -158,13 +145,12 @@
  ;   One might want to use this simpler way of handling recrusion
  ;   detection. We note the length of fn-lst, then we want to
  ;   count down the level of expansion. Any path exceeding this
- ;   length is a sign for recursive call.
-
- (defun expand-fn-help (expr fn-lst fn-level-lst fn-type fn-waiting fn-extended num fn-var-decl state)
+ ;   length is a sign for recursive call. 
+ (defun expand-fn-help (expr fn-lst fn-level-lst fn-waiting fn-extended num state)
    "expand-fn-help: expand an expression"
    (declare (xargs :measure (list (acl2-count (len fn-waiting)) (acl2-count expr))))
    (cond ((atom expr) ;; base case, when expr is an atom
- 	  (mv expr num fn-var-decl))
+ 	  (mv expr num))
 	 ((consp expr)
 	  (let ((fn0 (car expr)) (params (cdr expr)))
 	    (cond
@@ -172,43 +158,36 @@
 	       (if (> (cadr (assoc fn0 fn-level-lst)) 0) ;; if fn0's level number is still larger than 0
 		   (mv-let (res fn-w-1 fn-e-1 fn-l-l-1 num2)
 			   (expand-a-fn fn0 fn-level-lst fn-waiting fn-extended num state) ;; expand a function
-			   (mv-let (res2 num3 fn-var-decl-2)
-				   (expand-fn-help res fn-lst fn-l-l-1 fn-type fn-w-1 fn-e-1 num2 fn-var-decl state)
+			   (mv-let (res2 num3)
+				   (expand-fn-help res fn-lst fn-l-l-1 fn-w-1 fn-e-1 num2 state)
 				   (if (endp params)
-				       (mv res2 num3 fn-var-decl-2)
-				       (mv-let (res3 num4 fn-var-decl-3)
-					       (expand-fn-help-list params fn-lst fn-level-lst fn-type fn-waiting fn-extended num3 fn-var-decl-2 state)
-					       (mv (cons res2 res3) num4 fn-var-decl-3)))))
-		   ;;(prog2$ (cw "Error(function): recursive function expansion level has reached 0: ~q0" fn0)
-		   ;;	   (mv expr num))
-		   ;; 2014-07-02
-		   ;; Do not issue an error here, instead, replace the function call
-		   ;; with a variable and construct fn-var-lst
-		   (mv-let (res num2 fn-var-decl-2)
-			   (replace-rec-fn fn0 expr fn-type num fn-var-decl)
-			   (mv res num2 fn-var-decl-2))
-		   ))
+				       (mv res2 num3)
+				       (mv-let (res3 num4)
+					       (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num3 state)
+					       (mv (cons res2 res3) num4)))))
+		   (prog2$ (cw "Recursive function expansion level has reached 0: ~q0" fn0)
+			   (mv expr num))))
 	      ((atom fn0) ;; when expr is a un-expandable function
-	       (mv-let (res num2 fn-var-decl-2)
-		       (expand-fn-help-list (cdr expr) fn-lst fn-level-lst fn-type fn-waiting fn-extended num fn-var-decl state)
-		       (mv (cons (car expr) res) num2 fn-var-decl-2)))
+	       (mv-let (res num2)
+		       (expand-fn-help-list (cdr expr) fn-lst fn-level-lst fn-waiting fn-extended num state)
+		       (mv (cons (car expr) res) num2)))
 	      ((lambdap fn0) ;; function is a lambda expression, expand the body
 	       (let ((lambdax fn0) (params (cdr expr)))
 		 (let ((formals (cadr lambdax)) (body (caddr lambdax)))
-		   (mv-let (res num2 fn-var-decl-2)
-			   (expand-fn-help body fn-lst fn-level-lst fn-type fn-waiting fn-extended num fn-var-decl state)
-			   (mv-let (res2 num3 fn-var-decl-3)
-				   (expand-fn-help-list params fn-lst fn-level-lst fn-type fn-waiting fn-extended num2 fn-var-decl-2 state)
-				   (mv (cons (list 'lambda formals res) res2) num3 fn-var-decl-3))))))
+		   (mv-let (res num2)
+			   (expand-fn-help body fn-lst fn-level-lst fn-waiting fn-extended num state)
+			   (mv-let (res2 num3)
+				   (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num2 state)
+				   (mv (cons (list 'lambda formals res) res2)  num3))))))
 	      ((and (not (lambdap fn0)) (consp fn0))
-	       (mv-let (res num2 fn-var-decl-2)
-		       (expand-fn-help fn0 fn-lst fn-level-lst fn-type fn-waiting fn-extended num fn-var-decl state)
-		       (mv-let (res2 num3 fn-var-decl-3)
-			       (expand-fn-help-list params fn-lst fn-level-lst fn-type fn-waiting fn-extended num2 fn-var-decl-2 state)
-			       (mv (cons res res2) num3 fn-var-decl-3))))
+	       (mv-let (res num2)
+		       (expand-fn-help fn0 fn-lst fn-level-lst fn-waiting fn-extended num state)
+		       (mv-let (res2 num3)
+			       (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num2 state)
+			       (mv (cons res res2) num3))))
 	      )))
 	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
- 		    (mv expr num fn-var-decl)))))
+ 		    (mv expr num)))))
 )
 
 (mutual-recursion
@@ -299,37 +278,105 @@
       (initial-level-help fn-lst 1)
       (initial-level-help fn-lst fn-level)))
 
-;; 2014-07-02
-;; add feature for replacement on recursive functions
-;; how?
-;; First, traverse the expression, look for function names that
-;; are still not expanded(in fn-lst), which means it's a recursive
-;; function and after the expansion level has been reached, it's
-;; still not fully expanded.
-;; Second, replace the whole function call with a variable name
-;; and add a declaration for that variable.
-;; The problem here is now to manage the newly added variable names.
-;; I've already have a set of newly added variables for function
-;; expansion into lambda expressions. I think the best way to do it
-;; is to continue with that number. :)
-;;
-;; Extra point:
-;; Haha, I know how to solve this problem.
-;; Do it in expand-fn-help!!!
+;; split-fn-from-type
+(defun split-fn-from-type (fn-lst-with-type)
+  ""
+  (if (endp fn-lst-with-type)
+      nil
+      (cons (caar fn-lst-with-type)
+	    (split-fn-from-type (cdr fn-lst-with-type)))))
+
+;; replace-a-rec-fn
+(defun replace-a-rec-fn (expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+  ""
+  (mv-let (name res-num)
+	  (create-name num)
+	  (mv name
+	      (cons (list name
+			  expr
+			  (cadr (assoc (car expr) fn-lst-with-type)))
+		    fn-var-decl)
+	      (cons name fn-var-decl-branch)
+	      res-num)))
+
+(mutual-recursion
+
+ ;; replace-rec-fn-params
+(defun replace-rec-fn-params (expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+  ""
+  (if (endp expr)
+       (mv expr fn-var-decl fn-var-decl-branch num)
+     (mv-let (res-expr1 res-fn-var-decl1 res-fn-var-decl-branch1 res-num1)
+	     (replace-rec-fn (car expr) fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+	     (mv-let (res-expr2 res-fn-var-decl2 res-fn-var-decl-branch2 res-num2)
+		     (replace-rec-fn-params (cdr expr) fn-lst-with-type res-fn-var-decl1 fn-var-decl-branch res-num1)
+		     (mv (cons res-expr1 res-expr2)
+			 res-fn-var-decl2
+			 (append res-fn-var-decl-branch1 res-fn-var-decl-branch2)
+			 res-num2)))))
+
+;; replace-rec-fn
+;; 2014-07-04
+;; added function for postorder traversal
+(defun replace-rec-fn (expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+  ""
+  (prog2$ (cw "expr: ~q0, fn-lst-with-type: ~q1" expr fn-lst-with-type)
+  (cond ((atom expr)
+	 (mv expr fn-var-decl fn-var-decl-branch num))
+	((consp expr)
+	 (let ((fn0 (car expr)) (params (cdr expr)))
+	    (cond
+	      ((and (atom fn0) (not (endp (assoc fn0 fn-lst-with-type)))) ;; function exists in the list
+	       (prog2$ (cw "fn-lst-with-type: ~q0" fn-lst-with-type)
+	       (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
+		       (replace-a-rec-fn expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+		       (mv res fn-var-decl2 fn-var-decl-branch2 num2))))
+	      ((atom fn0) ;; when expr is a un-expandable function
+	       (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
+		       (replace-rec-fn-params params fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+		       (mv (cons fn0 res) fn-var-decl2 fn-var-decl-branch2 num2)))
+	      ((lambdap fn0) ;; function is a lambda expression, expand the body
+	       (let ((lambdax fn0) (params (cdr expr)))
+		 (let ((formals (cadr lambdax)) (body (caddr lambdax)))
+		   (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
+			   (replace-rec-fn body fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+			   (mv-let (res2 fn-var-decl3 fn-var-decl-branch3 num3)
+				   (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 fn-var-decl-branch num2)
+				   (prog2$ (cw "fn-var-decl-branch3: ~q0, fn-var-decl-branch2: ~q1" fn-var-decl-branch2 fn-var-decl-branch3)
+				   (mv (cons (list 'lambda (append formals fn-var-decl-branch2) res) (append res2 fn-var-decl-branch2))
+				       fn-var-decl3
+				       (append fn-var-decl-branch2 fn-var-decl-branch3)
+				       num3)))))
+		 ))
+	      ((and (not (lambdap fn0)) (consp fn0))
+	       (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
+		       (replace-rec-fn fn0 fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+		       (mv-let (res2 fn-var-decl3 fn-var-decl-branch3 num3)
+			       (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 fn-var-decl-branch num)
+			       (mv (cons res res2) fn-var-decl3 (append fn-var-decl-branch2 fn-var-decl-branch3) num3))))
+	      )))
+	(t (prog2$ (cw "Error(function): Strange expr, ~q0" expr)
+		   (mv expr fn-var-decl fn-var-decl-branch num))))))
+
+)
 
 ;; expand-fn
-(defun expand-fn (expr fn-lst fn-level fn-type let-expr let-type new-hypo state)
+(defun expand-fn (expr fn-lst-with-type fn-level let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
+  (mv-let (fn-lst)
+	  (split-fn-from-type fn-lst-with-type)
   (let ((reformed-let-expr (reform-let let-expr)))
     (mv-let (fn-level-lst)
 	    (initial-level fn-lst fn-level)
-	    (mv-let (res-expr res-num fn-var-decl)
+	    (mv-let (res-expr1 res-num1)
 		    (expand-fn-help (rewrite-formula expr reformed-let-expr)
-				    fn-lst fn-level-lst fn-type fn-lst nil 0 nil state)
-		    (mv-let (rewritten-expr orig-param)
-			    (augment-formula (rewrite-formula res-expr reformed-let-expr)
-					     (assoc-get-value reformed-let-expr)
-					     let-type
-					     new-hypo)
-			    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
-				    (mv rewritten-expr res-num orig-param fn-var-decl)))))))
+				    fn-lst fn-level-lst fn-lst nil 0 state)
+		    (mv-let (res-expr res-fn-var-decl res-fn-var-decl-branch res-num)
+			    (replace-rec-fn res-expr1 fn-lst-with-type nil nil res-num1)
+			    (mv-let (rewritten-expr orig-param)
+				    (augment-formula (rewrite-formula res-expr reformed-let-expr)
+						     (assoc-get-value reformed-let-expr)
+						     let-type
+						     new-hypo)
+				    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
+					    (mv rewritten-expr res-num orig-param res-fn-var-decl)))))))))
