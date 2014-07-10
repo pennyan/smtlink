@@ -198,6 +198,39 @@ new hypothesis in lambda expression"
 			 (append (assoc-get-value let-expr) orig-param))))
 	    (create-hypo-theorem-helper-with-hints decl-hypo-list let-expr (cdr hypo-expr) orig-param (cdr hypo-hints)))))
 
+;;create-fn-type-theorem
+(defun create-fn-type-theorem (decl-hypo-list fn-var-decl)
+  ""
+  (if (endp fn-var-decl)
+      nil
+      (cons (list (list 'not
+			(list 'if (cadr decl-hypo-list)
+			      (append-and-hypo (caddr decl-hypo-list)
+					       (list (list 'equal (caar fn-var-decl) (cadar fn-var-decl))))
+			      ''nil))
+		  (list (caddar fn-var-decl) (caar fn-var-decl)))
+	    (create-fn-type-theorem decl-hypo-list (cdr fn-var-decl)))))
+
+;;add-fn-var-decl-helper
+(defun add-fn-var-decl-helper (decl-term fn-var-decl)
+  ""
+  (if (endp fn-var-decl)
+      decl-term
+      (list 'if
+	    (list (caddar fn-var-decl) (caar fn-var-decl))
+	    (add-fn-var-decl-helper decl-term (cdr fn-var-decl))
+	    ''nil)))
+
+;;add-fn-var-decl
+(defun add-fn-var-decl (term fn-var-decl)
+  ""
+  (list (car term)
+	(list (caadr term)
+	      (add-fn-var-decl-helper (cadadr term) fn-var-decl)
+	      (caddr (cadr term))
+	      (cadddr (cadr term)))
+	(caddr term)))
+
 ;; my-prove
 (defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
   "my-prove: return the result of calling SMT procedure"
@@ -215,29 +248,35 @@ new hypothesis in lambda expression"
 	  (hypo-translated (translate-hypo new-hypo)))
       (mv-let (let-expr-translated let-type)
 	      (separate-type let-expr-translated-with-type)
-	      (mv-let (expanded-term-list num orig-param)
+	      (mv-let (expanded-term-list-1 num orig-param fn-var-decl)
 		      (expand-fn term fn-lst fn-level let-expr-translated let-type hypo-translated state)
-		      (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
-			      (prog2$ (my-prove-write-expander-file
-				       (my-prove-build-log-file
-					(cons term expanded-term-list) 0)
-				       expand-dir)
-				      (prog2$ (my-prove-write-file
-					       expanded-term-list
-					       file-dir)
-					      (let ((type-theorem (create-type-theorem (cadr term)
-										       let-expr-translated
-										       let-type
-						                                       let-hints))
-						    (hypo-theorem (create-hypo-theorem (cadr term)
-										       let-expr-translated
-										       hypo-translated
-										       orig-param
-										       hypo-hints))
-						    (aug-theorem (augment-hypothesis (caddr expanded-term-list)
-										     let-expr-translated
-										     orig-param
-										     main-hints)))
-						(if (car (SMT-interpreter file-dir))
-						    (mv t aug-theorem type-theorem hypo-theorem)
-						    (mv nil aug-theorem type-theorem hypo-theorem)))))))))))
+		      (mv-let (expanded-term-list)
+			      (add-fn-var-decl expanded-term-list-1 fn-var-decl)
+			      (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
+				      (prog2$ (my-prove-write-expander-file
+					       (my-prove-build-log-file
+						(cons term expanded-term-list) 0)
+					       expand-dir)
+					      (prog2$ (my-prove-write-file
+						       expanded-term-list
+						       file-dir)
+						      (prog2$ (cw "here, fn-var-decl: ~q0" fn-var-decl)
+						      (let ((type-theorem (create-type-theorem (cadr term)
+											       let-expr-translated
+											       let-type
+											       let-hints))
+							    (hypo-theorem (create-hypo-theorem (cadr term)
+											       let-expr-translated
+											       hypo-translated
+											       orig-param
+											       hypo-hints))
+							    (fn-type-theorem (create-fn-type-theorem (cadr term)
+												     fn-var-decl))
+							    (aug-theorem (augment-hypothesis expanded-term-list
+											     let-expr-translated
+											     orig-param
+											     main-hints
+											     )))
+							(if (car (SMT-interpreter file-dir))
+							    (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem)
+							    (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem)))))))))))))

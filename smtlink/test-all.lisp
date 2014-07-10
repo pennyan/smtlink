@@ -17,6 +17,23 @@
 ;; 2. if level provided, each function can be expanded
 ;; for that many levels
 
+;; 2014-07-02
+;; add recursive function replacement and type speficication
+;; :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (my-clause-processor clause
+;; 			 '( (:expand (:functions ((fdco rationalp)
+;;                                                (m integerp)))
+;;                                   (:expansion-level 1))
+;; 			   (:python-file "test")
+;; 			   (:let ())
+;; 			   (:hypothesize ())
+;; 			   (:use ((:type ())
+;; 				  (:hypo ())
+;; 				  (:main ()))))
+;; 			 )))
+
 ;; test cases
 (in-package "ACL2")
 (logic)
@@ -26,51 +43,51 @@
 (include-book "arithmetic/top-with-meta" :dir :system)
 (include-book "./SMT-connect")
 
-;; ;; test0
-;; (defconst *a* 1)
-;; (defun bar0 (x) (* 2 x))
+;; test0
+(defconst *a* 1)
+(defun bar0 (x) (* 2 x))
 
-;; ;; a very simple theorem
-;; (defthm test0
-;;   (implies (and (and (rationalp x)) (and))
-;; 	   (equal (+ x x) (* *a* (bar0 x))))
-;;   :hints
-;;   (("Goal"
-;;     :clause-processor
-;;     (my-clause-processor clause
-;; 			 '( (:expand ((:functions (bar0))
-;; 				      (:expansion-level 1)))
-;; 			   (:python-file "test0")
-;; 			   (:let ())
-;; 			   (:hypothesize ())
-;; 			   (:use ((:type ())
-;; 				  (:hypo ())
-;; 				  (:main ()))))
-;; 			 ))))
+;; a very simple theorem
+(defthm test0
+  (implies (and (and (rationalp x)) (and))
+	   (equal (+ x x) (* *a* (bar0 x))))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause
+			 '( (:expand ((:functions ((bar0 rationalp)))
+				      (:expansion-level 1)))
+			   (:python-file "test0")
+			   (:let ())
+			   (:hypothesize ())
+			   (:use ((:type ())
+				  (:hypo ())
+				  (:main ()))))
+			 ))))
 
-;; ;; test1
-;; (defun foo1 (x y) (* x (+ 1 y)))
+;; test1
+(defun foo1 (x y) (* x (+ 1 y)))
 
-;; ;; very first piece of test case
-;; (defthm test1 (implies (and (and (rationalp x)
-;; 				 (integerp y)
-;; 				 (integerp z))
-;; 			    (and (not (<= x 0))
-;; 				 (equal z (+ 3/2 4))
-;; 				 (or (> x y) (> x (+ y 40/3)))))
-;; 		       (> (foo1 x (foo1 x z)) (foo1 x y)))
-;;   :hints
-;;   (("Goal"
-;;     :clause-processor
-;;     (my-clause-processor clause
-;; 			 '( (:expand ((:functions (foo1))
-;; 				      (:expansion-level 1)))
-;; 			   (:python-file "test1")
-;; 			   (:let ())
-;; 			   (:hypothesize ())
-;; 			   (:use ((:type ())
-;; 				  (:hypo ())
-;; 				  (:main ()))))))))
+;; very first piece of test case
+(defthm test1 (implies (and (and (rationalp x)
+				 (integerp y)
+				 (integerp z))
+			    (and (not (<= x 0))
+				 (equal z (+ 3/2 4))
+				 (or (> x y) (> x (+ y 40/3)))))
+		       (> (foo1 x (foo1 x z)) (foo1 x y)))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause
+			 '( (:expand ((:functions ((foo1 rationalp)))
+				      (:expansion-level 1)))
+			   (:python-file "test1")
+			   (:let ())
+			   (:hypothesize ())
+			   (:use ((:type ())
+				  (:hypo ())
+				  (:main ()))))))))
 
 ;; test2
 (defun foo2 (x) (+ x 3))
@@ -84,7 +101,8 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand ((:functions (foo2 bar2))
+			 '( (:expand ((:functions ((foo2 rationalp)
+						   (bar2 rationalp)))
 				      (:expansion-level 1)))
 			    (:python-file "test2")
 			    (:let ())
@@ -108,7 +126,7 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand ((:functions (foo3))
+			 '( (:expand ((:functions ((foo3 rationalp)))
 				      (:expansion-level 1)))
 			    (:python-file "test3")
 			    (:let ())
@@ -143,7 +161,12 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand ((:functions (a4 b4 c4 d4 e4 f4)))
+			 '( (:expand ((:functions ((a4 rationalp)
+						   (b4 rationalp)
+						   (c4 rationalp)
+						   (d4 rationalp)
+						   (e4 rationalp)
+						   (f4 rationalp))))
 			             ;;(:expansion-level 1)
 			     )
 			    (:python-file "test4")
@@ -153,26 +176,27 @@
 				   (:hypo ())
 				   (:main ()))))))))
 
-;; ;; test5: with recursive call
-;; ;; (fac)
-;; (defun fac (x) (if (zp x) 1 (* x (fac (1- x)))))
+;; test5: with recursive call
+;; (fac)
+(defun fac (x) (if (zp x) 1 (* x (fac (1- x)))))
 
-;; (defthm test5
-;;     (implies (and (and (integerp a))
-;; 		  (and (>= a 10)))
-;; 	     (>= (fac a) 20))
-;;   :hints
-;;   (("Goal"
-;;     :clause-processor
-;;     (my-clause-processor clause
-;; 			 '( (:expand ((:functions (fac))
-;; 				      (:expansion-level 3)))
-;; 			    (:python-file "test5")
-;; 			    (:let ())
-;; 			    (:hypothesize ())
-;;                          (:use ((:type ())
-;;                                 (:hypo ())
-;;                                 (:main ()))))))))
+(defthm test5
+    (implies (and (and (integerp a))
+		  (and (>= a 10)))
+	     (>= (fac a) 20))
+  :hints
+  (("Goal"
+    :clause-processor
+    (my-clause-processor clause
+			 '( (:expand ((:functions ((fac integerp)
+						   (zp booleanp)))
+				      (:expansion-level 3)))
+			    (:python-file "test5")
+			    (:let ())
+			    (:hypothesize ())
+			    (:use ((:type ())
+				   (:hypo ())
+				   (:main ()))))))))
 
 
 ;; test6: user given hypothesis
@@ -213,8 +237,14 @@
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand ((:functions (a6 b6 c6 d6 e6 f6 foo6))
-				      (:expansion-level 1)))
+			 '( (:expand ((:functions ((a6 rationalp)
+						   (b6 rationalp)
+						   (c6 rationalp)
+						   (d6 rationalp)
+						   (e6 rationalp)
+						   (f6 rationalp)
+						   (foo6 rationalp))))
+				      (:expansion-level 1))
 			    (:python-file "test6")
 			    (:let ((expt_gamma_m (expt gamma m) rationalp)
 				   (expt_gamma_n (expt gamma n) rationalp)))

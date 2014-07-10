@@ -12,7 +12,9 @@ level 1:IMPLIES
 
 level 2:
 (IF 
-  (INTEGERP A) 
+  (IF 
+    (INTEGERP var6) 
+    (INTEGERP A) 'nil) 
   (NOT 
     (< A '10)) 'nil)
 
@@ -21,24 +23,40 @@ level 3:
   (< 
     (
       (LAMBDA 
-        (var0) 
+        (var0 var6) 
         (IF 
-          (ZP var0) '1 
+          (
+            (LAMBDA 
+              (var1) 
+              (IF 
+                (INTEGERP var1) 
+                (NOT 
+                  (< '0 var1)) 'T)) var0) '1 
           (BINARY-* var0 
             (
               (LAMBDA 
-                (var1) 
+                (var2 var6) 
                 (IF 
-                  (ZP var1) '1 
-                  (BINARY-* var1 
+                  (
+                    (LAMBDA 
+                      (var3) 
+                      (IF 
+                        (INTEGERP var3) 
+                        (NOT 
+                          (< '0 var3)) 'T)) var2) '1 
+                  (BINARY-* var2 
                     (
                       (LAMBDA 
-                        (var2) 
+                        (var4 var6) 
                         (IF 
-                          (ZP var2) '1 
-                          (BINARY-* var2 
-                            (FAC 
-                              (BINARY-+ '-1 var2))))) 
-                      (BINARY-+ '-1 var1))))) 
-              (BINARY-+ '-1 var0))))) A) '20))
+                          (
+                            (LAMBDA 
+                              (var5) 
+                              (IF 
+                                (INTEGERP var5) 
+                                (NOT 
+                                  (< '0 var5)) 'T)) var4) '1 
+                          (BINARY-* var4 var6))) 
+                      (BINARY-+ '-1 var2) var6)))) 
+              (BINARY-+ '-1 var0) var6)))) A var6) '20))
 

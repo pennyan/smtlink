@@ -1,4 +1,4 @@
-;; SMT-formula contains functions for constructing a SMT formula in ACL2
+0;136;0c;; SMT-formula contains functions for constructing a SMT formula in ACL2
 (in-package "ACL2")
 
 ;; -------------- SMT-operator  -----------:
@@ -18,11 +18,7 @@
 	       (not not 1)
 	       (lambda lambda 2)
 	       (list list 0)
-	       (nth nth 2)
-	       (implies implies 2)
-	       (integerp integerp 1)
-	       (rationalp rationalp 1)
-	       (booleanp booleanp 1))))
+	       (nth nth 2))))
 
 (defun is-SMT-operator (opr)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"
@@ -44,8 +40,7 @@
 (defun is-SMT-type (type)
   "SMT-type: given a type in ACL2 format, check if it's valid"
     (if (or (equal type 'RATIONALP)
-	    (equal type 'INTEGERP)
-	    (equal type 'BOOLEANP))
+	    (equal type 'INTEGERP))
 	t
       nil))
 

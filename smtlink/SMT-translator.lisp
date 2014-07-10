@@ -23,7 +23,10 @@
 	       (lambda "lambda" 2)
 	       (nth "s.nth" 2)
 	       (list "s.array" 0)
-	       (implies "s.implies" 2))))
+	       (implies "s.implies" 2)
+	       (integerp "s.integerp" 1)
+	       (rationalp "s.rationalp" 1)
+	       (booleanp "s.booleanp" 1))))
 
 ;; translate-operator
 (defun translate-operator (opr)
@@ -40,7 +43,8 @@
 (defun translate-type-list (type)
   "translate-type-list: look up an associate list for the translation"
   (assoc type '((RATIONALP "s.isReal")
-	       (INTEGERP "s.isReal"))))
+		(INTEGERP "s.isReal")
+		(BOOLEANP "s.isBool"))))
 
 ;; translate-type
 (defun translate-type (type)
