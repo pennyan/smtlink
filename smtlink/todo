@@ -61,3 +61,13 @@ new hypotheses -- done
 variable name? -- ??
 type inference? -- done
 
+07/11
+How to solve the problem that recursion replacement needs variable propagation. We can just give z3 the replaced version and give acl2 the non-replaced version.
+But we still need to prove sth about the type of my assertion about the replacement given to Z3.
+
+Whenever replacement happens, need to have a record for the current expansion.
+Need to return 2 versions of the formula, one with replacement, the other without.
+
+Two steps:
+First, change it into a way that don't have the redundant information.
+Second, add what it needed.

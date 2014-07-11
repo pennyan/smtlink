@@ -23,7 +23,7 @@ level 3:
   (< 
     (
       (LAMBDA 
-        (var0 var6) 
+        (var0) 
         (IF 
           (
             (LAMBDA 
@@ -35,7 +35,7 @@ level 3:
           (BINARY-* var0 
             (
               (LAMBDA 
-                (var2 var6) 
+                (var2) 
                 (IF 
                   (
                     (LAMBDA 
@@ -47,7 +47,7 @@ level 3:
                   (BINARY-* var2 
                     (
                       (LAMBDA 
-                        (var4 var6) 
+                        (var4) 
                         (IF 
                           (
                             (LAMBDA 
@@ -57,6 +57,6 @@ level 3:
                                 (NOT 
                                   (< '0 var5)) 'T)) var4) '1 
                           (BINARY-* var4 var6))) 
-                      (BINARY-+ '-1 var2) var6)))) 
-              (BINARY-+ '-1 var0) var6)))) A var6) '20))
+                      (BINARY-+ '-1 var2))))) 
+              (BINARY-+ '-1 var0))))) A) '20))
 
