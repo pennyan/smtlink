@@ -248,7 +248,7 @@ new hypothesis in lambda expression"
 	  (hypo-translated (translate-hypo new-hypo)))
       (mv-let (let-expr-translated let-type)
 	      (separate-type let-expr-translated-with-type)
-	      (mv-let (expanded-term-list-1 num orig-param fn-var-decl)
+	      (mv-let (expanded-term-list-1 expanded-term-list-2 num orig-param fn-var-decl)
 		      (expand-fn term fn-lst fn-level let-expr-translated let-type hypo-translated state)
 		      (mv-let (expanded-term-list)
 			      (add-fn-var-decl expanded-term-list-1 fn-var-decl)
@@ -272,7 +272,7 @@ new hypothesis in lambda expression"
 											       hypo-hints))
 							    (fn-type-theorem (create-fn-type-theorem (cadr term)
 												     fn-var-decl))
-							    (aug-theorem (augment-hypothesis expanded-term-list
+							    (aug-theorem (augment-hypothesis expanded-term-list-2
 											     let-expr-translated
 											     orig-param
 											     main-hints

@@ -287,82 +287,89 @@
 	    (split-fn-from-type (cdr fn-lst-with-type)))))
 
 ;; replace-a-rec-fn
-(defun replace-a-rec-fn (expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+(defun replace-a-rec-fn (expr fn-lst-with-type fn-var-decl num)
   ""
+  (prog2$ (cw "here, num: ~q0" num)
   (mv-let (name res-num)
 	  (create-name num)
+	  (prog2$ (cw "~q0" name
+		      ;;(cons (list name
+		;;	  expr
+	;;		  (cadr (assoc (car expr) fn-lst-with-type)))
+		  ;;  fn-var-decl)
+		  ;;res-num
+		      )
 	  (mv name
 	      (cons (list name
 			  expr
 			  (cadr (assoc (car expr) fn-lst-with-type)))
 		    fn-var-decl)
-	      (cons name fn-var-decl-branch)
-	      res-num)))
+	      res-num)))))
 
 (mutual-recursion
 
  ;; replace-rec-fn-params
-(defun replace-rec-fn-params (expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+(defun replace-rec-fn-params (expr fn-lst-with-type fn-var-decl num)
   ""
   (if (endp expr)
-       (mv expr fn-var-decl fn-var-decl-branch num)
-     (mv-let (res-expr1 res-fn-var-decl1 res-fn-var-decl-branch1 res-num1)
-	     (replace-rec-fn (car expr) fn-lst-with-type fn-var-decl fn-var-decl-branch num)
-	     (mv-let (res-expr2 res-fn-var-decl2 res-fn-var-decl-branch2 res-num2)
-		     (replace-rec-fn-params (cdr expr) fn-lst-with-type res-fn-var-decl1 fn-var-decl-branch res-num1)
+       (mv expr fn-var-decl num)
+     (mv-let (res-expr1 res-fn-var-decl1 res-num1)
+	     (replace-rec-fn (car expr) fn-lst-with-type fn-var-decl num)
+	     (mv-let (res-expr2 res-fn-var-decl2 res-num2)
+		     (replace-rec-fn-params (cdr expr) fn-lst-with-type res-fn-var-decl1 res-num1)
 		     (mv (cons res-expr1 res-expr2)
 			 res-fn-var-decl2
-			 (append res-fn-var-decl-branch1 res-fn-var-decl-branch2)
 			 res-num2)))))
 
 ;; replace-rec-fn
 ;; 2014-07-04
 ;; added function for postorder traversal
-(defun replace-rec-fn (expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
+(defun replace-rec-fn (expr fn-lst-with-type fn-var-decl num)
   ""
-  (prog2$ (cw "expr: ~q0, fn-lst-with-type: ~q1" expr fn-lst-with-type)
+  (prog2$ (cw "num: ~q0" num)
   (cond ((atom expr)
-	 (mv expr fn-var-decl fn-var-decl-branch num))
+	 (mv expr fn-var-decl num))
 	((consp expr)
 	 (let ((fn0 (car expr)) (params (cdr expr)))
 	    (cond
 	      ((and (atom fn0) (not (endp (assoc fn0 fn-lst-with-type)))) ;; function exists in the list
 	       (prog2$ (cw "fn-lst-with-type: ~q0" fn-lst-with-type)
-	       (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
-		       (replace-a-rec-fn expr fn-lst-with-type fn-var-decl fn-var-decl-branch num)
-		       (mv res fn-var-decl2 fn-var-decl-branch2 num2))))
+	       (mv-let (res fn-var-decl2 num2)
+		       (prog2$ (cw "num: ~q0" num)
+		       (replace-a-rec-fn expr fn-lst-with-type fn-var-decl num))
+		       (prog2$ (cw "res: ~q0 fn-var-decl2: ~q1, num2: ~q2" res fn-var-decl2 num2)
+		       (mv res fn-var-decl2 num2)))))
 	      ((atom fn0) ;; when expr is a un-expandable function
-	       (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
-		       (replace-rec-fn-params params fn-lst-with-type fn-var-decl fn-var-decl-branch num)
-		       (mv (cons fn0 res) fn-var-decl2 fn-var-decl-branch2 num2)))
+	       (mv-let (res fn-var-decl2 num2)
+		       (replace-rec-fn-params params fn-lst-with-type fn-var-decl num)
+		       (mv (cons fn0 res) fn-var-decl2 num2)))
 	      ((lambdap fn0) ;; function is a lambda expression, expand the body
 	       (let ((lambdax fn0) (params (cdr expr)))
 		 (let ((formals (cadr lambdax)) (body (caddr lambdax)))
-		   (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
-			   (replace-rec-fn body fn-lst-with-type fn-var-decl fn-var-decl-branch num)
-			   (mv-let (res2 fn-var-decl3 fn-var-decl-branch3 num3)
-				   (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 fn-var-decl-branch num2)
-				   (prog2$ (cw "fn-var-decl-branch3: ~q0, fn-var-decl-branch2: ~q1" fn-var-decl-branch2 fn-var-decl-branch3)
-				   (mv (cons (list 'lambda (append formals fn-var-decl-branch2) res) (append res2 fn-var-decl-branch2))
+		   (mv-let (res fn-var-decl2 num2)
+			   (replace-rec-fn body fn-lst-with-type fn-var-decl num)
+			   (mv-let (res2 fn-var-decl3 num3)
+				   (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 num2)
+				   (mv (cons (list 'lambda formals res) res2)
 				       fn-var-decl3
-				       (append fn-var-decl-branch2 fn-var-decl-branch3)
-				       num3)))))
+				       num3))))
 		 ))
 	      ((and (not (lambdap fn0)) (consp fn0))
-	       (mv-let (res fn-var-decl2 fn-var-decl-branch2 num2)
-		       (replace-rec-fn fn0 fn-lst-with-type fn-var-decl fn-var-decl-branch num)
-		       (mv-let (res2 fn-var-decl3 fn-var-decl-branch3 num3)
-			       (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 fn-var-decl-branch num)
-			       (mv (cons res res2) fn-var-decl3 (append fn-var-decl-branch2 fn-var-decl-branch3) num3))))
+	       (mv-let (res fn-var-decl2  num2)
+		       (replace-rec-fn fn0 fn-lst-with-type fn-var-decl num)
+		       (mv-let (res2 fn-var-decl3 num3)
+			       (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 num2)
+			       (mv (cons res res2) fn-var-decl3 num3))))
 	      )))
 	(t (prog2$ (cw "Error(function): Strange expr, ~q0" expr)
-		   (mv expr fn-var-decl fn-var-decl-branch num))))))
+		   (mv expr fn-var-decl  num))))))
 
 )
 
 ;; expand-fn
 (defun expand-fn (expr fn-lst-with-type fn-level let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
+  (prog2$ (cw "here")
   (mv-let (fn-lst)
 	  (split-fn-from-type fn-lst-with-type)
   (let ((reformed-let-expr (reform-let let-expr)))
@@ -371,12 +378,18 @@
 	    (mv-let (res-expr1 res-num1)
 		    (expand-fn-help (rewrite-formula expr reformed-let-expr)
 				    fn-lst fn-level-lst fn-lst nil 0 state)
-		    (mv-let (res-expr res-fn-var-decl res-fn-var-decl-branch res-num)
-			    (replace-rec-fn res-expr1 fn-lst-with-type nil nil res-num1)
+		    (prog2$ (cw "res-expr: ~q0, res-num1: ~q1" res-expr1 res-num1)
+		    (mv-let (res-expr res-fn-var-decl res-num)
+			    (replace-rec-fn res-expr1 fn-lst-with-type nil res-num1)
 			    (mv-let (rewritten-expr orig-param)
 				    (augment-formula (rewrite-formula res-expr reformed-let-expr)
 						     (assoc-get-value reformed-let-expr)
 						     let-type
 						     new-hypo)
-				    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
-					    (mv rewritten-expr res-num orig-param res-fn-var-decl)))))))))
+				    (mv-let (expr-return orig-param)
+					    (augment-formula (rewrite-formula res-expr1 reformed-let-expr)
+							     (assoc-get-value reformed-let-expr)
+							     let-type
+							     new-hypo)
+					    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
+						    (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))))
