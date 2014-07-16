@@ -121,12 +121,13 @@
 (defun augment-hypothesis (rewritten-term let-expr orig-param main-hints)
   "augment-hypothesis: augment the returned clause with \
 new hypothesis in lambda expression"
-  (if (endp main-hints)
-      (list (list 'not
-      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
-	    (append (assoc-get-value let-expr) orig-param))))
-      (if (endp let-expr)
+  (if (endp let-expr)
 	  rewritten-term
+      (if (endp main-hints)
+	  (prog2$ (cw "orig-param: ~q0" orig-param)
+	  (list (list 'not
+		      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
+			    (append (assoc-get-value let-expr) orig-param)))))
 	  (add-hints main-hints
 		     (list (list 'not
 		      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
