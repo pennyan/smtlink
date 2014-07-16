@@ -491,7 +491,6 @@
 			    (i (- (- 2 (* 2 n)))))))))
 )
 
-(skip-proofs
 (local
 (defthm delta-rewrite-3
   (implies (basic-params n 3 v0 g1)
@@ -520,7 +519,6 @@
 			      (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c v0))))) 1)))))
   :hints
   (("Goal"
-    :do-not '(simplify)
     :in-theory (disable delta-rewrite-2-lemma1)
     :do-not-induct t
     :clause-processor
@@ -562,7 +560,6 @@
 					   (delta-rewrite-3-lemma2)
 					   (delta-rewrite-3-lemma3)))
 				   (:main ()))))))))
-)
 )
 
 (local
@@ -622,7 +619,8 @@
 							  (gamma rationalp)
 							  (mu rationalp)
 							  (equ-c rationalp)
-							  (fdc rationalp)))
+							  (fdco
+							   rationalp)))
 					     (:expansion-level 1)))
 				  (:python-file "delta-smaller-than-0-lemma1-lemma")
 				  (:let ((expt_gamma_2n
