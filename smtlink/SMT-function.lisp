@@ -241,19 +241,24 @@
 	(t (cw "Error(function): nil expression."))))
 )
 
+;; extract-orig-param
+(defun extract-orig-param (expr)
+  (mv-let (decl-list hypo-list concl-list)
+	  (SMT-extract expr)
+	  (get-orig-param decl-list)))
+
 ;; augment-formula
 (defun augment-formula (expr new-decl let-type new-hypo)
   "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
   (mv-let (decl-list hypo-list concl-list)
 	  (SMT-extract expr)
-	  (mv (list 'implies
+	  (list 'implies
 		    (list 'if
 			  (append-and-decl decl-list new-decl let-type)
 			  (append-and-hypo hypo-list new-hypo)
 			  ''nil)
 		    concl-list
-		    )
-	      (get-orig-param decl-list))))
+		    )))
 
 ;; reform-let
 (defun reform-let (let-expr)
@@ -386,10 +391,13 @@
 						     (assoc-get-value reformed-let-expr)
 						     let-type
 						     new-hypo)
-				    (mv-let (expr-return orig-param)
-					    (augment-formula (rewrite-formula res-expr1 reformed-let-expr)
-							     (assoc-get-value reformed-let-expr)
-							     let-type
-							     new-hypo)
+				    (let ((res (rewrite-formula res-expr1 reformed-let-expr)))
+				      (let ((expr-return ;; (augment-formula res
+							 ;; 		  (assoc-get-value reformed-let-expr)
+							 ;; 		  let-type
+							 ;; 		  new-hypo)
+					     res
+					      )
+					    (orig-param (extract-orig-param res)))
 					    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
-						    (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))))
+						    (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl)))))))))))))
