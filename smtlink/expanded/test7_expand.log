@@ -4,9 +4,10 @@ level 0:
     (IF 
       (RATIONALP X) 
       (RATIONALP Y) 'nil) 'T 'nil) 
-  (< '0 
-    (EXPT 
-      (BINARY-+ X Y) '2)))
+  (NOT 
+    (< 
+      (EXPT 
+        (BINARY-+ X Y) '2) '0)))
 
 level 1:IMPLIES
 
@@ -22,5 +23,6 @@ level 2:
       (< EXPT_PLUS_X_Y_SQUARE '0)) 'T 'nil) 'nil)
 
 level 3:
-(< '0 EXPT_PLUS_X_Y_SQUARE)
+(NOT 
+  (< EXPT_PLUS_X_Y_SQUARE '0))
 

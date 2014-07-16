@@ -293,12 +293,13 @@
   (implies (and (and (rationalp x)
 		     (rationalp y))
 		(and))
-	   (> (expt (+ x y) 2) 0))
+	   (>= (expt (+ x y) 2) 0))
   :hints
   (("Goal"
     :clause-processor
     (my-clause-processor clause
-			 '( (:expand ())
+			 '( (:expand ((:function ())
+				      (:expansion-level 1)))
 			    (:python-file "test7")
 			    (:let ((expt_plus_x_y_square (expt (+ x y) 2) rationalp)))
 			    (:hypothesize ((>= expt_plus_x_y_square 0)))
