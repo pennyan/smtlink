@@ -1,4 +1,11 @@
-translation notes:
-1. divide - reciprocal
-2. let expression
-3. implies and prove setups ???? 
+1. abstract parameters away
+2. clause processor, how to certify
+3. How to expand my proof so that it will be able to solve any nonlinear discrete dynamic systems, a recurrence model. Or even a continuous model?
+The input should be: a recurrence model - is there a better way so I can scale that?
+
+Problems that make it hard to scale:
+1. I have to derive the sum by hand...
+2. We pair up points and manually look at the terms to determine positive or negative properties...
+3. ... what about this:
+   prove there exist an integer number n that from any starting point, the points gets closer to the middle region within that number of steps
+   could be possible?
