@@ -44,7 +44,7 @@
 	 (append
 	  (append
 	   (append (list 'and
-			 (list 'integerp n))
+			 (list 'rationalp n))
 		   (if (equal g1 'nil) nil (list (list 'rationalp g1))))
 	   (if (equal v0 'nil) nil (list (list 'rationalp v0))))
 	  (if (equal phi0 'nil) nil (list (list 'rationalp phi0))))
@@ -73,7 +73,7 @@
 	 (append
 	  (append
 	   (append (list 'and
-			 (list 'integerp n))
+			 (list 'rationalp n))
 		   (if (equal g1 'nil) nil (list (list 'rationalp g1))))
 	   (if (equal v0 'nil) nil (list (list 'rationalp v0))))
 	  (if (equal dv 'nil) nil (list (list 'rationalp dv))))
@@ -96,16 +96,36 @@
 	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm n-4-phi0 g1)) v0 dv g1) '1)))))
 	 (if (equal other 'nil) nil (list other)))))
 
+;; (encapsulate
+;;   ( ((my-floor *) => *) )
+;;   (local (defun my-floor (x) (floor (denominator x) (numerator x))))
+;;   (defthm type
+;;      (implies (rationalp x)
+;; 	      (integerp (my-floor x))))
+;;   (defthm range
+;;      (implies (and (>= x 0)
+;; 		   (rationalp x))
+;; 	      (and (>= (my-floor x) (- x 1))
+;; 		   (<= (my-floor x) x)))))
+
+(defun my-floor (x) (floor (numerator x) (denominator x)))
+
+(defthm my-floor-type
+  (implies (rationalp x)
+	   (integerp (my-floor x)))
+  :rule-classes :type-prescription)
+
 (encapsulate ()
 
 (local
 (defthm B-term-neg-lemma1
   (implies (basic-params h 1 v0 dv g1)
-	   (< (+ (* (B-term-expt h) (B-term-rest h v0 dv g1))
-		 (* (B-term-expt (- h)) (B-term-rest (- h) v0 dv g1)))
+	   (< (+ (* (B-term-expt (my-floor h)) (B-term-rest (my-floor h) v0 dv g1))
+		 (* (B-term-expt (- (my-floor h))) (B-term-rest (- (my-floor h)) v0 dv g1)))
 	      0))
   :hints
   (("Goal"
+    :in-theory (disable floor my-floor)
     :clause-processor
     (my-clause-processor clause
 			 '( (:expand ((:functions ((B-term-rest rationalp)
@@ -115,8 +135,8 @@
 						   (dv0 rationalp)))
 				      (:expansion-level 1)))
 			    (:python-file "B-term-neg-lemma3") ;;mktemp
-			    (:let ((expt_gamma_h (B-term-expt h) rationalp)
-				   (expt_gamma_minus_h (B-term-expt (- h)) rationalp)))
+			    (:let ((expt_gamma_h (B-term-expt (my-floor h)) rationalp)
+				   (expt_gamma_minus_h (B-term-expt (- (my-floor h))) rationalp)))
 			    (:hypothesize ((> expt_gamma_h 1)
 					   (equal expt_gamma_minus_h (/ expt_gamma_h))))))
     )))
@@ -124,7 +144,7 @@
 
 (defthm B-term-neg
   (implies (basic-params h 1 v0 dv g1)
-	   (< (+ (B-term h v0 dv g1) (B-term (- h) v0 dv g1)) 0))
+	   (< (+ (B-term (my-floor h) v0 dv g1) (B-term (- (my-floor h)) v0 dv g1)) 0))
   :hints (("Goal"
 	   :use ( (:instance B-term)
 		 (:instance B-term-neg-lemma1))))
@@ -133,7 +153,7 @@
 
 (defthm B-sum-neg
   (implies (basic-params n-minus-2 1 v0 dv g1)
-	   (< (B-sum 1 n-minus-2 v0 dv g1) 0))
+	   (< (B-sum 1 (my-floor n-minus-2) v0 dv g1) 0))
   :hints (("Goal"
 	   :in-theory (disable B-term)))
   :rule-classes :linear)
@@ -143,14 +163,14 @@
 (local ;; B = B-expt*B-sum
  (defthm B-neg-lemma1
    (implies (basic-params n 3 v0 dv g1)
-	    (equal (B n v0 dv g1)
-		   (* (B-expt n)
-		      (B-sum 1 (- n 2) v0 dv g1))))))
+	    (equal (B (my-floor n) v0 dv g1)
+		   (* (B-expt (my-floor n))
+		      (B-sum 1 (- (my-floor n) 2) v0 dv g1))))))
 
 (local
  (defthm B-expt->-0
    (implies (basic-params n 3)
-	    (> (B-expt n) 0))
+	    (> (B-expt (my-floor n)) 0))
    :rule-classes :linear))
 
 (local
@@ -163,21 +183,29 @@
    :rule-classes :linear))
 
 (local
- (defthm B-neg-type-lemma3
+ (defthm B-neg-type-lemma3-lemma1
    (implies (and (and (integerp n-minus-2) (rationalp v0) (rationalp g1) (rationalp dv)))
-		 ;;(and (>= n-minus-2 1) (>= v0 9/10) (<= v0 11/10) (equal g1 1/3200)))
 	    (rationalp (B-sum 1 n-minus-2 v0 dv g1)))
+   :rule-classes :type-prescription))
+
+(local
+ (defthm B-neg-type-lemma3
+   (implies (and (and (rationalp n-minus-2) (rationalp v0) (rationalp g1) (rationalp dv)))
+	    (rationalp (B-sum 1 (my-floor n-minus-2) v0 dv g1)))
+   :hints (("Goal"
+   	    :use ((:instance B-neg-type-lemma3-lemma1 (n-minus-2 (my-floor n-minus-2)))
+		  (:instance my-floor-type (x n-minus-2)))))
    :rule-classes :type-prescription))
 
 (local
  (defthm B-neg-type-lemma4
    (implies (basic-params n 3)
-	    (rationalp (B-expt n)))
+	    (rationalp (B-expt (my-floor n))))
    :rule-classes :type-prescription))
 
 (defthm B-neg
   (implies (basic-params n 3 v0 dv g1)
-	   (< (B n v0 dv g1) 0))
+	   (< (B (my-floor n) v0 dv g1) 0))
   :hints (("Goal"
 	   :do-not-induct t
 	   :in-theory (disable B-expt B-sum B-sum-neg B-expt->-0)
@@ -293,35 +321,35 @@
 ;; considering using smtlink for the proof, probably simpler
 (defthm delta-rewrite-1-lemma1
   (implies (basic-params n 3 v0 dv g1)
-	   (equal (+ (- (* (expt (gamma) (* 2 n))
-			   (- (fdco (1- (m n g1)) v0 dv g1) 1))
-			(* (expt (gamma) (* 2 n))
-			   (- (fdco (m n g1) v0 dv g1) 1)))
-		     (- (* (expt (gamma) (- (* 2 n) 1))
-			   (- (fdco (m n g1) v0 dv g1) 1))
-			(* (expt (gamma) (- (* 2 n) 1))
-			   (- (fdco (1+ (m n g1)) v0 dv g1) 1)))
-		     (* (expt (gamma) (1- n))
-			(+ (* (expt (gamma) (1+ (- n)))
+	   (equal (+ (- (* (expt (gamma) (* 2 (my-floor n)))
+			   (- (fdco (1- (m (my-floor n) g1)) v0 dv g1) 1))
+			(* (expt (gamma) (* 2(my-floor n)))
+			   (- (fdco (m (my-floor n) g1) v0 dv g1) 1)))
+		     (- (* (expt (gamma) (- (* 2 (my-floor n)) 1))
+			   (- (fdco (m (my-floor n) g1) v0 dv g1) 1))
+			(* (expt (gamma) (- (* 2 (my-floor n)) 1))
+			   (- (fdco (1+ (m (my-floor n) g1)) v0 dv g1) 1)))
+		     (* (expt (gamma) (1- (my-floor n)))
+			(+ (* (expt (gamma) (1+ (- (my-floor n))))
 			      (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-				    (1+ (* *beta* (+ (* g1 (1- n)) (equ-c)))))
+				    (1+ (* *beta* (+ (* g1 (1- (my-floor n))) (equ-c)))))
 				 1))
-			   (* (expt (gamma) (1- n))
+			   (* (expt (gamma) (1- (my-floor n)))
 			      (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-				    (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c)))))
+				    (1+ (* *beta* (+ (* g1 (- 1 (my-floor n))) (equ-c)))))
 				 1)))))
-		    (+ (* (expt (gamma) (* 2 n))
-			  (- (fdco (1- (m n g1)) v0 dv g1)
-			     (fdco (m n g1) v0 dv g1)))
-		       (* (expt (gamma) (- (* 2 n) 1))
-			  (- (fdco (m n g1) v0 dv g1)
-			     (fdco (1+ (m n g1)) v0 dv g1)))
-		       (* (* (expt (gamma) (1- n)) (expt (gamma) (1+ (- n))))
+		    (+ (* (expt (gamma) (* 2 (my-floor n)))
+			  (- (fdco (1- (m (my-floor n) g1)) v0 dv g1)
+			     (fdco (m (my-floor n) g1) v0 dv g1)))
+		       (* (expt (gamma) (- (* 2 (my-floor n)) 1))
+			  (- (fdco (m (my-floor n) g1) v0 dv g1)
+			     (fdco (1+ (m (my-floor n) g1)) v0 dv g1)))
+		       (* (* (expt (gamma) (1- (my-floor n))) (expt (gamma) (1+ (- (my-floor n)))))
 			  (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-				(1+ (* *beta* (+ (* g1 (1- n)) (equ-c))))) 1))
-		       (* (* (expt (gamma) (1- n)) (expt (gamma) (1- n)))
+				(1+ (* *beta* (+ (* g1 (1- (my-floor n))) (equ-c))))) 1))
+		       (* (* (expt (gamma) (1- (my-floor n))) (expt (gamma) (1- (my-floor n))))
 			  (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-				(1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c))))) 1)))))
+				(1+ (* *beta* (+ (* g1 (- 1 (my-floor n))) (equ-c))))) 1)))))
   :hints
   (("Goal"
     :clause-processor
@@ -335,16 +363,16 @@
 				      (:expansion-level 1)))
 			    (:python-file "delta-rewrite-1-lemma1") ;;mktemp
 			    (:let ((expt_gamma_2n
-				    (expt (gamma) (* 2 n))
+				    (expt (gamma) (* 2 (my-floor n)))
 				     rationalp)
 				   (expt_gamma_2n_minus_1
-				    (expt (gamma) (- (* 2 n) 1))
+				    (expt (gamma) (- (* 2 (my-floor n)) 1))
 				     rationalp)
 				   (expt_gamma_n_minus_1
-				    (expt (gamma) (1- n))
+				    (expt (gamma) (1- (my-floor n)))
 				     rationalp)
 				   (expt_gamma_1_minus_n
-				    (expt (gamma) (1+ (- n)))
+				    (expt (gamma) (1+ (- (my-floor n))))
 				     rationalp)
 				   ))
 			    (:hypothesize ())))
@@ -354,33 +382,33 @@
 (local
 (defthm delta-rewrite-1
   (implies (basic-params n 3 v0 dv g1)
-	   (equal (delta n v0 dv g1)
-		  (delta-1 n v0 dv g1))))
+	   (equal (delta (my-floor n) v0 dv g1)
+		  (delta-1 (my-floor n) v0 dv g1))))
 )
 
 (local
 (defthm delta-rewrite-2-lemma1
   (implies (basic-params n 3)
-	   (equal (* (expt (gamma) (1- n))
-		     (expt (gamma) (1+ (- n))))
+	   (equal (* (expt (gamma) (1- (my-floor n)))
+		     (expt (gamma) (1+ (- (my-floor n)))))
 		  1))
   :hints (("Goal"
 	   :use ((:instance expt-minus
 			    (r (gamma))
-			    (i (- (1+ (- n)))))))))
+			    (i (- (1+ (- (my-floor n))))))))))
 )
 
 (local
 (defthm delta-rewrite-2-lemma2
   (implies (basic-params n 3)
- 	   (equal (* (expt (gamma) (1- n))
- 		     (expt (gamma) (1- n)))
-		  (expt (gamma) (+ -1 n -1 n))))
+ 	   (equal (* (expt (gamma) (1- (my-floor n)))
+ 		     (expt (gamma) (1- (my-floor n))))
+		  (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))))
   :hints (("Goal"
 	   :do-not-induct t
 	   :use ((:instance exponents-add-for-nonneg-exponents
-			    (i (1- n))
-			    (j (1- n))
+			    (i (1- (my-floor n)))
+			    (j (1- (my-floor n)))
 			    (r (gamma))))
 	   :in-theory (disable exponents-add-for-nonneg-exponents))))
 )
@@ -390,14 +418,14 @@
   (implies (basic-params n 3)
 	   (equal (+ A
 		     B
-		     (* (* (expt (gamma) (1- n))
-			   (expt (gamma) (1+ (- n))))
+		     (* (* (expt (gamma) (1- (my-floor n)))
+			   (expt (gamma) (1+ (- (my-floor n)))))
 			C)
-		     (* (* (expt (gamma) (1- n))
-			   (expt (gamma) (1- n)))
+		     (* (* (expt (gamma) (1- (my-floor n)))
+			   (expt (gamma) (1- (my-floor n))))
 			D))
 		  (+ A B C
-		     (* (expt (gamma) (+ -1 n -1 n)) D))))
+		     (* (expt (gamma) (+ -1 (my-floor n) -1(my-floor n))) D))))
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-2-lemma1)
 		 (:instance delta-rewrite-2-lemma2)))))
@@ -406,31 +434,31 @@
 (local
 (defthm delta-rewrite-2
   (implies (basic-params n 3 v0 dv g1)
-	   (equal (delta-1 n v0 dv g1)
-		  (delta-2 n v0 dv g1)))
+	   (equal (delta-1 (my-floor n) v0 dv g1)
+		  (delta-2 (my-floor n) v0 dv g1)))
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-2-lemma3
-			    (A (* (expt (gamma) (* 2 n))
-				  (- (fdco (1- (m n g1)) v0 dv g1)
-				     (fdco (m n g1) v0 dv g1))))
-			    (B (* (expt (gamma) (- (* 2 n) 1))
-				  (- (fdco (m n g1) v0 dv g1)
-				     (fdco (1+ (m n g1)) v0 dv g1))))
+			    (A (* (expt (gamma) (* 2 (my-floor n)))
+				  (- (fdco (1- (m (my-floor n) g1)) v0 dv g1)
+				     (fdco (m (my-floor n) g1) v0 dv g1))))
+			    (B (* (expt (gamma) (- (* 2 (my-floor n)) 1))
+				  (- (fdco (m (my-floor n) g1) v0 dv g1)
+				     (fdco (1+ (m (my-floor n) g1)) v0 dv g1))))
 			    (C (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-				     (1+ (* *beta* (+ (* g1 (1- n)) (equ-c))))) 1))
+				     (1+ (* *beta* (+ (* g1 (1- (my-floor n))) (equ-c))))) 1))
 			    (D (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-				     (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c))))) 1)))))))
+				     (1+ (* *beta* (+ (* g1 (- 1 (my-floor n))) (equ-c))))) 1)))))))
 )
 
 (local
 (defthm delta-rewrite-3-lemma1-lemma1
   (implies (basic-params n 3)
-	   (equal (expt (gamma) (+ (+ -1 n -1 n) 2))
-		  (* (expt (gamma) (+ -1 n -1 n))
+	   (equal (expt (gamma) (+ (+ -1 (my-floor n) -1 (my-floor n)) 2))
+		  (* (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))
 		     (expt (gamma) 2))))
   :hints (("Goal"
 	   :use ((:instance exponents-add-for-nonneg-exponents
-			    (i (+ -1 n -1 n))
+			    (i (+ -1 (my-floor n) -1(my-floor n)))
 			    (j 2)
 			    (r (gamma))))
 	   :in-theory (disable exponents-add-for-nonneg-exponents
@@ -440,26 +468,31 @@
 (local
 (defthm delta-rewrite-3-lemma1-stupidlemma
   (implies (basic-params n 3)
-	   (equal (* 2 n) (+ (+ -1 n -1 n) 2))))
+	   (equal (* 2 (my-floor n)) (+ (+ -1 (my-floor n) -1 (my-floor n)) 2))))
 )
 
 (local
 (defthm delta-rewrite-3-lemma1
   (implies (basic-params n 3)
-	   (equal (expt (gamma) (* 2 n))
-		  (* (expt (gamma) (+ -1 n -1 n))
-		     (expt (gamma) 2)))))
+	   (equal (expt (gamma) (* 2 (my-floor n)))
+		  (* (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))
+		     (expt (gamma) 2))))
+  :hints (("Goal"
+	   :use ((:instance delta-rewrite-3-lemma1-lemma1)
+		 (:instance delta-rewrite-3-lemma1-stupidlemma)))))
 )
 
 (local
 (defthm delta-rewrite-3-lemma2-lemma1
   (implies (basic-params n 3)
-	   (equal (expt (gamma) (+ (+ -1 n -1 n) 1))
-		  (* (expt (gamma) (+ -1 n -1 n))
+	   (equal (expt (gamma) (+ (+ -1 (my-floor n) -1 (my-floor n)) 1))
+		  (* (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))
 		     (expt (gamma) 1))))
   :hints (("Goal"
+	   :do-not '(simplify)
+	   :do-not-induct t
 	   :use ((:instance exponents-add-for-nonneg-exponents
-			    (i (+ -1 n -1 n))
+			    (i (+ -1 (my-floor n) -1 (my-floor n)))
 			    (j 1)
 			    (r (gamma))))
 	   :in-theory (disable exponents-add-for-nonneg-exponents
@@ -469,14 +502,14 @@
 (local
 (defthm delta-rewrite-3-lemma2-stupidlemma
   (implies (basic-params n 3)
-	   (equal (- (* 2 n) 1) (+ (+ -1 n -1 n) 1))))
+	   (equal (- (* 2 (my-floor n)) 1) (+ (+ -1 (my-floor n) -1 (my-floor n)) 1))))
 )
 
 (local
 (defthm delta-rewrite-3-lemma2
   (implies (basic-params n 3)
-	   (equal (expt (gamma) (- (* 2 n) 1))
-		  (* (expt (gamma) (+ -1 n -1 n))
+	   (equal (expt (gamma) (- (* 2 (my-floor n)) 1))
+		  (* (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))
 		     (expt (gamma) 1))))
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-3-lemma2-lemma1)
@@ -487,41 +520,41 @@
 (local
 (defthm delta-rewrite-3-lemma3
   (implies (basic-params n 3)
-	   (equal (* (expt (gamma) (- 2 (* 2 n)))
-		     (expt (gamma) (+ -1 n -1 n)))
+	   (equal (* (expt (gamma) (- 2 (* 2 (my-floor n))))
+		     (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n))))
 		  1))
   :hints (("Goal"
 	   :use ((:instance expt-minus
 			    (r (gamma))
-			    (i (- (- 2 (* 2 n)))))))))
+			    (i (- (- 2 (* 2 (my-floor n))))))))))
 )
 
 (local
 (defthm delta-rewrite-3
   (implies (basic-params n 3 v0 dv g1)
-	   (equal (+ (* (expt (gamma) (* 2 n))
-			(- (fdco (1- (m n g1)) v0 dv g1)
-			   (fdco (m n g1) v0 dv g1)))
-		     (* (expt (gamma) (- (* 2 n) 1))
-			(- (fdco (m n g1) v0 dv g1)
-			   (fdco (1+ (m n g1)) v0 dv g1)))
+	   (equal (+ (* (expt (gamma) (* 2 (my-floor n)))
+			(- (fdco (1- (m (my-floor n) g1)) v0 dv g1)
+			   (fdco (m (my-floor n) g1) v0 dv g1)))
+		     (* (expt (gamma) (- (* 2 (my-floor n)) 1))
+			(- (fdco (m (my-floor n) g1) v0 dv g1)
+			   (fdco (1+ (m (my-floor n) g1)) v0 dv g1)))
 		     (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-			   (1+ (* *beta* (+ (* g1 (1- n)) (equ-c))))) 1)
-		     (* (expt (gamma) (+ -1 n -1 n))
+			   (1+ (* *beta* (+ (* g1 (1- (my-floor n))) (equ-c))))) 1)
+		     (* (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))
 			(- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-			      (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c))))) 1)))
-		  (* (expt (gamma) (+ -1 n -1 n))
+			      (1+ (* *beta* (+ (* g1 (- 1 (my-floor n))) (equ-c))))) 1)))
+		  (* (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))
 		     (+ (* (expt (gamma) 2)
-			   (- (fdco (1- (m n g1)) v0 dv g1)
-			      (fdco (m n g1) v0 dv g1)))
+			   (- (fdco (1- (m (my-floor n) g1)) v0 dv g1)
+			      (fdco (m (my-floor n) g1) v0 dv g1)))
 			(* (expt (gamma) 1)
-			   (- (fdco (m n g1) v0 dv g1)
-			      (fdco (1+ (m n g1)) v0 dv g1)))
-			(* (expt (gamma) (- 2 (* 2 n)))
+			   (- (fdco (m (my-floor n) g1) v0 dv g1)
+			      (fdco (1+ (m (my-floor n) g1)) v0 dv g1)))
+			(* (expt (gamma) (- 2 (* 2 (my-floor n))))
 			   (- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-				 (1+ (* *beta* (+ (* g1 (1- n)) (equ-c))))) 1))
+				 (1+ (* *beta* (+ (* g1 (1- (my-floor n))) (equ-c))))) 1))
 			(- (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-			      (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c))))) 1)))))
+			      (1+ (* *beta* (+ (* g1 (- 1 (my-floor n))) (equ-c))))) 1)))))
   :hints
   (("Goal"
     :in-theory (disable delta-rewrite-2-lemma1)
@@ -537,13 +570,13 @@
 				      (:expansion-level 1)))
 			    (:python-file "delta-rewrite-3")
 			    (:let ((expt_gamma_2n
-				    (expt (gamma) (* 2 n))
+				    (expt (gamma) (* 2 (my-floor n)))
 				     rationalp)
 				   (expt_gamma_2n_minus_1
-				    (expt (gamma) (- (* 2 n) 1))
+				    (expt (gamma) (- (* 2 (my-floor n)) 1))
 				     rationalp)
 				   (expt_gamma_2n_minus_2
-				    (expt (gamma) (+ -1 n -1 n))
+				    (expt (gamma) (+ -1 (my-floor n) -1 (my-floor n)))
 				     rationalp)
 				   (expt_gamma_2
 				    (expt (gamma) 2)
@@ -552,7 +585,7 @@
 				    (expt (gamma) 1)
 				     rationalp)
 				   (expt_gamma_2_minus_2n
-				    (expt (gamma) (- 2 (* 2 n)))
+				    (expt (gamma) (- 2 (* 2 (my-floor n))))
 				     rationalp)
 				   ))
 			    (:hypothesize ((equal expt_gamma_2n
@@ -571,16 +604,16 @@
 (local
 (defthm delta-rewrite-4
   (implies (basic-params n 3 v0 dv g1)
-	   (equal (delta-2 n v0 dv g1)
-		  (delta-3 n v0 dv g1)))
+	   (equal (delta-2 (my-floor n) v0 dv g1)
+		  (delta-3 (my-floor n) v0 dv g1)))
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-3)))))
 )
 
 (defthm delta-rewrite-5
   (implies (basic-params n 3 v0 dv g1)
-	   (equal (delta n v0 dv g1)
-		  (delta-3 n v0 dv g1)))
+	   (equal (delta (my-floor n) v0 dv g1)
+		  (delta-3 (my-floor n) v0 dv g1)))
   :hints (("Goal"
 	   :use ((:instance delta-rewrite-1)
 		 (:instance delta-rewrite-2)

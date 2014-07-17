@@ -2,7 +2,7 @@ level 0:
 (IMPLIES 
   (IF 
     (IF 
-      (INTEGERP N) 
+      (RATIONALP N) 
       (IF 
         (RATIONALP G1) 
         (IF 
@@ -33,49 +33,59 @@ level 0:
         (BINARY-* 
           (EXPT 
             (GAMMA) 
-            (BINARY-* '2 N)) 
+            (BINARY-* '2 
+              (MY-FLOOR N))) 
           (BINARY-+ '-1 
             (FDCO 
               (BINARY-+ '-1 
-                (M N G1)) V0 DV G1))) 
+                (M 
+                  (MY-FLOOR N) G1)) V0 DV G1))) 
         (UNARY-- 
           (BINARY-* 
             (EXPT 
               (GAMMA) 
-              (BINARY-* '2 N)) 
+              (BINARY-* '2 
+                (MY-FLOOR N))) 
             (BINARY-+ '-1 
               (FDCO 
-                (M N G1) V0 DV G1))))) 
+                (M 
+                  (MY-FLOOR N) G1) V0 DV G1))))) 
       (BINARY-+ 
         (BINARY-+ 
           (BINARY-* 
             (EXPT 
               (GAMMA) 
               (BINARY-+ '-1 
-                (BINARY-* '2 N))) 
+                (BINARY-* '2 
+                  (MY-FLOOR N)))) 
             (BINARY-+ '-1 
               (FDCO 
-                (M N G1) V0 DV G1))) 
+                (M 
+                  (MY-FLOOR N) G1) V0 DV G1))) 
           (UNARY-- 
             (BINARY-* 
               (EXPT 
                 (GAMMA) 
                 (BINARY-+ '-1 
-                  (BINARY-* '2 N))) 
+                  (BINARY-* '2 
+                    (MY-FLOOR N)))) 
               (BINARY-+ '-1 
                 (FDCO 
                   (BINARY-+ '1 
-                    (M N G1)) V0 DV G1))))) 
+                    (M 
+                      (MY-FLOOR N) G1)) V0 DV G1))))) 
         (BINARY-* 
           (EXPT 
             (GAMMA) 
-            (BINARY-+ '-1 N)) 
+            (BINARY-+ '-1 
+              (MY-FLOOR N))) 
           (BINARY-+ 
             (BINARY-* 
               (EXPT 
                 (GAMMA) 
                 (BINARY-+ '1 
-                  (UNARY-- N))) 
+                  (UNARY-- 
+                    (MY-FLOOR N)))) 
               (BINARY-+ '-1 
                 (BINARY-* 
                   (BINARY-* 
@@ -88,12 +98,14 @@ level 0:
                       (BINARY-* '1 
                         (BINARY-+ 
                           (BINARY-* G1 
-                            (BINARY-+ '-1 N)) 
+                            (BINARY-+ '-1 
+                              (MY-FLOOR N))) 
                           (EQU-C)))))))) 
             (BINARY-* 
               (EXPT 
                 (GAMMA) 
-                (BINARY-+ '-1 N)) 
+                (BINARY-+ '-1 
+                  (MY-FLOOR N))) 
               (BINARY-+ '-1 
                 (BINARY-* 
                   (BINARY-* 
@@ -107,43 +119,52 @@ level 0:
                         (BINARY-+ 
                           (BINARY-* G1 
                             (BINARY-+ '1 
-                              (UNARY-- N))) 
+                              (UNARY-- 
+                                (MY-FLOOR N)))) 
                           (EQU-C)))))))))))) 
     (BINARY-+ 
       (BINARY-* 
         (EXPT 
           (GAMMA) 
-          (BINARY-* '2 N)) 
+          (BINARY-* '2 
+            (MY-FLOOR N))) 
         (BINARY-+ 
           (FDCO 
             (BINARY-+ '-1 
-              (M N G1)) V0 DV G1) 
+              (M 
+                (MY-FLOOR N) G1)) V0 DV G1) 
           (UNARY-- 
             (FDCO 
-              (M N G1) V0 DV G1)))) 
+              (M 
+                (MY-FLOOR N) G1) V0 DV G1)))) 
       (BINARY-+ 
         (BINARY-* 
           (EXPT 
             (GAMMA) 
             (BINARY-+ '-1 
-              (BINARY-* '2 N))) 
+              (BINARY-* '2 
+                (MY-FLOOR N)))) 
           (BINARY-+ 
             (FDCO 
-              (M N G1) V0 DV G1) 
+              (M 
+                (MY-FLOOR N) G1) V0 DV G1) 
             (UNARY-- 
               (FDCO 
                 (BINARY-+ '1 
-                  (M N G1)) V0 DV G1)))) 
+                  (M 
+                    (MY-FLOOR N) G1)) V0 DV G1)))) 
         (BINARY-+ 
           (BINARY-* 
             (BINARY-* 
               (EXPT 
                 (GAMMA) 
-                (BINARY-+ '-1 N)) 
+                (BINARY-+ '-1 
+                  (MY-FLOOR N))) 
               (EXPT 
                 (GAMMA) 
                 (BINARY-+ '1 
-                  (UNARY-- N)))) 
+                  (UNARY-- 
+                    (MY-FLOOR N))))) 
             (BINARY-+ '-1 
               (BINARY-* 
                 (BINARY-* 
@@ -156,16 +177,19 @@ level 0:
                     (BINARY-* '1 
                       (BINARY-+ 
                         (BINARY-* G1 
-                          (BINARY-+ '-1 N)) 
+                          (BINARY-+ '-1 
+                            (MY-FLOOR N))) 
                         (EQU-C)))))))) 
           (BINARY-* 
             (BINARY-* 
               (EXPT 
                 (GAMMA) 
-                (BINARY-+ '-1 N)) 
+                (BINARY-+ '-1 
+                  (MY-FLOOR N))) 
               (EXPT 
                 (GAMMA) 
-                (BINARY-+ '-1 N))) 
+                (BINARY-+ '-1 
+                  (MY-FLOOR N)))) 
             (BINARY-+ '-1 
               (BINARY-* 
                 (BINARY-* 
@@ -179,7 +203,8 @@ level 0:
                       (BINARY-+ 
                         (BINARY-* G1 
                           (BINARY-+ '1 
-                            (UNARY-- N))) 
+                            (UNARY-- 
+                              (MY-FLOOR N)))) 
                         (EQU-C)))))))))))))
 
 level 1:IMPLIES
@@ -195,7 +220,7 @@ level 2:
         (IF 
           (RATIONALP EXPT_GAMMA_2N) 
           (IF 
-            (INTEGERP N) 
+            (RATIONALP N) 
             (IF 
               (RATIONALP G1) 
               (IF 
@@ -249,7 +274,8 @@ level 3:
                   (BINARY-+ 
                     (BINARY-* '1 
                       (UNARY-/ var5)) 
-                    (UNARY-- var4))) N G1)) V0 DV G1))) 
+                    (UNARY-- var4))) 
+                (MY-FLOOR N) G1)) V0 DV G1))) 
       (UNARY-- 
         (BINARY-* EXPT_GAMMA_2N 
           (BINARY-+ '-1 
@@ -274,7 +300,8 @@ level 3:
                   (BINARY-+ 
                     (BINARY-* '1 
                       (UNARY-/ var11)) 
-                    (UNARY-- var10))) N G1) V0 DV G1))))) 
+                    (UNARY-- var10))) 
+                (MY-FLOOR N) G1) V0 DV G1))))) 
     (BINARY-+ 
       (BINARY-+ 
         (BINARY-* EXPT_GAMMA_2N_MINUS_1 
@@ -300,7 +327,8 @@ level 3:
                   (BINARY-+ 
                     (BINARY-* '1 
                       (UNARY-/ var17)) 
-                    (UNARY-- var16))) N G1) V0 DV G1))) 
+                    (UNARY-- var16))) 
+                (MY-FLOOR N) G1) V0 DV G1))) 
         (UNARY-- 
           (BINARY-* EXPT_GAMMA_2N_MINUS_1 
             (BINARY-+ '-1 
@@ -326,7 +354,8 @@ level 3:
                       (BINARY-+ 
                         (BINARY-* '1 
                           (UNARY-/ var23)) 
-                        (UNARY-- var22))) N G1)) V0 DV G1))))) 
+                        (UNARY-- var22))) 
+                    (MY-FLOOR N) G1)) V0 DV G1))))) 
       (BINARY-* EXPT_GAMMA_N_MINUS_1 
         (BINARY-+ 
           (BINARY-* EXPT_GAMMA_1_MINUS_N 
@@ -344,7 +373,8 @@ level 3:
                     (BINARY-* '1 
                       (BINARY-+ 
                         (BINARY-* G1 
-                          (BINARY-+ '-1 N)) '1))))))) 
+                          (BINARY-+ '-1 
+                            (MY-FLOOR N))) '1))))))) 
           (BINARY-* EXPT_GAMMA_N_MINUS_1 
             (BINARY-+ '-1 
               (BINARY-* 
@@ -361,7 +391,8 @@ level 3:
                       (BINARY-+ 
                         (BINARY-* G1 
                           (BINARY-+ '1 
-                            (UNARY-- N))) '1))))))))))) 
+                            (UNARY-- 
+                              (MY-FLOOR N)))) '1))))))))))) 
   (BINARY-+ 
     (BINARY-* EXPT_GAMMA_2N 
       (BINARY-+ 
@@ -387,7 +418,8 @@ level 3:
                 (BINARY-+ 
                   (BINARY-* '1 
                     (UNARY-/ var29)) 
-                  (UNARY-- var28))) N G1)) V0 DV G1) 
+                  (UNARY-- var28))) 
+              (MY-FLOOR N) G1)) V0 DV G1) 
         (UNARY-- 
           (
             (LAMBDA 
@@ -410,7 +442,8 @@ level 3:
                 (BINARY-+ 
                   (BINARY-* '1 
                     (UNARY-/ var35)) 
-                  (UNARY-- var34))) N G1) V0 DV G1)))) 
+                  (UNARY-- var34))) 
+              (MY-FLOOR N) G1) V0 DV G1)))) 
     (BINARY-+ 
       (BINARY-* EXPT_GAMMA_2N_MINUS_1 
         (BINARY-+ 
@@ -435,7 +468,8 @@ level 3:
                 (BINARY-+ 
                   (BINARY-* '1 
                     (UNARY-/ var41)) 
-                  (UNARY-- var40))) N G1) V0 DV G1) 
+                  (UNARY-- var40))) 
+              (MY-FLOOR N) G1) V0 DV G1) 
           (UNARY-- 
             (
               (LAMBDA 
@@ -459,7 +493,8 @@ level 3:
                     (BINARY-+ 
                       (BINARY-* '1 
                         (UNARY-/ var47)) 
-                      (UNARY-- var46))) N G1)) V0 DV G1)))) 
+                      (UNARY-- var46))) 
+                  (MY-FLOOR N) G1)) V0 DV G1)))) 
       (BINARY-+ 
         (BINARY-* 
           (BINARY-* EXPT_GAMMA_N_MINUS_1 EXPT_GAMMA_1_MINUS_N) 
@@ -477,7 +512,8 @@ level 3:
                   (BINARY-* '1 
                     (BINARY-+ 
                       (BINARY-* G1 
-                        (BINARY-+ '-1 N)) '1))))))) 
+                        (BINARY-+ '-1 
+                          (MY-FLOOR N))) '1))))))) 
         (BINARY-* 
           (BINARY-* EXPT_GAMMA_N_MINUS_1 EXPT_GAMMA_N_MINUS_1) 
           (BINARY-+ '-1 
@@ -495,5 +531,6 @@ level 3:
                     (BINARY-+ 
                       (BINARY-* G1 
                         (BINARY-+ '1 
-                          (UNARY-- N))) '1)))))))))))
+                          (UNARY-- 
+                            (MY-FLOOR N)))) '1)))))))))))
 

@@ -2,7 +2,7 @@ level 0:
 (IMPLIES 
   (IF 
     (IF 
-      (INTEGERP H) 
+      (RATIONALP H) 
       (IF 
         (RATIONALP G1) 
         (IF 
@@ -30,13 +30,17 @@ level 0:
   (< 
     (BINARY-+ 
       (BINARY-* 
-        (B-TERM-EXPT H) 
-        (B-TERM-REST H V0 DV G1)) 
+        (B-TERM-EXPT 
+          (MY-FLOOR H)) 
+        (B-TERM-REST 
+          (MY-FLOOR H) V0 DV G1)) 
       (BINARY-* 
         (B-TERM-EXPT 
-          (UNARY-- H)) 
+          (UNARY-- 
+            (MY-FLOOR H))) 
         (B-TERM-REST 
-          (UNARY-- H) V0 DV G1))) '0))
+          (UNARY-- 
+            (MY-FLOOR H)) V0 DV G1))) '0))
 
 level 1:IMPLIES
 
@@ -47,7 +51,7 @@ level 2:
     (IF 
       (RATIONALP EXPT_GAMMA_H) 
       (IF 
-        (INTEGERP H) 
+        (RATIONALP H) 
         (IF 
           (RATIONALP G1) 
           (IF 
@@ -98,7 +102,8 @@ level 3:
                   (BINARY-+ '1 
                     (BINARY-* '1 
                       (BINARY-+ 
-                        (BINARY-* var0 var3) '1)))))))) H V0 DV G1)) 
+                        (BINARY-* var0 var3) '1)))))))) 
+        (MY-FLOOR H) V0 DV G1)) 
     (BINARY-* EXPT_GAMMA_MINUS_H 
       (
         (LAMBDA 
@@ -117,5 +122,6 @@ level 3:
                     (BINARY-* '1 
                       (BINARY-+ 
                         (BINARY-* var4 var7) '1)))))))) 
-        (UNARY-- H) V0 DV G1))) '0)
+        (UNARY-- 
+          (MY-FLOOR H)) V0 DV G1))) '0)
 
