@@ -1,4 +1,4 @@
-from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Q, Array, Select, Store
+from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Q, Array, Select, Store, ToInt
 
 def sort(x):
     if type(x) == bool:    return BoolSort()
@@ -43,6 +43,9 @@ class to_smt:
     def isReal(self, who):
         return Real(who)
 
+    def floor(self, x):
+        return ToInt(x)
+        
     def plus(self, *args):
         return reduce(lambda x, y: x+y, args)
 

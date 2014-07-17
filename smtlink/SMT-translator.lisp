@@ -26,7 +26,8 @@
 	       (implies "s.implies" 2)
 	       (integerp "s.integerp" 1)
 	       (rationalp "s.rationalp" 1)
-	       (booleanp "s.booleanp" 1))))
+	       (booleanp "s.booleanp" 1)
+	       (my-floor "s.floor" 1))))
 
 ;; translate-operator
 (defun translate-operator (opr)
