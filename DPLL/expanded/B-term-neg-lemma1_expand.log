@@ -73,10 +73,10 @@ level 2:
                 (NOT 
                   (< DV 
                     (UNARY-- 
-                      (BINARY-* '2 '-1/16000)))) 
+                      (BINARY-* '-2 '-1/16000)))) 
                 (NOT 
                   (< 
-                    (BINARY-* '2 '-1/16000) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+                    (BINARY-* '-2 '-1/16000) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (< 

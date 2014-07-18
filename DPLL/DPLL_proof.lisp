@@ -6,30 +6,32 @@
 (include-book "../smtlink/SMT-connect")
 (logic)
 :set-state-ok t
-:sxet-ignore-ok t
+:set-ignore-ok t
+
+:start-proof-tree
 
 (encapsulate ()
 
-;;(local (include-book "arithmetic-5/top" :dir :system))
+(local (include-book "arithmetic-5/top" :dir :system))
 
 (defun my-floor (x) (floor (numerator x) (denominator x)))
 
-;; (defthm my-floor-type
-;;   (implies (rationalp x)
-;; 	   (integerp (my-floor x)))
-;;   :rule-classes :type-prescription)
+(defthm my-floor-type
+  (implies (rationalp x)
+	   (integerp (my-floor x)))
+  :rule-classes :type-prescription)
 
-;; (defthm my-floor-lower-bound
-;;   (implies (and (rationalp x)
-;; 		(>= x 0))
-;; 	   (>= (my-floor x) (- x 1)))
-;;   :rule-classes :linear)
+(defthm my-floor-lower-bound
+  (implies (and (rationalp x)
+		(>= x 0))
+	   (>= (my-floor x) (- x 1)))
+  :rule-classes :linear)
 
-;; (defthm my-floor-upper-bound
-;;   (implies (and (rationalp x)
-;; 		(>= x 0))
-;; 	   (<= (my-floor x) x))
-;;   :rule-classes :linear)
+(defthm my-floor-upper-bound
+  (implies (and (rationalp x)
+		(>= x 0))
+	   (<= (my-floor x) x))
+  :rule-classes :linear)
 )
 
 ;; functions
@@ -125,43 +127,47 @@
 	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm n-4-phi0 g1)) v0 dv g1) '1)))))
 	 (if (equal other 'nil) nil (list other)))))
 
-:start-proof-tree
+(encapsulate ()
 
-;;(encapsulate ()
+(local (include-book "arithmetic-5/top" :dir :system))
 
-;; (defthm B-term-neg-lemma1
-;;   (implies (basic-params h 1 v0 dv g1)
-;; 	   (< (+ (* (B-term-expt h) (B-term-rest h v0 dv g1))
-;; 		 (* (B-term-expt (- h)) (B-term-rest (- h) v0 dv g1)))
-;; 	      0))
-;;   :hints
-;;   (("Goal"
-;;     :in-theory (disable floor my-floor)
-;;     :clause-processor
-;;     (my-clause-processor clause
-;; 			 '( (:expand ((:functions ((B-term-rest rationalp)
-;; 						   (gamma rationalp)
-;; 						   (mu rationalp)
-;; 						   (equ-c rationalp)
-;; 						   (dv0 rationalp)))
-;; 				      (:expansion-level 1)))
-;; 			    (:python-file "B-term-neg-lemma1") ;;mktemp
-;; 			    (:let ((expt_gamma_h (B-term-expt h) rationalp)
-;; 				   (expt_gamma_minus_h (B-term-expt (- h)) rationalp)))
-;; 			    (:hypothesize ((> expt_gamma_h 1)
-;; 					   (equal expt_gamma_minus_h (/ expt_gamma_h))))))
-;;     )))
+(local
+(defthm B-term-neg-lemma1
+  (implies (basic-params h 1 v0 dv g1)
+	   (< (+ (* (B-term-expt h) (B-term-rest h v0 dv g1))
+	   	 (* (B-term-expt (- h)) (B-term-rest (- h) v0 dv g1)))
+	      0)
+	   )
+  :hints
+  (("Goal"
+    :in-theory (disable floor my-floor)
+    :clause-processor
+    (my-clause-processor clause
+  			 '( (:expand ((:functions ((B-term-rest rationalp)
+  						   (gamma rationalp)
+  						   (mu rationalp)
+  						   (equ-c rationalp)
+  						   (dv0 rationalp)))
+  				      (:expansion-level 1)))
+  			    (:python-file "B-term-neg-lemma1") ;;mktemp
+  			    (:let ((expt_gamma_h (B-term-expt h) rationalp)
+  				   (expt_gamma_minus_h (B-term-expt (- h)) rationalp)))
+  			    (:hypothesize ((> expt_gamma_h 1)
+  					   (equal expt_gamma_minus_h (/ expt_gamma_h))))
+			   ))
+    ))
+  )
+)
 
-
-;; (defthm B-term-neg
-;;   (implies (basic-params h 1 v0 dv g1)
-;; 	   (< (+ (B-term h v0 dv g1) (B-term (- h) v0 dv g1)) 0))
-;;   :hints (("Goal"
-;; 	   :use ( (:instance B-term)
-;; 		 ;;(:instance B-term-neg-lemma1)
-;; 		  )))
-;;   :rule-classes :linear)
-;; )
+(defthm B-term-neg
+  (implies (basic-params h 1 v0 dv g1)
+	   (< (+ (B-term h v0 dv g1) (B-term (- h) v0 dv g1)) 0))
+  :hints (("Goal"
+	   :use ( (:instance B-term)
+		 (:instance B-term-neg-lemma1)
+		  )))
+  :rule-classes :linear)
+)
 ;; (defthm B-sum-neg
 ;;   (implies (basic-params n-minus-2 1 v0 dv g1)
 ;; 	   (< (B-sum 1 n-minus-2 v0 dv g1) 0))
@@ -1442,10 +1448,11 @@
 ;; 	   :use ((:instance phi-2n-1-<-0-inductive-lemma1)))))
 ;; )
 
-(defthm phi-2n-1-<-0-inductive
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
-	   (< (phi-2n-1 n phi0 v0 dv g1) 0))
-  ;;:hints (("Goal"
-  ;;	   :use ((:instance phi-2n-1-<-0-inductive-lemma2))))
-  )
+;; (defthm phi-2n-1-<-0-inductive
+;;   (implies (basic-params n 3 v0 dv g1 phi0 n)
+;; 	   (< (phi-2n-1 n phi0 v0 dv g1) 0)
+;; 	   )
+;;   ;;:hints (("Goal"
+;;   ;;	   :use ((:instance phi-2n-1-<-0-inductive-lemma2))))
+;;   )
 ;; )

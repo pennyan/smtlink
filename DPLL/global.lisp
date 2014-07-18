@@ -28,4 +28,4 @@
 (defun m (n g1)
   (- (/ (equ-c) g1) n))
 (defun dv0 ()
-  (* 2 *g2*))
+  (* -2 *g2*))
