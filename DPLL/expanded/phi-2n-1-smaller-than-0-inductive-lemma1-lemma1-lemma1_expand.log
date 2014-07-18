@@ -38,8 +38,7 @@ level 0:
                       (FDCO 
                         (BINARY-+ '1 
                           (M 
-                            (BINARY-+ 
-                              (MY-FLOOR N_MINUS_2) '2) G1)) V0 DV G1))) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+                            (BINARY-+ N_MINUS_2 '2) G1)) V0 DV G1))) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
   (IF 
     (< PHI0 
       (BINARY-+ '-1 
@@ -47,24 +46,21 @@ level 0:
           (BINARY-+ '1 
             (M 
               (BINARY-+ '-1 
-                (BINARY-+ 
-                  (MY-FLOOR N_MINUS_2) '2)) G1)) V0 DV G1))) 
+                (BINARY-+ N_MINUS_2 '2)) G1)) V0 DV G1))) 
     (IF 
       (< '0 
         (BINARY-+ '-1 
           (FDCO 
             (BINARY-+ '1 
               (M 
-                (BINARY-+ 
-                  (MY-FLOOR N_MINUS_2) '2) G1)) V0 DV G1))) 
+                (BINARY-+ N_MINUS_2 '2) G1)) V0 DV G1))) 
       (< '0 
         (BINARY-+ '-1 
           (FDCO 
             (BINARY-+ '1 
               (M 
                 (BINARY-+ '-1 
-                  (BINARY-+ 
-                    (MY-FLOOR N_MINUS_2) '2)) G1)) V0 DV G1))) 'nil) 'nil))
+                  (BINARY-+ N_MINUS_2 '2)) G1)) V0 DV G1))) 'nil) 'nil))
 
 level 1:IMPLIES
 
@@ -127,8 +123,7 @@ level 2:
                               (BINARY-* '1 
                                 (UNARY-/ var5)) 
                               (UNARY-- var4))) 
-                          (BINARY-+ 
-                            (MY-FLOOR N_MINUS_2) '2) G1)) V0 DV G1))) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+                          (BINARY-+ N_MINUS_2 '2) G1)) V0 DV G1))) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (IF 
@@ -158,8 +153,7 @@ level 3:
                   (UNARY-/ var11)) 
                 (UNARY-- var10))) 
             (BINARY-+ '-1 
-              (BINARY-+ 
-                (MY-FLOOR N_MINUS_2) '2)) G1)) V0 DV G1))) 
+              (BINARY-+ N_MINUS_2 '2)) G1)) V0 DV G1))) 
   (IF 
     (< '0 
       (BINARY-+ '-1 
@@ -186,8 +180,7 @@ level 3:
                   (BINARY-* '1 
                     (UNARY-/ var17)) 
                   (UNARY-- var16))) 
-              (BINARY-+ 
-                (MY-FLOOR N_MINUS_2) '2) G1)) V0 DV G1))) 
+              (BINARY-+ N_MINUS_2 '2) G1)) V0 DV G1))) 
     (< '0 
       (BINARY-+ '-1 
         (
@@ -214,6 +207,5 @@ level 3:
                     (UNARY-/ var23)) 
                   (UNARY-- var22))) 
               (BINARY-+ '-1 
-                (BINARY-+ 
-                  (MY-FLOOR N_MINUS_2) '2)) G1)) V0 DV G1))) 'nil) 'nil)
+                (BINARY-+ N_MINUS_2 '2)) G1)) V0 DV G1))) 'nil) 'nil)
 
