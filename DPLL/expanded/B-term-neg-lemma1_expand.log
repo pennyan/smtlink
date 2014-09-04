@@ -2,7 +2,7 @@ level 0:
 (IMPLIES 
   (IF 
     (IF 
-      (RATIONALP H) 
+      (INTEGERP H) 
       (IF 
         (RATIONALP G1) 
         (IF 
@@ -47,7 +47,7 @@ level 2:
     (IF 
       (RATIONALP EXPT_GAMMA_H) 
       (IF 
-        (RATIONALP H) 
+        (INTEGERP H) 
         (IF 
           (RATIONALP G1) 
           (IF 
@@ -98,11 +98,24 @@ level 3:
                   (BINARY-+ '1 
                     (BINARY-* '1 
                       (BINARY-+ 
-                        (BINARY-* var0 var3) '1)))))))) H V0 DV G1)) 
+                        (BINARY-* var0 var3) 
+                        (
+                          (LAMBDA 
+                            (var4) 
+                            (BINARY-+ 
+                              (BINARY-* '1 
+                                (BINARY-* 
+                                  (BINARY-+ '1 
+                                    (BINARY-* '1 var4)) 
+                                  (UNARY-/ 
+                                    (BINARY-* '1 
+                                      (BINARY-* '1 '1))))) 
+                              (UNARY-- 
+                                (UNARY-/ '1)))) var1))))))))) H V0 DV G1)) 
     (BINARY-* EXPT_GAMMA_MINUS_H 
       (
         (LAMBDA 
-          (var4 var5 var6 var7) 
+          (var5 var6 var7 var8) 
           (BINARY-+ '-1 
             (BINARY-* 
               (BINARY-* '1 
@@ -111,11 +124,24 @@ level 3:
               (BINARY-* 
                 (BINARY-+ '1 
                   (BINARY-* '1 
-                    (BINARY-+ var5 var6))) 
+                    (BINARY-+ var6 var7))) 
                 (UNARY-/ 
                   (BINARY-+ '1 
                     (BINARY-* '1 
                       (BINARY-+ 
-                        (BINARY-* var4 var7) '1)))))))) 
+                        (BINARY-* var5 var8) 
+                        (
+                          (LAMBDA 
+                            (var9) 
+                            (BINARY-+ 
+                              (BINARY-* '1 
+                                (BINARY-* 
+                                  (BINARY-+ '1 
+                                    (BINARY-* '1 var9)) 
+                                  (UNARY-/ 
+                                    (BINARY-* '1 
+                                      (BINARY-* '1 '1))))) 
+                              (UNARY-- 
+                                (UNARY-/ '1)))) var6))))))))) 
         (UNARY-- H) V0 DV G1))) '0)
 
