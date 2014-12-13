@@ -324,6 +324,48 @@
       (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
 	 (1+ (* *beta* (+ (* g1 (1- n)) (equ-c v0))))))))
 
+(defthm delta-rewrite-mrg  ;; equivalent to delta-rewrite5
+  (implies (basic-params n 3 v0 dv g1)
+           (equal (delta n v0 dv g1)
+                  (delta-3 n v0 dv g1)))
+  :hints (("Goal"
+    :clause-processor
+    (my-clause-processor clause
+                         '( (:expand (
+                              (:functions (
+                                (delta rationalp)
+                                (delta-3 rationalp)
+                                (dv0 rationalp)
+                                (equ-c rationalp)
+                                (fdco rationalp)
+                                (m rationalp)
+                                (mu rationalp)
+                              ))
+                              (:expansion-level 1)))
+                            (:python-file "delta-rewrite--mrg") ;;mktemp
+                            (:let
+                              ((expt-gamma-1          (expt (gamma) 1)               rationalp)
+                              (expt-gamma-2          (expt (gamma) 2)               rationalp)
+                              (expt-gamma-n-minus-1  (expt (gamma) (1- n))          rationalp)
+                              (expt-gamma-1-minus-n  (expt gamma (1+ (- n)))      rationalp)
+                              (expt-gamma-2n-minus-2 (expt gamma (+ -1 n -1 n))   rationalp)
+                              (expt-gamma-2n-minus-1 (expt gamma (- (* 2 n) 1))   rationalp)
+                              (expt-gamma-2n         (expt gamma (* 2 n))         rationalp)
+                              (expt-gamma-2-minus-2n (expt (gamma) (- 2 (* 2 n))) rationalp)))
+                            (:hypothesize
+                              (equal expt-gamma-2-minus-2n (* expt-1-minus-n expt-1-minus-n))
+                              (> expt-1-minus-n 1)
+                              (equal expt-gamma-1 gamma)
+                              (equal expt-gamma-2 (* gamma gamma))
+                              (cond ((equal n 3) (equal expt-gamma-2 expt-n-minus-1))
+                                    (> expt-gamma-2 expt-n-minus-1))
+                              (equal expt-gamma-1-minus-n (/ expt-gamma-n-minus-1))
+                              (equal expt-gamma-2n-minus-2 (/ expt-gamma-2-minus-2n))
+                              (equal expt-gamma-2n-minus-1 (* expt-gamma-2n-minus-2 gamma))
+                              (equal expt-gamma-2n (* expt-gamma-2n-minus-1 gamma)))
+                            (:use ( (:let  ())
+                                    (:hypo (()))
+                                    (:main ()))))))))
 ;; ;; rewrite delta term
 ;; (encapsulate ()
 

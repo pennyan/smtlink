@@ -1,0 +1,35 @@
+
+(defthm matrix-norm-def-stupid-lemma1
+  (implies (and (alist2p 'a a)
+		(alist2p 'b b)
+		(equal (r a) (r b))
+		(equal (c a) (c b)))
+	   (alist2p 'x (m-+ a b))))
+
+(defthm matrix-norm-def-stupid-lemma2
+  (implies (and (alist2p 'a a)
+		(alist2p 'b b)
+		(equal (r a) (r b))
+		(equal (c a) (c b)))
+	   (and (alist2p 'c (m-- b))
+		(equal (r a) (r (m-- b)))
+		(equal (c a) (c (m-- b))))))
+
+(defthm matrix-norm-def-stupid-lemma3
+  (implies (and (alist2p 'a a)
+		(alist2p 'b b)
+		(equal (r a) (r b))
+		(equal (c a) (c b)))
+	   (alist2p 'x (m-+ a (m-- b))))
+  :hints (("Goal"
+	   :use ((:instance matrix-norm-def-stupid-lemma1)
+		 (:instance matrix-norm-def-stupid-lemma2)))))
+
+(defthm matrix-norm-def-stupid-lemma4
+  (implies (and (alist2p 'a a)
+		(alist2p 'b b)
+		(equal (r a) (r b))
+		(equal (c a) (c b)))
+	   (alist2p 'x (m-- a b)))
+  :hints (("Goal"
+	   :use ((:instance matrix-norm-def-stupid-lemma3)))))

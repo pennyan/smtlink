@@ -73,7 +73,7 @@
 				 (integerp y)
 				 (integerp z))
 			    (and (not (<= x 0))
-				 (equal z (+ 3/2 4))
+				 (equal z (- 7 3/2))
 				 (or (> x y) (> x (+ y 40/3)))))
 		       (> (foo1 x (foo1 x z)) (foo1 x y)))
   :hints
@@ -228,10 +228,10 @@
 		       (< gamma 1)
 		       (> m 0)
 		       (< m n)))
-	     (>= (a6 (expt gamma m)
+	     (>= (a6 (expt gamma m)      ;;(* (expt gamma m) (- (* (+ a b) (+ a b)) (* 2 a b)))
 		    (f6 (d6 (c6 a b))
 			(a6 (b6 a) b)))
-		 (a6 (foo6 gamma n)
+		 (a6 (foo6 gamma n)      ;;(* (expt gamma n) (* 2 a b))
 		    (a6 (b6 a) b))))
   :hints
   (("Goal"
