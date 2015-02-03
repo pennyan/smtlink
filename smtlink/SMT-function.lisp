@@ -1,13 +1,14 @@
 ;; SMT-function
 (in-package "ACL2")
-(include-book "str/top" :dir :system)
+(include-book "std/strings/top" :dir :system)
 (include-book "./helper")
 (include-book "./SMT-extract")
+(set-state-ok t)
 
 ;; create-name
 (defun create-name (num)
   "create-name: creates a name for a new function"
-  (let ((index (str::natstr num)))
+  (let ((index (STR::natstr num)))
     (if (stringp index)
 	(mv (intern-in-package-of-symbol
 	     (concatenate 'string "var" index) 'ACL2)
@@ -185,6 +186,7 @@
 		       (mv-let (res2 num3)
 			       (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num2 state)
 			       (mv (cons res res2) num3))))
+	      (t )
 	      )))
 	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
  		    (mv expr num)))))
@@ -293,9 +295,7 @@
 
 ;; replace-a-rec-fn
 (defun replace-a-rec-fn (expr fn-lst-with-type fn-var-decl num)
-  ""
-  (prog2$ (cw "here, num: ~q0" num)
-  (mv-let (name res-num)
+  ""(mv-let (name res-num)
 	  (create-name num)
 	  (prog2$ (cw "~q0" name
 		      ;;(cons (list name
@@ -309,7 +309,7 @@
 			  expr
 			  (cadr (assoc (car expr) fn-lst-with-type)))
 		    fn-var-decl)
-	      res-num)))))
+	      res-num))))
 
 (mutual-recursion
 
@@ -331,7 +331,6 @@
 ;; added function for postorder traversal
 (defun replace-rec-fn (expr fn-lst-with-type fn-var-decl num)
   ""
-  (prog2$ (cw "num: ~q0" num)
   (cond ((atom expr)
 	 (mv expr fn-var-decl num))
 	((consp expr)
@@ -340,8 +339,7 @@
 	      ((and (atom fn0) (not (endp (assoc fn0 fn-lst-with-type)))) ;; function exists in the list
 	       (prog2$ (cw "fn-lst-with-type: ~q0" fn-lst-with-type)
 	       (mv-let (res fn-var-decl2 num2)
-		       (prog2$ (cw "num: ~q0" num)
-		       (replace-a-rec-fn expr fn-lst-with-type fn-var-decl num))
+		       (replace-a-rec-fn expr fn-lst-with-type fn-var-decl num)
 		       (prog2$ (cw "res: ~q0 fn-var-decl2: ~q1, num2: ~q2" res fn-var-decl2 num2)
 		       (mv res fn-var-decl2 num2)))))
 	      ((atom fn0) ;; when expr is a un-expandable function
@@ -367,14 +365,13 @@
 			       (mv (cons res res2) fn-var-decl3 num3))))
 	      )))
 	(t (prog2$ (cw "Error(function): Strange expr, ~q0" expr)
-		   (mv expr fn-var-decl  num))))))
+		   (mv expr fn-var-decl  num)))))
 
 )
 
 ;; expand-fn
 (defun expand-fn (expr fn-lst-with-type fn-level let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
-  (prog2$ (cw "here")
   (mv-let (fn-lst)
 	  (split-fn-from-type fn-lst-with-type)
   (let ((reformed-let-expr (reform-let let-expr)))
@@ -383,7 +380,6 @@
 	    (mv-let (res-expr1 res-num1)
 		    (expand-fn-help (rewrite-formula expr reformed-let-expr)
 				    fn-lst fn-level-lst fn-lst nil 0 state)
-		    (prog2$ (cw "res-expr: ~q0, res-num1: ~q1" res-expr1 res-num1)
 		    (mv-let (res-expr res-fn-var-decl res-num)
 			    (replace-rec-fn res-expr1 fn-lst-with-type nil res-num1)
 			    (mv-let (rewritten-expr orig-param)
@@ -399,5 +395,4 @@
 					     res
 					      )
 					    (orig-param (extract-orig-param res)))
-					    (prog2$ (cw "rewritten: ~q0" rewritten-expr)
-						    (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl)))))))))))))
+					(mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))

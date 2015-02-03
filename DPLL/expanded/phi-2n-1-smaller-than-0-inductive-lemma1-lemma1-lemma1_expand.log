@@ -7,48 +7,38 @@ level 0:
       (RATIONALP V0)) 'T 
     (IF 
       (NOT 
-        (RATIONALP DV)) 'T 
+        (RATIONALP PHI0)) 'T 
       (IF 
-        (NOT 
-          (RATIONALP PHI0)) 'T 
+        (< N_MINUS_2 '1) 'T 
         (IF 
-          (< N_MINUS_2 '2) 'T 
+          (< '640 N_MINUS_2) 'T 
           (IF 
             (< 
               (BINARY-* '10/9 V0) '1) 'T 
             (IF 
               (< '11/10 V0) 'T 
               (IF 
-                (< '1 
-                  (UNARY-- 
-                    (BINARY-* '8000 DV))) 'T 
+                (< PHI0 '0) 'T 
                 (IF 
-                  (< '1 
-                    (BINARY-* '8000 DV)) 'T 
-                  (IF 
-                    (< PHI0 '0) 'T 
-                    (IF 
-                      (NOT 
-                        (< PHI0 
-                          (BINARY-+ '-1 
-                            (BINARY-* 
-                              (BINARY-+ '1 
-                                (BINARY-+ DV V0)) 
-                              (UNARY-/ 
-                                (BINARY-+ '3199/3200 
-                                  (BINARY-+ V0 
-                                    (UNARY-- 
-                                      (BINARY-* '1/3200 N_MINUS_2))))))))) 'T 
-                      (< PHI0 
-                        (BINARY-+ '-1 
-                          (BINARY-* 
-                            (BINARY-+ '1 
-                              (BINARY-+ DV V0)) 
-                            (UNARY-/ 
-                              (BINARY-+ '1 
-                                (BINARY-+ V0 
-                                  (UNARY-- 
-                                    (BINARY-* '1/3200 N_MINUS_2)))))))))))))))))))
+                  (NOT 
+                    (< PHI0 
+                      (BINARY-+ '-1 
+                        (BINARY-* 
+                          (BINARY-+ '1 V0) 
+                          (UNARY-/ 
+                            (BINARY-+ '3199/3200 
+                              (BINARY-+ V0 
+                                (UNARY-- 
+                                  (BINARY-* '1/3200 N_MINUS_2))))))))) 'T 
+                  (< PHI0 
+                    (BINARY-+ '-1 
+                      (BINARY-* 
+                        (BINARY-+ '1 V0) 
+                        (UNARY-/ 
+                          (BINARY-+ '1 
+                            (BINARY-+ V0 
+                              (UNARY-- 
+                                (BINARY-* '1/3200 N_MINUS_2)))))))))))))))))
 
 level 1:IMPLIES
 

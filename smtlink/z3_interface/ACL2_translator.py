@@ -64,10 +64,10 @@ class to_smt:
     # in ACL2 3/0 = 0 and in z3 3/0 == 0
     # will return a counter-example
     def reciprocal(self, x):
-        if x == 0:
-            return 0
-        else:
-            return 1/x
+        if(type(x) is int): return(Q(1,x))
+        elif(type(x) is float): return 1.0/x
+        elif(x.sort() == IntSort()): return 1/(Q(1,1)*x)
+        else: return 1/x
         
     def negate(self, x): return -x
     def div(self, x, y): return times(self,x,reciprocal(self,y))

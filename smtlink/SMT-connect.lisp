@@ -43,7 +43,6 @@
 				   (cadr (assoc ':use hint)))))
 	  (main-hints (cadr (assoc ':main
 				   (cadr (assoc ':use hint))))))
-      (prog2$ (cw "fn-lst: ~q0, fn-level: ~q1" fn-lst fn-level)
       (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem)
 	      (acl2-my-prove (disjoin cl) fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
 	      (if res
@@ -51,7 +50,7 @@
 		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
-			  (list cl))))))))
+			  (list cl)))))))
   
   (push-untouchable acl2-my-prove t)
   )

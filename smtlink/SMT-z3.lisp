@@ -124,10 +124,9 @@ new hypothesis in lambda expression"
   (if (endp let-expr)
 	  rewritten-term
       (if (endp main-hints)
-	  (prog2$ (cw "orig-param: ~q0" orig-param)
 	  (list (list 'not
 		      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
-			    (append (assoc-get-value let-expr) orig-param)))))
+			    (append (assoc-get-value let-expr) orig-param))))
 	  (add-hints main-hints
 		     (list (list 'not
 		      (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
@@ -261,7 +260,6 @@ new hypothesis in lambda expression"
 					      (prog2$ (my-prove-write-file
 						       expanded-term-list
 						       file-dir)
-						      (prog2$ (cw "here, fn-var-decl: ~q0" fn-var-decl)
 						      (let ((type-theorem (create-type-theorem (cadr term)
 											       let-expr-translated
 											       let-type
@@ -280,4 +278,4 @@ new hypothesis in lambda expression"
 											     )))
 							(if (car (SMT-interpreter file-dir))
 							    (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem)
-							    (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem)))))))))))))
+							    (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem))))))))))))

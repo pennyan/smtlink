@@ -12,21 +12,17 @@ level 0:
       (NOT 
         (< N '3)) 
       (IF 
-        (EQUAL G1 '1/3200) 
+        (NOT 
+          (< '640 N)) 
         (IF 
-          (NOT 
-            (< V0 '9/10)) 
+          (EQUAL G1 '1/3200) 
           (IF 
             (NOT 
-              (< '11/10 V0)) 
+              (< V0 '9/10)) 
             (IF 
               (NOT 
-                (< DV 
-                  (UNARY-- 
-                    (DV0)))) 
-              (NOT 
-                (< 
-                  (DV0) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+                (< '11/10 V0)) 
+              (EQUAL DV '0) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
   (IMPLIES 
     (< 
       (BINARY-* 
@@ -175,21 +171,17 @@ level 2:
       (NOT 
         (< N '3)) 
       (IF 
-        (EQUAL G1 '1/3200) 
+        (NOT 
+          (< '640 N)) 
         (IF 
-          (NOT 
-            (< V0 '9/10)) 
+          (EQUAL G1 '1/3200) 
           (IF 
             (NOT 
-              (< '11/10 V0)) 
+              (< V0 '9/10)) 
             (IF 
               (NOT 
-                (< DV 
-                  (UNARY-- 
-                    (BINARY-* '-2 '-1/16000)))) 
-              (NOT 
-                (< 
-                  (BINARY-* '-2 '-1/16000) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+                (< '11/10 V0)) 
+              (EQUAL DV '0) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (IMPLIES 

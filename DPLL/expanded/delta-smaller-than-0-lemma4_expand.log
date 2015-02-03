@@ -12,21 +12,17 @@ level 0:
       (NOT 
         (< N '3)) 
       (IF 
-        (EQUAL G1 '1/3200) 
+        (NOT 
+          (< '640 N)) 
         (IF 
-          (NOT 
-            (< V0 '9/10)) 
+          (EQUAL G1 '1/3200) 
           (IF 
             (NOT 
-              (< '11/10 V0)) 
+              (< V0 '9/10)) 
             (IF 
               (NOT 
-                (< DV 
-                  (UNARY-- 
-                    (DV0)))) 
-              (NOT 
-                (< 
-                  (DV0) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+                (< '11/10 V0)) 
+              (EQUAL DV '0) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
   (< 
     (BINARY-* 
       (BINARY-+ 
@@ -108,24 +104,24 @@ level 2:
                     (RATIONALP V0) 
                     (RATIONALP DV) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
   (IF 
-    (NOT 
-      (< N '3)) 
+    (EQUAL EXPT_GAMMA_2 '1/25) 
     (IF 
-      (EQUAL G1 '1/3200) 
+      (EQUAL EXPT_GAMMA_1 '1/5) 
       (IF 
         (NOT 
-          (< V0 '9/10)) 
+          (< N '3)) 
         (IF 
           (NOT 
-            (< '11/10 V0)) 
+            (< '640 N)) 
           (IF 
-            (NOT 
-              (< DV 
-                (UNARY-- 
-                  (BINARY-* '-2 '-1/16000)))) 
-            (NOT 
-              (< 
-                (BINARY-* '-2 '-1/16000) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+            (EQUAL G1 '1/3200) 
+            (IF 
+              (NOT 
+                (< V0 '9/10)) 
+              (IF 
+                (NOT 
+                  (< '11/10 V0)) 
+                (EQUAL DV '0) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (< 
