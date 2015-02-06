@@ -1,187 +1,133 @@
 (implies
  (and
-  (let
-   ((expt_gamma_2n (/ (expt 5 (* 2 n))))
-    (expt_gamma_2n_minus_1 (/ (expt 5 (+ -1 (* 2 n)))))
-    (expt_gamma_2n_minus_2 (/ (expt 5 (+ -1 n -1 n))))
-    (expt_gamma_2 1/25)
-    (expt_gamma_1 1/5)
-    (expt_gamma_2_minus_2n (/ (expt 5 (+ 2 (- (* 2 n)))))))
-   (implies
-    (and (and (rationalp expt_gamma_2_minus_2n)
-              (rationalp expt_gamma_1)
-              (rationalp expt_gamma_2)
-              (rationalp expt_gamma_2n_minus_2)
-              (rationalp expt_gamma_2n_minus_1)
-              (rationalp expt_gamma_2n)
-              (integerp n)
-              (rationalp g1)
-              (rationalp v0))
-         (equal (* expt_gamma_2_minus_2n
-                   expt_gamma_2n_minus_2)
-                1)
-         (equal expt_gamma_2n_minus_1
-                (* expt_gamma_2n_minus_2 expt_gamma_1))
-         (equal expt_gamma_2n
-                (* expt_gamma_2n_minus_2 expt_gamma_2))
-         (<= 3 n)
-         (equal g1 1/3200)
-         (<= 9/10 v0)
-         (<= v0 11/10))
-    (equal
-     (+ (* expt_gamma_2n
-           (+ (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ -1
-                                  (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1)))))
-              (- (* (fix (+ 1 (fix v0)))
-                    (/ (+ 1
-                          (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                     (- n))
-                                  g1))))))))
-        (* expt_gamma_2n_minus_1
-           (+ (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1)))))
-              (- (* (fix (+ 1 (fix v0)))
-                    (/ (+ 1
-                          (fix (* (+ 1 (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                     (- n))
-                                  g1))))))))
-        -1
-        (* (fix (+ 1 (fix v0)))
-           (/ (+ 1
-                 (fix (+ (* g1 (+ -1 n))
-                         (fix (+ 1 (fix v0)))
-                         -1)))))
-        (* expt_gamma_2n_minus_2
-           (+ -1
-              (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (+ (* g1 (+ 1 (- n)))
-                               (fix (+ 1 (fix v0)))
-                               -1))))))))
-     (*
-      expt_gamma_2n_minus_2
-      (+
-        (* expt_gamma_2
-           (+ (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ -1
-                                  (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1)))))
-              (- (* (fix (+ 1 (fix v0)))
-                    (/ (+ 1
-                          (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                     (- n))
-                                  g1))))))))
-        (* expt_gamma_1
-           (+ (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1)))))
-              (- (* (fix (+ 1 (fix v0)))
-                    (/ (+ 1
-                          (fix (* (+ 1 (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                     (- n))
-                                  g1))))))))
-        (* expt_gamma_2_minus_2n
-           (+ -1
-              (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (+ (* g1 (+ -1 n))
-                               (fix (+ 1 (fix v0)))
-                               -1)))))))
-        -1
-        (* (fix (+ 1 (fix v0)))
-           (/ (+ 1
-                 (fix (+ (* g1 (+ 1 (- n)))
-                         (fix (+ 1 (fix v0)))
-                         -1))))))))))
-  (integerp n)
-  (rationalp g1)
-  (rationalp v0)
-  (<= 3 n)
-  (equal g1 1/3200)
-  (<= 9/10 v0)
-  (<= v0 11/10))
- (equal
-  (+ (* (/ (expt 5 (* 2 n)))
-        (+ (* (fix (+ 1 (fix v0)))
-              (/ (+ 1
-                    (fix (* (+ -1
-                               (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                               (- n))
-                            g1)))))
-           (- (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1))))))))
-     (* (/ (expt 5 (+ -1 (* 2 n))))
-        (+ (* (fix (+ 1 (fix v0)))
-              (/ (+ 1
-                    (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                               (- n))
-                            g1)))))
-           (- (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ 1 (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1))))))))
-     -1
-     (* (fix (+ 1 (fix v0)))
-        (/ (+ 1
-              (fix (+ (* g1 (+ -1 n))
-                      (fix (+ 1 (fix v0)))
-                      -1)))))
-     (* (/ (expt 5 (+ -1 n -1 n)))
+     (implies
+          (and (and (integerp (+ -2 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp phi0)
+                    (rationalp dv))
+               (equal (+ -2 i) 1)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1))))))))
+          (< (phi-2n-1 (+ -1 i) phi0 v0 dv g1) 0))
+     (implies
+          (and (and (integerp (+ -1 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp phi0)
+                    (rationalp dv))
+               (equal (+ -1 i) 2)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1))))))))
+          (< (+ (a i phi0 v0 dv g1)
+                (* (/ (expt 5 (+ -2 i)))
+                   (b-sum 1 (+ -2 i) v0 dv g1)))
+             0))
+     (implies
+          (and (and (integerp (+ -1 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp dv)
+                    (rationalp phi0))
+               (<= 3 (+ -1 i))
+               (<= (+ -1 i) 640)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1)))))))
+               (< (phi-2n-1 (+ -1 i) phi0 v0 dv g1) 0))
+          (< (+ (a i phi0 v0 dv g1)
+                (* (/ (expt 5 (+ -2 i)))
+                   (b-sum 1 (+ -2 i) v0 dv g1)))
+             0))
+     (not (or (not (integerp i)) (< i 1)))
+     (implies
+          (and (and (integerp (+ -1 -1 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp dv)
+                    (rationalp phi0))
+               (<= 2 (+ -1 -1 i))
+               (<= (+ -1 -1 i) 640)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1))))))))
+          (< (+ (a (+ -1 i) phi0 v0 dv g1)
+                (* (/ (expt 5 (+ -2 -1 i)))
+                   (b-sum 1 (+ -2 -1 i) v0 dv g1)))
+             0))
+     (integerp (+ -1 i))
+     (rationalp g1)
+     (rationalp v0)
+     (rationalp dv)
+     (rationalp phi0)
+     (<= 2 (+ -1 i))
+     (<= (+ -1 i) 640)
+     (equal g1 1/3200)
+     (<= 9/10 v0)
+     (<= v0 11/10)
+     (<= -1/8000 dv)
+     (<= dv 1/8000)
+     (<= 0 phi0)
+     (< phi0
         (+ -1
-           (* (fix (+ 1 (fix v0)))
+           (* (fix (+ 1 (fix (+ v0 dv))))
               (/ (+ 1
-                    (fix (+ (* g1 (+ 1 (- n)))
-                            (fix (+ 1 (fix v0)))
-                            -1))))))))
-  (* (/ (expt 5 (+ -1 n -1 n)))
-     (+ (* 1/25
-           (+ (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ -1
-                                  (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1)))))
-              (- (* (fix (+ 1 (fix v0)))
-                    (/ (+ 1
-                          (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                     (- n))
-                                  g1))))))))
-        (* 1/5
-           (+ (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (* (+ (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                  (- n))
-                               g1)))))
-              (- (* (fix (+ 1 (fix v0)))
-                    (/ (+ 1
-                          (fix (* (+ 1 (* (+ (fix (+ 1 (fix v0))) -1) (/ g1))
-                                     (- n))
-                                  g1))))))))
-        (* (/ (expt 5 (+ 2 (- (* 2 n)))))
-           (+ -1
-              (* (fix (+ 1 (fix v0)))
-                 (/ (+ 1
-                       (fix (+ (* g1 (+ -1 n))
-                               (fix (+ 1 (fix v0)))
-                               -1)))))))
-        -1
-        (* (fix (+ 1 (fix v0)))
-           (/ (+ 1
-                 (fix (+ (* g1 (+ 1 (- n)))
-                         (fix (+ 1 (fix v0)))
-                         -1)))))))))
+                    (fix (* (+ 1
+                               (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                  (/ g1))
+                               -640)
+                            g1))))))))
+ (< (+ (a i phi0 v0 dv g1)
+       (* (/ (expt 5 (+ -2 i)))
+          (b-sum 1 (+ -2 i) v0 dv g1)))
+    0))

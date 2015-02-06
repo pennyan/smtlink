@@ -15,35 +15,35 @@
 
 ;;:start-proof-tree
 
-(encapsulate ()
+;; (encapsulate ()
 
-(local (include-book "arithmetic-5/top" :dir :system))
+;; (local (include-book "arithmetic-5/top" :dir :system))
 
-(defun my-floor (x) (floor (numerator x) (denominator x)))
+;; (defun my-floor (x) (floor (numerator x) (denominator x)))
 
-(defthm my-floor-type
-  (implies (rationalp x)
-	   (integerp (my-floor x)))
-  :rule-classes :type-prescription)
+;; (defthm my-floor-type
+;;   (implies (rationalp x)
+;; 	   (integerp (my-floor x)))
+;;   :rule-classes :type-prescription)
 
-(defthm my-floor-lower-bound
-  (implies (rationalp x)
-	   (> (my-floor x) (- x 1)))
-  :rule-classes :linear)
+;; (defthm my-floor-lower-bound
+;;   (implies (rationalp x)
+;; 	   (> (my-floor x) (- x 1)))
+;;   :rule-classes :linear)
 
-(defthm my-floor-upper-bound
-  (implies (rationalp x)
-	   (<= (my-floor x) x))
-  :rule-classes :linear)
+;; (defthm my-floor-upper-bound
+;;   (implies (rationalp x)
+;; 	   (<= (my-floor x) x))
+;;   :rule-classes :linear)
 
-(defthm my-floor-comparison
-  (implies (rationalp x)
-	   (< (my-floor (1- x)) (my-floor x)))
-  :hints (("Goal"
-	   :use ((:instance my-floor-upper-bound (x (1- x)))
-		 (:instance my-floor-lower-bound))))
-  :rule-classes :linear)
-)
+;; (defthm my-floor-comparison
+;;   (implies (rationalp x)
+;; 	   (< (my-floor (1- x)) (my-floor x)))
+;;   :hints (("Goal"
+;; 	   :use ((:instance my-floor-upper-bound (x (1- x)))
+;; 		 (:instance my-floor-lower-bound))))
+;;   :rule-classes :linear)
+;; )
 
 ;; functions
 ;; n can be a rational value when c starts from non-integer value
@@ -74,7 +74,7 @@
      (B-sum 1 (- n 2) v0 dv g1)))
 
 ;; parameter list functions
-(defmacro basic-params-equal (n n-value &optional (v0 'nil) (dv 'nil) (g1 'nil) (phi0 'nil) (n-4-phi0 'nil) (other 'nil))
+(defmacro basic-params-equal (n n-value &optional (v0 'nil) (dv 'nil) (g1 'nil) (phi0 'nil) (other 'nil))
   (list 'and
 	(append
 	 (append
@@ -101,10 +101,10 @@
 	     (if (equal dv 'nil) nil (list (list '>= dv (list '- (list 'dv0))))))
 	    (if (equal dv 'nil) nil (list (list '<= dv (list 'dv0)))))
 	   (if (equal phi0 'nil) nil (list (list '>= phi0 '0))))
-	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm n-4-phi0 v0 g1)) v0 dv g1) '1)))))
+	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm '640 v0 g1)) v0 dv g1) '1)))))
 	 (if (equal other 'nil) nil (list other)))))
 
-(defmacro basic-params (n nupper &optional (v0 'nil) (dv 'nil) (g1 'nil) (phi0 'nil) (n-4-phi0 'nil) (other 'nil))
+(defmacro basic-params (n nupper &optional (v0 'nil) (dv 'nil) (g1 'nil) (phi0 'nil) (other 'nil))
   (list 'and
 	(append
 	 (append
@@ -117,6 +117,7 @@
 	 (if (equal phi0 'nil) nil (list (list 'rationalp phi0))))
 	(append
 	 (append
+	 (append
 	  (append
 	   (append
 	     (append
@@ -128,9 +129,10 @@
 		       (if (equal g1 'nil) nil (list (list 'equal g1 '1/3200))))
 	       (if (equal v0 'nil) nil (list (list '>= v0 '9/10))))
 	      (if (equal v0 'nil) nil (list (list '<= v0 '11/10))))
-	     (if (equal dv 'nil) nil (list (list 'equal dv 0))))
+	     (if (equal dv 'nil) nil (list (list '>= dv (list '- (list 'dv0))))))
+	    (if (equal dv 'nil) nil (list (list '<= dv (list 'dv0)))))
 	   (if (equal phi0 'nil) nil (list (list '>= phi0 '0))))
-	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm n-4-phi0 v0 g1)) v0 dv g1) '1)))))
+	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm '640 v0 g1)) v0 dv g1) '1)))))
 	 (if (equal other 'nil) nil (list other)))))
 
 (encapsulate ()
@@ -574,7 +576,6 @@
 		     (expt (gamma) (+ -1 n -1 n)))
 		  1))
   :hints (("Goal"
-	   :in-theory (disable my-floor)
 	   :use ((:instance expt-minus
 			    (r (gamma))
 			    (i (- (- 2 (* 2 n)))))))))
@@ -1044,7 +1045,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma1-lemma1
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (equal (A (+ n 1) phi0 v0 dv g1)
 		  (+ (* (expt (gamma) (+ (* 2 n) 1)) phi0)
 		     (* (expt (gamma) (* 2 n))
@@ -1055,7 +1056,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma1-lemma2
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (equal (+ (* (expt (gamma) (+ (* 2 n) 1)) phi0)
 		     (* (expt (gamma) (* 2 n))
 			(- (fdco (1- (m n v0 g1)) v0 dv g1) 1))
@@ -1080,7 +1081,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma1-A
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (equal (A (+ n 1) phi0 v0 dv g1)
 		  (+ (* (A n phi0 v0 dv g1) (gamma) (gamma))
 		     (- (* (expt (gamma) (* 2 n))
@@ -1213,7 +1214,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma4
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 dv g1)
 		  (+ (A (+ n 1) phi0 v0 dv g1)
 		     (B (+ n 1) v0 dv g1)))))
@@ -1221,7 +1222,7 @@
 
 (local
 (defthm split-phi-2n+1-lemma5
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 dv g1)
 		  (+ (+ (* (A n phi0 v0 dv g1) (gamma) (gamma))
 			(- (* (expt (gamma) (* 2 n))
@@ -1245,7 +1246,7 @@
 
 (local 
 (defthm split-phi-2n+1-lemma6
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 dv g1)
 		  (+ (* (A n phi0 v0 dv g1) (gamma) (gamma))
 		     (* (gamma) (B n v0 dv g1))
@@ -1265,7 +1266,7 @@
 )
 
 (defthm split-phi-2n+1
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (equal (phi-2n-1 (1+ n) phi0 v0 dv g1)
  		  (+ (* (gamma) (gamma) (A n phi0 v0 dv g1))
 		     (* (gamma) (B n v0 dv g1)) (delta n v0 dv g1))))
@@ -1300,7 +1301,7 @@
 )
 
 (defthm except-for-delta-<-0
-  (implies (basic-params n 3 v0 dv g1 phi0 n (< (phi-2n-1 n phi0 v0 dv g1) 0))
+  (implies (basic-params n 3 v0 dv g1 phi0 (< (phi-2n-1 n phi0 v0 dv g1) 0))
 	   (< (+ (* (gamma) (gamma) (A n phi0 v0 dv g1))
 		 (* (gamma) (B n v0 dv g1)))
 	      0))
@@ -1316,145 +1317,332 @@
 ;; for induction step 
 (encapsulate ()
 	     
-(defthm phi-2n+1-<-0-lemma1
-  (implies (basic-params n 3 v0 dv g1 phi0 n (< (phi-2n-1 n phi0 v0 dv g1) 0))
+(defthm phi-2n+1-<-0-inductive
+  (implies (basic-params n 3 v0 dv g1 phi0 (< (phi-2n-1 n phi0 v0 dv g1) 0))
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
   :hints (("Goal"
  	   :use ((:instance split-phi-2n+1)
 		 (:instance delta-<-0)
 		 (:instance except-for-delta-<-0)))))
 
-(defthm phi-2n+1-<-0
-  (implies (basic-params n 4 v0 dv g1 phi0 (- n 1) (< (phi-2n-1 (- n 1) phi0 v0 dv g1) 0))
-	   (< (phi-2n-1 n phi0 v0 dv g1) 0))
+(defthm phi-2n+1-<-0-inductive-corollary
+  (implies (basic-params (- i 1) 3 v0 dv g1 phi0
+			 (< (phi-2n-1 (- i 1) phi0 v0 dv g1) 0))
+	   (< (phi-2n-1 i phi0 v0 dv g1) 0))
   :hints (("Goal"
-	   :use ((:instance phi-2n+1-<-0-lemma1 (n (1- n)))))))
+	   :use ((:instance phi-2n+1-<-0-inductive
+			    (n (- i 1)))))))
 
-(defthm phi-2n+1-<-0-corollary-1
-  (implies (basic-params (+ n-minus-2 2) 4 v0 dv g1 phi0 (- (+ n-minus-2 2) 1)
-			 (< (phi-2n-1 (- (+ n-minus-2 2) 1) phi0 v0 dv g1) 0))
-	   (< (phi-2n-1 (+ n-minus-2 2) phi0 v0 dv g1) 0))
+(defthm phi-2n+1-<-0-inductive-corollary-2
+  (implies (basic-params (- i 1) 3 v0 dv g1 phi0
+			 (< (phi-2n-1 (- i 1) phi0 v0 dv g1) 0))
+	   (< (+ (A i phi0 v0 dv g1)
+		 (* (B-expt i)
+		    (B-sum 1 (- i 2) v0 dv g1))) 0))
   :hints (("Goal"
-	   :use ((:instance phi-2n+1-<-0 (n (+ n-minus-2 2)))))))
+	   :use ((:instance phi-2n+1-<-0-inductive-corollary)))))
 
-(defthm phi-2n+1-<-0-corollary-2
-  (implies (basic-params (+ n-minus-2 2) 4 v0 dv g1 phi0 (- (+ n-minus-2 2) 1)
-			 (< (+ (A (- (+ n-minus-2 2) 1) phi0 v0 dv g1)
-			       (* (B-expt (- (+ n-minus-2 2) 1))
-				  (B-sum 1 (- (+ n-minus-2 2) 3) v0 dv g1))) 0))
-	   (< (+ (A (+ n-minus-2 2) phi0 v0 dv g1)
-		 (* (B-expt (+ n-minus-2 2))
-		    (B-sum 1 (- (+ n-minus-2 2) 2) v0 dv g1))) 0))
-  :hints (("Goal"
-	   :use ((:instance phi-2n+1-<-0-corollary-1)))))
-)
-
-(encapsulate ()
-
-(defthm phi-2n-1-<-0-base
-  (implies (basic-params-equal n 3 v0 dv g1 phi0 n)
-	   (< (phi-2n-1 n phi0 v0 dv g1) 0))
+(defthm phi-2n+1-<-0-base
+    (implies (basic-params-equal n 2 v0 dv g1 phi0)
+	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
   :hints (("Goal''"
-  	   :clause-processor
+	   :clause-processor
   	   (my-clause-processor clause
   				'( (:expand ((:function ())
   					     (:expansion-level 1)))
-  				  (:python-file "phi-2n-1-smaller-than-0-base")
+  				  (:python-file "phi-2n+1-smaller-than-0-base")
   				  (:let ())
   				  (:hypothesize ())))))
   )
 
-(defthm phi-2n-1-<-0-base-corollary-1
-  (implies (basic-params-equal (+ n-minus-2 2) 3 v0 dv g1 phi0 (+ n-minus-2 2))
-	   (< (phi-2n-1 (+ n-minus-2 2) phi0 v0 dv g1) 0))
-  :hints (("Goal"
-	   :use ((:instance phi-2n-1-<-0-base (n (+ n-minus-2 2)))))))
+(defthm phi-2n+1-<-0-base-new
+    (implies (basic-params-equal (- i 2) 1 v0 dv g1 phi0)
+	   (< (phi-2n-1 (- i 1) phi0 v0 dv g1) 0))
+  :hints (("Goal''"
+	   :clause-processor
+  	   (my-clause-processor clause
+  				'( (:expand ((:function ())
+  					     (:expansion-level 1)))
+  				  (:python-file "phi-2n+1-smaller-than-0-base-new")
+  				  (:let ())
+  				  (:hypothesize ())))))
+  )
 
-(defthm phi-2n-1-<-0-base-corollary-2
-  (implies (basic-params-equal (+ n-minus-2 2) 3 v0 dv g1 phi0 (+ n-minus-2 2))
-	   (< (+ (A (+ n-minus-2 2) phi0 v0 dv g1)
-		 (* (B-expt (+ n-minus-2 2))
-		    (B-sum 1 (- (+ n-minus-2 2) 2) v0 dv g1))) 0))
+(defthm phi-2n+1-<-0-base-corollary
+  (implies (basic-params-equal (1- i) 2 v0 dv g1 phi0)
+	   (< (phi-2n-1 i phi0 v0 dv g1) 0))
   :hints (("Goal"
-	   :use ((:instance phi-2n-1-<-0-base-corollary-1)))))
+	   :use ((:instance phi-2n+1-<-0-base
+			    (n (- i 1))))))
+  )
+
+(defthm phi-2n+1-<-0-base-corollary-2
+  (implies (basic-params-equal (1- i) 2 v0 dv g1 phi0)
+	   (< (+ (A i phi0 v0 dv g1)
+		 (* (B-expt i)
+		    (B-sum 1 (- i 2) v0 dv g1))) 0))
+  :hints (("Goal"
+	   :use ((:instance phi-2n+1-<-0-base-corollary))))
+  )
+
 )
 
-;; induction step
-(encapsulate ()
+(defthm stupid-proof
+  (implies (and (equal a f)
+		(equal a i)
+		(implies (and m l) l)
+		(implies l (and c h))
+		(implies (and c h) (and c j))
+	        (implies (and a b c d) e)
+		(implies (and f b c d) g)
+		(implies (and f b h d e) g)
+		i
+		m
+		(implies (and a b j d) e)
+		f
+		b
+		l
+		d)
+	   g)
+  :rule-classes nil)
 
-(local
- (defthm phi-2n-1-<-0-inductive-lemma1-lemma1-lemma1
-     (implies (basic-params n_minus_2 1 v0 dv g1 phi0 (+ n_minus_2 2))
-	      (< phi0
-                 (+ -1
-                    (fdco (+ 1 (m (- (+ 2 n_minus_2) 1) v0 g1))
-                        v0 dv g1))))
-   :hints (("Goal''"
-   	   :clause-processor
-   	   (my-clause-processor clause
-   				'( (:expand ((:function ())
-   					     (:expansion-level 1)))
-   				  (:python-file "phi-2n-1-smaller-than-0-inductive-lemma1-lemma1-lemma1")
-   				  (:let ())
-   				  (:hypothesize ())))))
-   ))
-
-(local
- (defthm phi-2n-1-<-0-inductive-lemma1-lemma1
+(defthm phi-2n+1-<-0-lemma-lemma1
+  (implies
+ (and
      (implies
-      (and
-       (implies
-	(basic-params (1- (+ 2 n-minus-2)) 3 v0 dv g1 phi0 (+ -1 n-minus-2 2))
-	(< (+ (A (+ -1 n-minus-2 2) phi0 v0 dv g1)
-	      (* (B-expt (+ -1 n-minus-2 2))
-		 (B-sum 1 (+ -1 n-minus-2) v0 dv g1)))
-	   0))
-       (basic-params (+ n-minus-2 2) 3 v0 dv g1 phi0 (+ n-minus-2 2)))
-      (< (+ (A (+ n-minus-2 2) phi0 v0 dv g1)
-	    (* (B-expt (+ n-minus-2 2))
-	       (B-sum 1 n-minus-2 v0 dv g1)))
-	 0))
-   :hints (("Goal"
-	    :in-theory (disable B-sum B-expt A fdco m)
-	    ;;:do-not-induct t
-	    :cases ((< n-minus-2 2))
-	    ;;:use ((:instance phi-2n-1-<-0-base-corollary-2))
-	    )
-	   ;; ("Subgoal 2"
-	   ;;  :use ((:instance phi-2n+1-<-0-corollary-2)
-	   ;; 	  (:instance phi-2n-1-<-0-inductive-lemma1-lemma1-lemma1
-	   ;; 		     (n_minus_2 n-minus-2))))
-	   )
-   ))
-	     
-;; We know,
-;; Thm 1, phi-2n+1-<-0, which means when n>= 4 and we have phi-2n-1(n-1) < 0, then we have phi-2n-1(n) < 0
-;; Thm 2, phi-2n-1-<-0-base, which means when n==3 we have phi-2n-1(n) < 0
-(local
- (defthm phi-2n-1-<-0-inductive-lemma1
-   (implies (basic-params (+ n-minus-2 2) 3 v0 dv g1 phi0 (+ n-minus-2 2))
-	    (< (+ (A (+ n-minus-2 2) phi0 v0 dv g1)
-		 (* (B-expt (+ n-minus-2 2))
-		    (B-sum 1 n-minus-2 v0 dv g1))) 0))
-   :hints (("Goal"
-	    :do-not '(simplify)
-	    :induct (B-sum 1 n-minus-2 v0 dv g1))
-	   ("Subgoal *1/2'"
-	   :use ((:instance phi-2n-1-<-0-inductive-lemma1-lemma1)))
-	   )))
+          (and (and (integerp (+ -2 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp phi0)
+                    (rationalp dv))
+               (equal (+ -2 i) 1)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1))))))))
+          (< (phi-2n-1 (+ -1 i) phi0 v0 dv g1) 0))
+     (implies
+          (and (and (integerp (+ -1 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp phi0)
+                    (rationalp dv))
+               (equal (+ -1 i) 2)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1))))))))
+          (< (+ (a i phi0 v0 dv g1)
+                (* (/ (expt 5 (+ -2 i)))
+                   (b-sum 1 (+ -2 i) v0 dv g1)))
+             0))
+     (implies
+          (and (and (integerp (+ -1 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp dv)
+                    (rationalp phi0))
+               (<= 3 (+ -1 i))
+               (<= (+ -1 i) 640)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1)))))))
+               (< (phi-2n-1 (+ -1 i) phi0 v0 dv g1) 0))
+          (< (+ (a i phi0 v0 dv g1)
+                (* (/ (expt 5 (+ -2 i)))
+                   (b-sum 1 (+ -2 i) v0 dv g1)))
+             0))
+     (not (or (not (integerp i)) (< i 1)))
+     (implies
+          (and (and (integerp (+ -1 -1 i))
+                    (rationalp g1)
+                    (rationalp v0)
+                    (rationalp dv)
+                    (rationalp phi0))
+               (<= 2 (+ -1 -1 i))
+               (<= (+ -1 -1 i) 640)
+               (equal g1 1/3200)
+               (<= 9/10 v0)
+               (<= v0 11/10)
+               (<= -1/8000 dv)
+               (<= dv 1/8000)
+               (<= 0 phi0)
+               (< phi0
+                  (+ -1
+                     (* (fix (+ 1 (fix (+ v0 dv))))
+                        (/ (+ 1
+                              (fix (* (+ 1
+                                         (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                            (/ g1))
+                                         -640)
+                                      g1))))))))
+          (< (+ (a (+ -1 i) phi0 v0 dv g1)
+                (* (/ (expt 5 (+ -2 -1 i)))
+                   (b-sum 1 (+ -2 -1 i) v0 dv g1)))
+             0))
+     (integerp (+ -1 i))
+     (rationalp g1)
+     (rationalp v0)
+     (rationalp dv)
+     (rationalp phi0)
+     (<= 2 (+ -1 i))
+     (<= (+ -1 i) 640)
+     (equal g1 1/3200)
+     (<= 9/10 v0)
+     (<= v0 11/10)
+     (<= -1/8000 dv)
+     (<= dv 1/8000)
+     (<= 0 phi0)
+     (< phi0
+        (+ -1
+           (* (fix (+ 1 (fix (+ v0 dv))))
+              (/ (+ 1
+                    (fix (* (+ 1
+                               (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                  (/ g1))
+                               -640)
+                            g1))))))))
+ (< (+ (a i phi0 v0 dv g1)
+       (* (/ (expt 5 (+ -2 i)))
+          (b-sum 1 (+ -2 i) v0 dv g1)))
+    0))
+  :hints (("Goal"
+	   :use ((:instance stupid-proof
+			    (a (integerp (+ -1 -1 i)))
+			    (b (and (rationalp g1)
+				    (rationalp v0)
+				    (rationalp dv)
+				    (rationalp phi0)))
+			    (c (equal (+ -2 i) 1))
+			    (d (and (equal g1 1/3200)
+				    (<= 9/10 v0)
+				    (<= v0 11/10)
+				    (<= -1/8000 dv)
+				    (<= dv 1/8000)
+				    (<= 0 phi0)
+				    (< phi0
+				       (+ -1
+					  (* (fix (+ 1 (fix (+ v0 dv))))
+					     (/ (+ 1
+						   (fix (* (+ 1
+							      (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+								 (/ g1))
+							      -640)
+							   g1)))))))))
+			    (e (< (+ (a (+ -1 i) phi0 v0 dv g1)
+				     (* (/ (expt 5 (+ -2 -1 i)))
+					(b-sum 1 (+ -2 -1 i) v0 dv g1)))
+				  0))
+			    (f (integerp (+ -1 i)))
+			    (g (< (+ (a i phi0 v0 dv g1)
+				     (* (/ (expt 5 (+ -2 i)))
+					(b-sum 1 (+ -2 i) v0 dv g1)))
+				  0))
+			    (h (and (<= 3 (+ -1 i))
+				    (<= (+ -1 i) 640)))
+			    (i (integerp i))
+			    (j (and (<= 2 (+ -1 -1 i))
+				    (<= (+ -1 -1 i) 640)))
+			    (l (and (<= 2 (+ -1 i))
+				    (<= (+ -1 i) 640)
+				    ))
+			    (m (>= i 1)))))))
 
-(local
- (defthm phi-2n-1-<-0-inductive-lemma2
-   (implies (basic-params (+ n-minus-2 2) 3 v0 dv g1 phi0 (+ n-minus-2 2))
-	    (< (phi-2n-1 (+ n-minus-2 2) phi0 v0 dv g1) 0))
-   :hints (("Goal"
-	    :use ((:instance phi-2n-1-<-0-inductive-lemma1)))
-	   )))
+(defthm phi-2n+1-<-0-lemma-lemma2
+  (implies (and (or (not (integerp i)) (< i 1))
+              (integerp (+ -1 i))
+              (rationalp g1)
+              (rationalp v0)
+              (rationalp dv)
+              (rationalp phi0)
+              (<= 2 (+ -1 i))
+              (<= (+ -1 i) 640)
+              (equal g1 1/3200)
+              (<= 9/10 v0)
+              (<= v0 11/10)
+              (<= -1/8000 dv)
+              (<= dv 1/8000)
+              (<= 0 phi0)
+              (< phi0
+                 (+ -1
+                    (* (fix (+ 1 (fix (+ v0 dv))))
+                       (/ (+ 1
+                             (fix (* (+ 1
+                                        (* (+ (fix (* (+ 1 (fix v0)) 1)) -1)
+                                           (/ g1))
+                                        -640)
+                                     g1))))))))
+         (< (+ (a i phi0 v0 dv g1)
+               (* (/ (expt 5 (+ -2 i)))
+                  (b-sum 1 (+ -2 i) v0 dv g1)))
+            0))
+  :rule-classes nil)
 
-(defthm phi-2n-1-<-0-inductive
-  (implies (basic-params n 3 v0 dv g1 phi0 n)
+(defthm phi-2n+1-<-0-lemma
+  (implies (basic-params (1- i) 2 v0 dv g1 phi0)
+	   (< (+ (A i phi0 v0 dv g1)
+		 (* (B-expt i)
+		    (B-sum 1 (- i 2) v0 dv g1))) 0))
+  :hints (("Goal"
+	   :do-not '(simplify)
+	   :induct (B-sum 1 i v0 dv g1))
+	  ("Subgoal *1/2"
+	  :use ((:instance phi-2n+1-<-0-base-new)
+		(:instance phi-2n+1-<-0-base-corollary-2)
+		(:instance phi-2n+1-<-0-inductive-corollary-2)
+		))
+	  ("Subgoal *1/2''"
+	   :use ((:instance phi-2n+1-<-0-lemma-lemma1)))
+	  ("Subgoal *1/1'"
+	   :use ((:instance phi-2n+1-<-0-lemma-lemma2)))
+	  )
+  )
+
+(defthm phi-2n+1-<-0
+  (implies (basic-params (1- i) 2 v0 dv g1 phi0)
+	   (< (phi-2n-1 i phi0 v0 dv g1) 0))
+  :hints (("Goal"
+	   :use ((:instance phi-2n+1-<-0-lemma))
+	   ))
+  )
+
+(defthm phi-2n-1-<-0
+  (implies (basic-params n 3 v0 dv g1 phi0)
 	   (< (phi-2n-1 n phi0 v0 dv g1) 0))
   :hints (("Goal"
-	   :use ((:instance phi-2n-1-<-0-inductive-lemma2 (n-minus-2 (- n 2))))))
-  )
-)
+	   :use ((:instance phi-2n+1-<-0
+			    (i n))))))

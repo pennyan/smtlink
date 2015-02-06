@@ -1,0 +1,255 @@
+level 0:
+(IMPLIES 
+  (IF 
+    (IF 
+      (RATIONALP V0) 
+      (IF 
+        (RATIONALP DV) 
+        (RATIONALP PHI0) 'nil) 'nil) 
+    (IF 
+      (< PHI0 
+        (BINARY-+ '-1 
+          (BINARY-+ 
+            (UNARY-/ 
+              (BINARY-+ '1599/1600 V0)) 
+            (BINARY-+ 
+              (BINARY-* DV 
+                (UNARY-/ 
+                  (BINARY-+ '1599/1600 V0))) 
+              (BINARY-* V0 
+                (UNARY-/ 
+                  (BINARY-+ '1599/1600 V0))))))) 
+      (IF 
+        (NOT 
+          (< 
+            (BINARY-+ '-5 
+              (BINARY-+ 
+                (BINARY-* '1/5 PHI0) 
+                (BINARY-+ 
+                  (UNARY-/ 
+                    (BINARY-+ '1599/1600 V0)) 
+                  (BINARY-+ 
+                    (BINARY-* '5 
+                      (UNARY-/ 
+                        (BINARY-+ '3199/3200 V0))) 
+                    (BINARY-+ 
+                      (BINARY-* DV 
+                        (UNARY-/ 
+                          (BINARY-+ '1599/1600 V0))) 
+                      (BINARY-+ 
+                        (BINARY-* V0 
+                          (UNARY-/ 
+                            (BINARY-+ '1599/1600 V0))) 
+                        (BINARY-+ 
+                          (BINARY-* '5 
+                            (BINARY-* DV 
+                              (UNARY-/ 
+                                (BINARY-+ '3199/3200 V0)))) 
+                          (BINARY-* '5 
+                            (BINARY-* V0 
+                              (UNARY-/ 
+                                (BINARY-+ '3199/3200 V0))))))))))) '1)) 
+        (IF 
+          (NOT 
+            (< 
+              (BINARY-* '10/9 V0) '1)) 
+          (IF 
+            (NOT 
+              (< '11/10 V0)) 
+            (IF 
+              (NOT 
+                (< '1 
+                  (UNARY-- 
+                    (BINARY-* '8000 DV)))) 
+              (IF 
+                (NOT 
+                  (< '1 
+                    (BINARY-* '8000 DV))) 
+                (NOT 
+                  (< PHI0 '0)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+  (< 
+    (BINARY-+ '-655 
+      (BINARY-+ 
+        (BINARY-* '1/5 PHI0) 
+        (BINARY-+ 
+          (UNARY-/ 
+            (BINARY-+ '3197/3200 V0)) 
+          (BINARY-+ 
+            (BINARY-* '5 
+              (UNARY-/ 
+                (BINARY-+ '1599/1600 V0))) 
+            (BINARY-+ 
+              (BINARY-* '25 
+                (UNARY-/ 
+                  (BINARY-+ '3199/3200 V0))) 
+              (BINARY-+ 
+                (BINARY-* '625 
+                  (UNARY-/ 
+                    (BINARY-+ '3201/3200 V0))) 
+                (BINARY-+ 
+                  (BINARY-* DV 
+                    (UNARY-/ 
+                      (BINARY-+ '3197/3200 V0))) 
+                  (BINARY-+ 
+                    (BINARY-* V0 
+                      (UNARY-/ 
+                        (BINARY-+ '3197/3200 V0))) 
+                    (BINARY-+ 
+                      (BINARY-* '5 
+                        (BINARY-* DV 
+                          (UNARY-/ 
+                            (BINARY-+ '1599/1600 V0)))) 
+                      (BINARY-+ 
+                        (BINARY-* '5 
+                          (BINARY-* V0 
+                            (UNARY-/ 
+                              (BINARY-+ '1599/1600 V0)))) 
+                        (BINARY-+ 
+                          (BINARY-* '25 
+                            (BINARY-* DV 
+                              (UNARY-/ 
+                                (BINARY-+ '3199/3200 V0)))) 
+                          (BINARY-+ 
+                            (BINARY-* '25 
+                              (BINARY-* V0 
+                                (UNARY-/ 
+                                  (BINARY-+ '3199/3200 V0)))) 
+                            (BINARY-+ 
+                              (BINARY-* '625 
+                                (BINARY-* DV 
+                                  (UNARY-/ 
+                                    (BINARY-+ '3201/3200 V0)))) 
+                              (BINARY-* '625 
+                                (BINARY-* V0 
+                                  (UNARY-/ 
+                                    (BINARY-+ '3201/3200 V0))))))))))))))))) '1))
+
+level 1:IMPLIES
+
+level 2:
+(IF 
+  (IF 
+    (RATIONALP V0) 
+    (IF 
+      (RATIONALP DV) 
+      (RATIONALP PHI0) 'nil) 'nil) 
+  (IF 
+    (< PHI0 
+      (BINARY-+ '-1 
+        (BINARY-+ 
+          (UNARY-/ 
+            (BINARY-+ '1599/1600 V0)) 
+          (BINARY-+ 
+            (BINARY-* DV 
+              (UNARY-/ 
+                (BINARY-+ '1599/1600 V0))) 
+            (BINARY-* V0 
+              (UNARY-/ 
+                (BINARY-+ '1599/1600 V0))))))) 
+    (IF 
+      (NOT 
+        (< 
+          (BINARY-+ '-5 
+            (BINARY-+ 
+              (BINARY-* '1/5 PHI0) 
+              (BINARY-+ 
+                (UNARY-/ 
+                  (BINARY-+ '1599/1600 V0)) 
+                (BINARY-+ 
+                  (BINARY-* '5 
+                    (UNARY-/ 
+                      (BINARY-+ '3199/3200 V0))) 
+                  (BINARY-+ 
+                    (BINARY-* DV 
+                      (UNARY-/ 
+                        (BINARY-+ '1599/1600 V0))) 
+                    (BINARY-+ 
+                      (BINARY-* V0 
+                        (UNARY-/ 
+                          (BINARY-+ '1599/1600 V0))) 
+                      (BINARY-+ 
+                        (BINARY-* '5 
+                          (BINARY-* DV 
+                            (UNARY-/ 
+                              (BINARY-+ '3199/3200 V0)))) 
+                        (BINARY-* '5 
+                          (BINARY-* V0 
+                            (UNARY-/ 
+                              (BINARY-+ '3199/3200 V0))))))))))) '1)) 
+      (IF 
+        (NOT 
+          (< 
+            (BINARY-* '10/9 V0) '1)) 
+        (IF 
+          (NOT 
+            (< '11/10 V0)) 
+          (IF 
+            (NOT 
+              (< '1 
+                (UNARY-- 
+                  (BINARY-* '8000 DV)))) 
+            (IF 
+              (NOT 
+                (< '1 
+                  (BINARY-* '8000 DV))) 
+              (NOT 
+                (< PHI0 '0)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+
+level 3:
+(< 
+  (BINARY-+ '-655 
+    (BINARY-+ 
+      (BINARY-* '1/5 PHI0) 
+      (BINARY-+ 
+        (UNARY-/ 
+          (BINARY-+ '3197/3200 V0)) 
+        (BINARY-+ 
+          (BINARY-* '5 
+            (UNARY-/ 
+              (BINARY-+ '1599/1600 V0))) 
+          (BINARY-+ 
+            (BINARY-* '25 
+              (UNARY-/ 
+                (BINARY-+ '3199/3200 V0))) 
+            (BINARY-+ 
+              (BINARY-* '625 
+                (UNARY-/ 
+                  (BINARY-+ '3201/3200 V0))) 
+              (BINARY-+ 
+                (BINARY-* DV 
+                  (UNARY-/ 
+                    (BINARY-+ '3197/3200 V0))) 
+                (BINARY-+ 
+                  (BINARY-* V0 
+                    (UNARY-/ 
+                      (BINARY-+ '3197/3200 V0))) 
+                  (BINARY-+ 
+                    (BINARY-* '5 
+                      (BINARY-* DV 
+                        (UNARY-/ 
+                          (BINARY-+ '1599/1600 V0)))) 
+                    (BINARY-+ 
+                      (BINARY-* '5 
+                        (BINARY-* V0 
+                          (UNARY-/ 
+                            (BINARY-+ '1599/1600 V0)))) 
+                      (BINARY-+ 
+                        (BINARY-* '25 
+                          (BINARY-* DV 
+                            (UNARY-/ 
+                              (BINARY-+ '3199/3200 V0)))) 
+                        (BINARY-+ 
+                          (BINARY-* '25 
+                            (BINARY-* V0 
+                              (UNARY-/ 
+                                (BINARY-+ '3199/3200 V0)))) 
+                          (BINARY-+ 
+                            (BINARY-* '625 
+                              (BINARY-* DV 
+                                (UNARY-/ 
+                                  (BINARY-+ '3201/3200 V0)))) 
+                            (BINARY-* '625 
+                              (BINARY-* V0 
+                                (UNARY-/ 
+                                  (BINARY-+ '3201/3200 V0))))))))))))))))) '1)
+

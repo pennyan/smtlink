@@ -22,7 +22,14 @@ level 0:
             (IF 
               (NOT 
                 (< '11/10 V0)) 
-              (EQUAL DV '0) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
+              (IF 
+                (NOT 
+                  (< DV 
+                    (UNARY-- 
+                      (DV0)))) 
+                (NOT 
+                  (< 
+                    (DV0) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 
   (< 
     (BINARY-+ 
       (BINARY-* 
@@ -73,7 +80,14 @@ level 2:
                 (IF 
                   (NOT 
                     (< '11/10 V0)) 
-                  (EQUAL DV '0) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+                  (IF 
+                    (NOT 
+                      (< DV 
+                        (UNARY-- 
+                          (BINARY-* '-2 '-1/16000)))) 
+                    (NOT 
+                      (< 
+                        (BINARY-* '-2 '-1/16000) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (< 
