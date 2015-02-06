@@ -1385,8 +1385,6 @@
 	   :use ((:instance phi-2n+1-<-0-base-corollary))))
   )
 
-)
-
 (defthm stupid-proof
   (implies (and (equal a f)
 		(equal a i)
@@ -1646,3 +1644,4 @@
   :hints (("Goal"
 	   :use ((:instance phi-2n+1-<-0
 			    (i n))))))
+)
