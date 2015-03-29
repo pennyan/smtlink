@@ -178,6 +178,8 @@
 
 ;; test5: with recursive call
 ;; (fac)
+;; This test case is buggy!!!!!!!!!!!!!!!!!!!!!!
+;; Because isInteger is translated into isReal!!!!
 (defun fac (x) (if (zp x) 1 (* x (fac (1- x)))))
 
 (defthm test5

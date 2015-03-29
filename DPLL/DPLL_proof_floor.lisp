@@ -8,7 +8,8 @@
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(include-book "../smtlink/SMT-connect")
+(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
+(include-book "SMT-connect" :dir :cp)
 (logic)
 :set-state-ok t
 :set-ignore-ok t

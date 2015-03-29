@@ -1,6 +1,6 @@
 ;; top file for smtlink
 
-(in-package "ACL2")
+(in-package "SL")
 (include-book "config")
 (include-book "helper")
 (include-book "SMT-formula")

@@ -16,7 +16,7 @@
 
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
 
-   (load "../smtlink/SMT-z3.lisp")
+   (include-book "./SMT-z3")
 
    (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
      (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)))
