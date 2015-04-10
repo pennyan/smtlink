@@ -1,0 +1,6 @@
+# ignoring intermediate files and tmp files
+
+smtlink/*.cert
+smtlink/*.port
+smtlink/*.cert.out
+smtlink/*.lx64fsl
