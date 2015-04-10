@@ -1,10 +1,12 @@
 (in-package "ACL2")
-(program)
-(defttag :my-cl-proc)
 (set-state-ok t)
+
 (defstub acl2-my-prove
     (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
     (mv t nil nil nil nil state))
+
+(program)
+(defttag :my-cl-proc)
 
 (progn
 
