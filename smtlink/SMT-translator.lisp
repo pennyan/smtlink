@@ -154,7 +154,7 @@
     nil))
 
 ;; ----------------------- translate-expression --------------------------:
-(mutual-recursion
+
 ;; make-lambda-list
 (defun make-lambda-list (lambda-list)
   "make-lambda-list: translating the binding list of a lambda expression"
@@ -162,6 +162,9 @@
       (car lambda-list)
     (cons (car lambda-list)
 	  (cons '\, (make-lambda-list (cdr lambda-list))))))
+
+(skip-proofs
+(mutual-recursion
 
 ;; translate-expression-long
 (defun translate-expression-long (expression)
@@ -217,7 +220,7 @@
 	   (translate-variable expression))
 	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression)))))
 )
-
+)
 ;; ----------------------- translate-hypothesis --------------------------:
 
 ;; translate-hypothesis-list

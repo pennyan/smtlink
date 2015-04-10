@@ -4,6 +4,7 @@
 (include-book "./helper")
 (include-book "./SMT-extract")
 (set-state-ok t)
+(set-ignore-ok t)
 
 ;; create-name
 (defun create-name (num)
@@ -113,6 +114,7 @@
 	    t
 	    nil))))
 
+(skip-proofs
 (mutual-recursion
  ;; expand-fn-help-list
  (defun expand-fn-help-list (expr fn-lst fn-level-lst fn-waiting fn-extended num state)
@@ -186,10 +188,12 @@
 		       (mv-let (res2 num3)
 			       (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num2 state)
 			       (mv (cons res res2) num3))))
-	      (t )
+	      (t (prog2$ (cw "Error(function): can not pattern match: ~q0" expr)
+			 (mv expr num)))
 	      )))
 	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
  		    (mv expr num)))))
+)
 )
 
 (mutual-recursion
@@ -363,6 +367,8 @@
 		       (mv-let (res2 fn-var-decl3 num3)
 			       (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 num2)
 			       (mv (cons res res2) fn-var-decl3 num3))))
+	      (t (prog2$ (cw "Error(function): Can not pattern match, ~q0" expr)
+			 (mv expr fn-var-decl  num)))
 	      )))
 	(t (prog2$ (cw "Error(function): Strange expr, ~q0" expr)
 		   (mv expr fn-var-decl  num)))))
@@ -372,27 +378,25 @@
 ;; expand-fn
 (defun expand-fn (expr fn-lst-with-type fn-level let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
-  (mv-let (fn-lst)
-	  (split-fn-from-type fn-lst-with-type)
+  (let ((fn-lst (split-fn-from-type fn-lst-with-type)))
   (let ((reformed-let-expr (reform-let let-expr)))
-    (mv-let (fn-level-lst)
-	    (initial-level fn-lst fn-level)
-	    (mv-let (res-expr1 res-num1)
-		    (expand-fn-help (rewrite-formula expr reformed-let-expr)
-				    fn-lst fn-level-lst fn-lst nil 0 state)
-		    (mv-let (res-expr res-fn-var-decl res-num)
-			    (replace-rec-fn res-expr1 fn-lst-with-type nil res-num1)
-			    (mv-let (rewritten-expr orig-param)
-				    (augment-formula (rewrite-formula res-expr reformed-let-expr)
-						     (assoc-get-value reformed-let-expr)
-						     let-type
-						     new-hypo)
-				    (let ((res (rewrite-formula res-expr1 reformed-let-expr)))
-				      (let ((expr-return ;; (augment-formula res
-							 ;; 		  (assoc-get-value reformed-let-expr)
-							 ;; 		  let-type
-							 ;; 		  new-hypo)
-					     res
-					      )
-					    (orig-param (extract-orig-param res)))
-					(mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))
+    (let ((fn-level-lst (initial-level fn-lst fn-level)))
+      (mv-let (res-expr1 res-num1)
+	      (expand-fn-help (rewrite-formula expr reformed-let-expr)
+			      fn-lst fn-level-lst fn-lst nil 0 state)
+	      (mv-let (res-expr res-fn-var-decl res-num)
+		      (replace-rec-fn res-expr1 fn-lst-with-type nil res-num1)
+		      (let ((rewritten-expr
+			     (augment-formula (rewrite-formula res-expr reformed-let-expr)
+					      (assoc-get-value reformed-let-expr)
+					      let-type
+					      new-hypo)))
+			      (let ((res (rewrite-formula res-expr1 reformed-let-expr)))
+				(let ((expr-return ;; (augment-formula res
+				       ;; 		  (assoc-get-value reformed-let-expr)
+				       ;; 		  let-type
+				       ;; 		  new-hypo)
+				       res
+					)
+				      (orig-param (extract-orig-param res)))
+				  (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))

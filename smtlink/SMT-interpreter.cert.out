@@ -1,0 +1,182 @@
+"-*- Mode: auto-revert -*-"
+/ubc/cs/home/y/yanpeng/project/ACL2/smtlink
+mala
+
+Environment variables:
+ACL2_CUSTOMIZATION=NONE
+ACL2_SYSTEM_BOOKS=/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/
+ACL2=/ubc/cs/home/y/yanpeng/bin/acl2
+
+Temp lisp file:
+(acl2::value :q)
+(acl2::in-package "ACL2")
+#+acl2-hons (profile-fn 'prove)
+#+acl2-hons (profile-fn 'certify-book-fn)
+(acl2::lp)
+(acl2::in-package "ACL2")
+
+(set-inhibit-output-lst (list (quote prove) (quote proof-tree) (quote warning) (quote observation) (quote event) (quote history)))
+
+(acl2::assign acl2::get-internal-time-as-realtime acl2::t)
+; instructions from .acl2 file SMT-interpreter.acl2:
+; cert-flags: ? t :ttags :all
+
+; Prevent reset-prehistory while loading .port files
+(acl2::assign acl2::skip-reset-prehistory acl2::t)
+; portculli for included books:
+(acl2::ld "SMT-run.port" :ld-missing-input-ok t)
+
+; certify-book command flags: ? t :ttags :all
+#!ACL2 (er-progn (time$ (certify-book "SMT-interpreter" ? t :ttags :all  ))
+                                 (value (prog2$ #+acl2-hons (memsum)
+                                                 #-acl2-hons nil
+                                                 (exit 43))))
+--- End temp lisp file ---
+
+TARGET: SMT-interpreter
+STEP: certify
+Start of output:
+
+Welcome to Clozure Common Lisp Version 1.9  (LinuxX8664)!
+
+ ACL2 Version 7.0 built April 10, 2015  03:01:30.
+ Copyright (C) 2015, Regents of the University of Texas
+ ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and you
+ are welcome to redistribute it under certain conditions.  For details,
+ see the LICENSE file distributed with ACL2.
+
+ Initialized with (INITIALIZE-ACL2 'INCLUDE-BOOK *ACL2-PASS-2-FILES*).
+
+ Includes support for hash cons, memoization, and applicative hash
+ tables.
+
+ See the documentation topic note-7-0 for recent changes.
+ Note: We have modified the prompt in some underlying Lisps to further
+ distinguish it from the ACL2 prompt.
+
+ACL2 Version 7.0.  Level 1.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+? #<Package "ACL2">
+? 
+ACL2 Version 7.0.  Level 1.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !> "ACL2"
+ACL2 !> (PROVE PROOF-TREE
+        WARNING OBSERVATION EVENT HISTORY)
+ACL2 !> T
+ACL2 !> T
+ACL2 !>
+ACL2 Version 7.0.  Level 2.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !>> "ACL2"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "std/portcullis" ...)
+Rules: NIL
+Time:  0.12 seconds (prove: 0.00, print: 0.00, other: 0.12)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "cowles/portcullis" ...)
+Rules: NIL
+Time:  0.05 seconds (prove: 0.00, print: 0.00, other: 0.05)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/cowles/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "data-structures/portcullis" ...)
+Rules: NIL
+Time:  0.05 seconds (prove: 0.00, print: 0.00, other: 0.05)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/data-structures/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "centaur/fty/portcullis" ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/centaur/fty/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/typed-lists/portcullis"
+...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/typed-lists/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "oslib/portcullis" ...)
+Rules: NIL
+Time:  0.03 seconds (prove: 0.00, print: 0.00, other: 0.03)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/oslib/portcullis.lisp"
+ACL2 !>>Bye.
+ :EOF
+ACL2 !>
+TTAG NOTE (for included book): Adding ttag :TSHELL from book /ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-run.
+
+ACL2 Warning [Ttags] in ( INCLUDE-BOOK "SMT-run" ...):  The ttag note
+just printed to the terminal indicates a modification to ACL2.  To
+avoid this warning, supply an explicit :TTAGS argument when including
+the book "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-run".
+
+
+TTAG NOTE (for included book): Adding ttag :TSHELL from book /ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/centaur/misc/tshell.
+
+ACL2 Warning [Ttags] in ( INCLUDE-BOOK "SMT-run" ...):  The ttag note
+just printed to the terminal indicates a modification to ACL2.  To
+avoid this warning, supply an explicit :TTAGS argument when including
+the book "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-run".
+
+
+TTAG NOTE (for included book): Adding ttag :WRITES-OKP from book /ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-run.
+
+ACL2 Warning [Ttags] in ( INCLUDE-BOOK "SMT-run" ...):  The ttag note
+just printed to the terminal indicates a modification to ACL2.  To
+avoid this warning, supply an explicit :TTAGS argument when including
+the book "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-run".
+
+
+Summary
+Form:  ( INCLUDE-BOOK "SMT-run" ...)
+Rules: NIL
+Warnings:  Ttags
+Time:  1.69 seconds (prove: 0.00, print: 0.00, other: 1.69)
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-run.lisp"
+
+TTAG NOTE: Adding ttag :TSHELL from book /ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-interpreter.
+:TSHELL
+
+Summary
+Form:  ( DEFUN SMT-INTERPRETER ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION FMT-TO-COMMENT-WINDOW))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+SMT-INTERPRETER
+
+
+
+Summary
+Form:  (CERTIFY-BOOK "SMT-interpreter" ...)
+Rules: NIL
+Warnings:  Ttags
+Time:  2.06 seconds (prove: 0.00, print: 0.00, other: 2.06)
+; (EV-REC *RETURN-LAST-ARG3* ...) took 
+; 2.06 seconds realtime, 1.66 seconds runtime
+; (146,618,240 bytes allocated).
+Exit code from ACL2 is 43
+-rw------- 1 yanpeng grads 46546 Apr 10 11:44 SMT-interpreter.cert

@@ -1,6 +1,9 @@
 ;;SMT-interpreter formats the results
 
 (in-package "ACL2")
+(include-book "SMT-run")
+(defttag :tshell)
+
 
 ;; SMT-interpreter
 (defun SMT-interpreter (filename)

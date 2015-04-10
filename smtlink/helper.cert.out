@@ -1,0 +1,242 @@
+"-*- Mode: auto-revert -*-"
+/ubc/cs/home/y/yanpeng/project/ACL2/smtlink
+mala
+
+Environment variables:
+ACL2_CUSTOMIZATION=NONE
+ACL2_SYSTEM_BOOKS=/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/
+ACL2=/ubc/cs/home/y/yanpeng/bin/acl2
+
+Temp lisp file:
+(acl2::value :q)
+(acl2::in-package "ACL2")
+#+acl2-hons (profile-fn 'prove)
+#+acl2-hons (profile-fn 'certify-book-fn)
+(acl2::lp)
+(acl2::in-package "ACL2")
+
+(set-inhibit-output-lst (list (quote prove) (quote proof-tree) (quote warning) (quote observation) (quote event) (quote history)))
+
+(acl2::assign acl2::get-internal-time-as-realtime acl2::t)
+; instructions from .acl2 file :
+
+
+; Prevent reset-prehistory while loading .port files
+(acl2::assign acl2::skip-reset-prehistory acl2::t)
+; portculli for included books:
+
+; certify-book command flags: ? t
+#!ACL2 (er-progn (time$ (certify-book "helper" ? t  ))
+                                 (value (prog2$ #+acl2-hons (memsum)
+                                                 #-acl2-hons nil
+                                                 (exit 43))))
+--- End temp lisp file ---
+
+TARGET: helper
+STEP: certify
+Start of output:
+
+Welcome to Clozure Common Lisp Version 1.9  (LinuxX8664)!
+
+ ACL2 Version 7.0 built April 10, 2015  03:01:30.
+ Copyright (C) 2015, Regents of the University of Texas
+ ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and you
+ are welcome to redistribute it under certain conditions.  For details,
+ see the LICENSE file distributed with ACL2.
+
+ Initialized with (INITIALIZE-ACL2 'INCLUDE-BOOK *ACL2-PASS-2-FILES*).
+
+ Includes support for hash cons, memoization, and applicative hash
+ tables.
+
+ See the documentation topic note-7-0 for recent changes.
+ Note: We have modified the prompt in some underlying Lisps to further
+ distinguish it from the ACL2 prompt.
+
+ACL2 Version 7.0.  Level 1.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+? #<Package "ACL2">
+? 
+ACL2 Version 7.0.  Level 1.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !> "ACL2"
+ACL2 !> (PROVE PROOF-TREE
+        WARNING OBSERVATION EVENT HISTORY)
+ACL2 !> T
+ACL2 !> T
+ACL2 !>
+Summary
+Form:  ( DEFUN EXIST ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+EXIST
+Goal'
+Goal''
+Subgoal 2
+Subgoal 1
+Subgoal 1'
+
+Summary
+Form:  ( DEFUN END ...)
+Rules: ((:DEFINITION ACL2-COUNT)
+        (:DEFINITION ENDP)
+        (:DEFINITION O-FINP)
+        (:DEFINITION O<)
+        (:ELIM CAR-CDR-ELIM)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:TYPE-PRESCRIPTION ACL2-COUNT))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  616
+END
+
+Summary
+Form:  ( DEFUN MY-LAST ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+MY-LAST
+
+Summary
+Form:  ( DEFUN MY-DELETE ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+MY-DELETE
+Subgoal *1/3
+Subgoal *1/2
+Subgoal *1/2.3
+Subgoal *1/2.2
+Subgoal *1/2.1
+Subgoal *1/2.1'
+Subgoal *1/1
+Subgoal *1/1'
+
+Summary
+Form:  ( DEFTHM DELETE-MUST-REDUCE ...)
+Rules: ((:DEFINITION EXIST)
+        (:DEFINITION LEN)
+        (:DEFINITION MY-DELETE)
+        (:DEFINITION NOT)
+        (:EXECUTABLE-COUNTERPART TAU-SYSTEM)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:INDUCTION EXIST)
+        (:INDUCTION LEN)
+        (:INDUCTION MY-DELETE)
+        (:REWRITE CDR-CONS))
+Time:  0.01 seconds (prove: 0.01, print: 0.00, other: 0.00)
+Prover steps counted:  892
+DELETE-MUST-REDUCE
+
+Summary
+Form:  ( DEFUN DASH-TO-UNDERSCORE-CHAR ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+DASH-TO-UNDERSCORE-CHAR
+
+Summary
+Form:  ( DEFUN DASH-TO-UNDERSCORE-HELPER ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+DASH-TO-UNDERSCORE-HELPER
+
+Summary
+Form:  ( DEFUN DASH-TO-UNDERSCORE ...)
+Rules: ((:TYPE-PRESCRIPTION SYMBOLP-INTERN-IN-PACKAGE-OF-SYMBOL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+DASH-TO-UNDERSCORE
+
+Summary
+Form:  ( DEFUN APPEND-AND-DECL ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+APPEND-AND-DECL
+
+Summary
+Form:  ( DEFUN APPEND-AND-HYPO ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+APPEND-AND-HYPO
+
+Summary
+Form:  ( DEFUN ASSOC-GET-VALUE ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ASSOC-GET-VALUE
+
+Summary
+Form:  ( DEFUN ASSOC-GET-KEY ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ASSOC-GET-KEY
+
+Summary
+Form:  ( DEFUN ASSOC-NO-REPEAT ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ASSOC-NO-REPEAT
+
+Summary
+Form:  ( DEFUN INVERT-ASSOC ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+INVERT-ASSOC
+
+Summary
+Form:  ( DEFUN CREATE-ASSOC-HELPER ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+CREATE-ASSOC-HELPER
+
+Summary
+Form:  ( DEFUN CREATE-ASSOC ...)
+Rules: ((:TYPE-PRESCRIPTION CREATE-ASSOC-HELPER)
+        (:TYPE-PRESCRIPTION FMT-TO-COMMENT-WINDOW))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+CREATE-ASSOC
+
+Summary
+Form:  ( DEFUN REPLACE-LAMBDA-PARAMS ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+REPLACE-LAMBDA-PARAMS
+
+Summary
+Form:  ( DEFUN ASSOC-LAMBDA ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ASSOC-LAMBDA
+
+Summary
+Form:  ( DEFUN COMBINE ...)
+Rules: ((:EXECUTABLE-COUNTERPART TRUE-LISTP)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION BINARY-APPEND)
+        (:TYPE-PRESCRIPTION TRUE-LISTP-APPEND))
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+COMBINE
+
+
+
+Summary
+Form:  (CERTIFY-BOOK "helper" ...)
+Rules: NIL
+Time:  0.15 seconds (prove: 0.01, print: 0.00, other: 0.14)
+Prover steps counted:  1508
+; (EV-REC *RETURN-LAST-ARG3* ...) took 
+; 0.15 seconds realtime, 0.12 seconds runtime
+; (6,508,192 bytes allocated).
+Exit code from ACL2 is 43
+-rw------- 1 yanpeng grads 391 Apr 10 11:44 helper.cert

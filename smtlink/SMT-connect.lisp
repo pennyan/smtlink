@@ -1,10 +1,10 @@
 (in-package "ACL2")
-
-(defstub acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints) (mv t nil nil nil nil))
-
 (program)
-
 (defttag :my-cl-proc)
+(set-state-ok t)
+(defstub acl2-my-prove
+    (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
+    (mv t nil nil nil nil state))
 
 (progn
 
@@ -15,18 +15,17 @@
   (progn!
 
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
-
-   (include-book "./SMT-z3")
-
-   (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
-     (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)))
+   
+   (load "SMT-z3.lisp")
+   
+   (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
+     (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)))
   
   ;; put fn-lst level and fname into the hint list
-  (defun my-clause-processor (cl hint)
+  (defun my-clause-processor (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (prog2$ (cw "Original clause(connect): ~q0"
-	        (disjoin cl))
+    (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
     (let ((fn-lst (cadr (assoc ':functions
 			       (cadr (assoc ':expand hint)))))
 	  ;; 2014-07-01: added function expansion level
@@ -43,14 +42,16 @@
 				   (cadr (assoc ':use hint)))))
 	  (main-hints (cadr (assoc ':main
 				   (cadr (assoc ':use hint))))))
-      (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem)
-	      (acl2-my-prove (disjoin cl) fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
+      (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
+	      (acl2-my-prove (disjoin cl) fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
 	      (if res
-		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem) (list (append expanded-cl cl)))))
-		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause) res-clause))
+		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
+					    (list (append expanded-cl cl)))))
+		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause)
+			    (mv nil res-clause state)))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
-			  (list cl)))))))
+			  (mv nil (list cl) state)))))))
   
   (push-untouchable acl2-my-prove t)
   )

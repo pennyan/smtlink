@@ -1,0 +1,434 @@
+"-*- Mode: auto-revert -*-"
+/ubc/cs/home/y/yanpeng/project/ACL2/smtlink
+mala
+
+Environment variables:
+ACL2_CUSTOMIZATION=NONE
+ACL2_SYSTEM_BOOKS=/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/
+ACL2=/ubc/cs/home/y/yanpeng/bin/acl2
+
+Temp lisp file:
+(acl2::value :q)
+(acl2::in-package "ACL2")
+#+acl2-hons (profile-fn 'prove)
+#+acl2-hons (profile-fn 'certify-book-fn)
+(acl2::lp)
+(acl2::in-package "ACL2")
+
+(set-inhibit-output-lst (list (quote prove) (quote proof-tree) (quote warning) (quote observation) (quote event) (quote history)))
+
+(acl2::assign acl2::get-internal-time-as-realtime acl2::t)
+; instructions from .acl2 file SMT-function.acl2:
+; cert-flags: ? t :ttags :all :skip-proofs-okp t
+
+; Prevent reset-prehistory while loading .port files
+(acl2::assign acl2::skip-reset-prehistory acl2::t)
+; portculli for included books:
+(acl2::ld "std/strings/top.port" :dir :system :ld-missing-input-ok t)
+(acl2::ld "./helper.port" :ld-missing-input-ok t)
+(acl2::ld "./SMT-extract.port" :ld-missing-input-ok t)
+
+; certify-book command flags: ? t :ttags :all :skip-proofs-okp t
+#!ACL2 (er-progn (time$ (certify-book "SMT-function" ? t :ttags :all :skip-proofs-okp t  ))
+                                 (value (prog2$ #+acl2-hons (memsum)
+                                                 #-acl2-hons nil
+                                                 (exit 43))))
+--- End temp lisp file ---
+
+TARGET: SMT-function
+STEP: certify
+Start of output:
+
+Welcome to Clozure Common Lisp Version 1.9  (LinuxX8664)!
+
+ ACL2 Version 7.0 built April 10, 2015  03:01:30.
+ Copyright (C) 2015, Regents of the University of Texas
+ ACL2 comes with ABSOLUTELY NO WARRANTY.  This is free software and you
+ are welcome to redistribute it under certain conditions.  For details,
+ see the LICENSE file distributed with ACL2.
+
+ Initialized with (INITIALIZE-ACL2 'INCLUDE-BOOK *ACL2-PASS-2-FILES*).
+
+ Includes support for hash cons, memoization, and applicative hash
+ tables.
+
+ See the documentation topic note-7-0 for recent changes.
+ Note: We have modified the prompt in some underlying Lisps to further
+ distinguish it from the ACL2 prompt.
+
+ACL2 Version 7.0.  Level 1.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !>
+Exiting the ACL2 read-eval-print loop.  To re-enter, execute (LP).
+? #<Package "ACL2">
+? 
+ACL2 Version 7.0.  Level 1.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !> "ACL2"
+ACL2 !> (PROVE PROOF-TREE
+        WARNING OBSERVATION EVENT HISTORY)
+ACL2 !> T
+ACL2 !> T
+ACL2 !>
+ACL2 Version 7.0.  Level 2.  Cbd 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/strings/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !>> "ACL2"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "std/portcullis" ...)
+Rules: NIL
+Time:  0.12 seconds (prove: 0.00, print: 0.00, other: 0.12)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "cowles/portcullis" ...)
+Rules: NIL
+Time:  0.05 seconds (prove: 0.00, print: 0.00, other: 0.05)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/cowles/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "data-structures/portcullis" ...)
+Rules: NIL
+Time:  0.05 seconds (prove: 0.00, print: 0.00, other: 0.05)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/data-structures/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK "centaur/fty/portcullis" ...)
+Rules: NIL
+Time:  0.02 seconds (prove: 0.00, print: 0.00, other: 0.02)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/centaur/fty/portcullis.lisp"
+ACL2 !>>
+Summary
+Form:  ( INCLUDE-BOOK 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/typed-lists/portcullis"
+...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/typed-lists/portcullis.lisp"
+ACL2 !>>Bye.
+ :EOF
+ACL2 !>
+ACL2 Version 7.0.  Level 2.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !>> "ACL2"
+ACL2 !>>Bye.
+ :EOF
+ACL2 !>
+ACL2 Version 7.0.  Level 2.  Cbd 
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/".
+System books directory 
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/".
+Type :help for help.
+Type (good-bye) to quit completely out of ACL2.
+
+ACL2 !>> "ACL2"
+ACL2 !>>Bye.
+ :EOF
+ACL2 !>
+Summary
+Form:  ( INCLUDE-BOOK "std/strings/top" ...)
+Rules: NIL
+Time:  2.99 seconds (prove: 0.00, print: 0.00, other: 2.99)
+"/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books/std/strings/top.lisp"
+
+Summary
+Form:  ( INCLUDE-BOOK "./helper" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/helper.lisp"
+
+Summary
+Form:  ( INCLUDE-BOOK "./SMT-extract" ...)
+Rules: NIL
+Time:  0.01 seconds (prove: 0.00, print: 0.00, other: 0.01)
+"/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-extract.lisp"
+T
+T
+
+Summary
+Form:  ( DEFUN CREATE-NAME ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:TYPE-PRESCRIPTION STR::STRINGP-OF-NATSTR))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+CREATE-NAME
+
+Summary
+Form:  ( DEFUN REPLACE-VAR ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+REPLACE-VAR
+
+Summary
+Form:  ( DEFUN SET-FN-BODY ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+SET-FN-BODY
+
+Summary
+Form:  ( DEFUN MAKE-VAR-LIST ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+MAKE-VAR-LIST
+
+Summary
+Form:  ( DEFUN ASSOC-FETCH-KEY ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ASSOC-FETCH-KEY
+
+Summary
+Form:  ( DEFUN ASSOC-FETCH-VALUE ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+ASSOC-FETCH-VALUE
+
+Summary
+Form:  ( DEFUN DECREASE-LEVEL-BY-1 ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+DECREASE-LEVEL-BY-1
+
+Summary
+Form:  ( DEFUN EXPAND-A-FN ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+EXPAND-A-FN
+
+Summary
+Form:  ( DEFUN LAMBDAP ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+LAMBDAP
+
+ACL2 Warning [Skip-proofs] in CERTIFY-BOOK:  ACL2 has encountered a
+SKIP-PROOFS form, 
+(SKIP-PROOFS (MUTUAL-RECURSION (DEFUN EXPAND-FN-HELP-LIST
+                                      (EXPR FN-LST FN-LEVEL-LST
+                                            FN-WAITING FN-EXTENDED NUM STATE)
+                                      "expand-fn-help-list"
+                                      (DECLARE (XARGS :MEASURE #))
+                                      (IF (ENDP EXPR)
+                                          (MV NIL NUM)
+                                          (MV-LET # # #)))
+                               (DEFUN EXPAND-FN-HELP
+                                      (EXPR FN-LST FN-LEVEL-LST
+                                            FN-WAITING FN-EXTENDED NUM STATE)
+                                      "expand-fn-help: expand an expression"
+                                      (DECLARE (XARGS :MEASURE #))
+                                      (COND (# #) (# #) (T #))))),
+in the context of a book or an encapsulate event.  Therefore, no logical
+claims may be soundly made in this context.  See :DOC SKIP-PROOFS.
+(See :DOC set-iprint to be able to see elided values in this message.)
+
+(EXPAND-FN-HELP-LIST EXPAND-FN-HELP)
+Goal'
+Subgoal 3
+Subgoal 3'
+Subgoal 3.2
+Subgoal 3.2'
+Subgoal 3.1
+Subgoal 3.1'
+Subgoal 3.1''
+Subgoal 2
+Subgoal 2'
+Subgoal 2.2
+Subgoal 2.2'
+Subgoal 2.1
+Subgoal 2.1'
+Subgoal 2.1''
+Subgoal 1
+Subgoal 1'
+Subgoal 1.2
+Subgoal 1.2'
+Subgoal 1.1
+Subgoal 1.1'
+Subgoal 1.1''
+
+Summary
+Form:  ( MUTUAL-RECURSION ( DEFUN REWRITE-FORMULA-PARAMS ...) ...)
+Rules: ((:DEFINITION ACL2-COUNT)
+        (:DEFINITION ASSOC-LAMBDA)
+        (:DEFINITION ATOM)
+        (:DEFINITION CREATE-ASSOC)
+        (:DEFINITION CREATE-ASSOC-HELPER)
+        (:DEFINITION FIX)
+        (:DEFINITION LAMBDAP)
+        (:DEFINITION LEN)
+        (:DEFINITION LISTP)
+        (:DEFINITION NOT)
+        (:DEFINITION O-FINP)
+        (:DEFINITION O<)
+        (:DEFINITION SYNP)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART ACL2-COUNT)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART CONSP)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART LEN)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART SYMBOLP)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE COMMUTATIVITY-2-OF-+)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE FOLD-CONSTS-IN-+)
+        (:REWRITE UNICITY-OF-0)
+        (:TYPE-PRESCRIPTION ACL2-COUNT))
+Time:  0.09 seconds (prove: 0.08, print: 0.00, other: 0.01)
+Prover steps counted:  11582
+(REWRITE-FORMULA-PARAMS REWRITE-FORMULA)
+
+Summary
+Form:  ( DEFUN EXTRACT-ORIG-PARAM ...)
+Rules: NIL
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+EXTRACT-ORIG-PARAM
+
+Summary
+Form:  ( DEFUN AUGMENT-FORMULA ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+AUGMENT-FORMULA
+
+Summary
+Form:  ( DEFUN REFORM-LET ...)
+Rules: ((:TYPE-PRESCRIPTION FMT-TO-COMMENT-WINDOW)
+        (:TYPE-PRESCRIPTION INVERT-ASSOC))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+REFORM-LET
+
+Summary
+Form:  ( DEFUN INITIAL-LEVEL-HELP ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+INITIAL-LEVEL-HELP
+
+Summary
+Form:  ( DEFUN INITIAL-LEVEL ...)
+Rules: ((:TYPE-PRESCRIPTION INITIAL-LEVEL-HELP))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+INITIAL-LEVEL
+
+Summary
+Form:  ( DEFUN SPLIT-FN-FROM-TYPE ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+SPLIT-FN-FROM-TYPE
+
+Summary
+Form:  ( DEFUN REPLACE-A-REC-FN ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+REPLACE-A-REC-FN
+Goal'
+Subgoal 4
+Subgoal 4'
+Subgoal 4''
+Subgoal 4.2
+Subgoal 4.2'
+Subgoal 4.1
+Subgoal 4.1'
+Subgoal 4.1''
+Subgoal 3
+Subgoal 3'
+Subgoal 3''
+Subgoal 3.2
+Subgoal 3.2'
+Subgoal 3.1
+Subgoal 3.1'
+Subgoal 3.1''
+Subgoal 2
+Subgoal 2'
+Subgoal 2''
+Subgoal 2.2
+Subgoal 2.2'
+Subgoal 2.1
+Subgoal 2.1'
+Subgoal 2.1''
+Subgoal 1
+Subgoal 1'
+Subgoal 1''
+Subgoal 1.2
+Subgoal 1.2'
+Subgoal 1.1
+Subgoal 1.1'
+Subgoal 1.1''
+
+Summary
+Form:  ( MUTUAL-RECURSION ( DEFUN REPLACE-REC-FN-PARAMS ...) ...)
+Rules: ((:DEFINITION ACL2-COUNT)
+        (:DEFINITION ATOM)
+        (:DEFINITION ENDP)
+        (:DEFINITION FIX)
+        (:DEFINITION LAMBDAP)
+        (:DEFINITION LEN)
+        (:DEFINITION NOT)
+        (:DEFINITION O-FINP)
+        (:DEFINITION O<)
+        (:DEFINITION SYNP)
+        (:ELIM CAR-CDR-ELIM)
+        (:EXECUTABLE-COUNTERPART ACL2-COUNT)
+        (:EXECUTABLE-COUNTERPART BINARY-+)
+        (:EXECUTABLE-COUNTERPART EQUAL)
+        (:EXECUTABLE-COUNTERPART NOT)
+        (:EXECUTABLE-COUNTERPART SYMBOLP)
+        (:FAKE-RUNE-FOR-LINEAR NIL)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE CAR-CONS)
+        (:REWRITE CDR-CONS)
+        (:REWRITE COMMUTATIVITY-2-OF-+)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE FOLD-CONSTS-IN-+)
+        (:REWRITE UNICITY-OF-0)
+        (:TYPE-PRESCRIPTION ACL2-COUNT))
+Time:  0.09 seconds (prove: 0.07, print: 0.00, other: 0.01)
+Prover steps counted:  10870
+(REPLACE-REC-FN-PARAMS REPLACE-REC-FN)
+
+Summary
+Form:  ( DEFUN EXPAND-FN ...)
+Rules: ((:FAKE-RUNE-FOR-TYPE-SET NIL))
+Time:  0.00 seconds (prove: 0.00, print: 0.00, other: 0.00)
+EXPAND-FN
+
+ACL2 Warning [Skip-proofs] in (CERTIFY-BOOK "SMT-function" ...):  The
+book "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-function.lisp"
+(including events from its portcullis) contains one or more SKIP-PROOFS
+events.
+
+
+
+
+Summary
+Form:  (CERTIFY-BOOK "SMT-function" ...)
+Rules: NIL
+Warnings:  Skip-proofs
+Time:  3.43 seconds (prove: 0.15, print: 0.01, other: 3.28)
+Prover steps counted:  22452
+; (EV-REC *RETURN-LAST-ARG3* ...) took 
+; 3.43 seconds realtime, 2.89 seconds runtime
+; (215,546,944 bytes allocated).
+Exit code from ACL2 is 43
+-rw------- 1 yanpeng grads 41116 Apr 10 11:44 SMT-function.cert

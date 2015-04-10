@@ -1,12 +1,16 @@
 ;; SMT-run writes to Z3, invoke Z3 and gets the result
 (in-package "ACL2")
-(include-book "centaur/misc/tshell" :dir :system)
-(include-book "std/io/top" :dir :system)
+
 (include-book "./config")
+(include-book "std/io/top" :dir :system)
+(include-book "centaur/misc/tshell" :dir :system)
+(defttag :tshell)
+(value-triple (tshell-ensure))
 
-(tshell-ensure)
+;;(set-print-case :downcase state)
 
-(set-print-case :downcase state)
+(set-state-ok t)
+(defttag :writes-okp)
 
 ;; princ$-list-of-strings
 (defun princ$-list-of-strings (alist channel state)

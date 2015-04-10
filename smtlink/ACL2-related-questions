@@ -1,7 +1,0 @@
-1. When rewriting a term to a variable in the new hypothesis, what if I need to evaluate lambda expressions to actually see the term? Can ACL2 help with the equivalence check on terms?
-E.g. (defun f (x n) (expt x n))
-     (defun g (y m) (+ y (expt y m)))
-     rewrite: (expt-var (expt (expt a i) j))
-     prove: (g (f a i) j) -> contains the rewrite term, but need to expand the lambda expression
-
-2. Termination proof for SMT-function and SMT-translator

@@ -1,0 +1,3 @@
+The following raw Lisp error occurred when loading file
+/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/SMT-connect.lx64fsl:
+Failed assertion: (AND (NULL *HCOMP-CONST-HT*) (NULL *HCOMP-MACRO-HT*))

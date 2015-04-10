@@ -1,6 +1,7 @@
 (in-package "ACL2")
 (include-book "global")
 
+;;(add-include-book-dir :book "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books")
 (deftheory before-arith (current-theory :here))
 (include-book "arithmetic/top-with-meta" :dir :system)
 (deftheory after-arith (current-theory :here))
@@ -9,7 +10,7 @@
 
 ;; for the clause processor to work
 (add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
-(include-book "SMT-connect" :dir :cp)
+(include-book "top" :dir :cp)
 (logic)
 :set-state-ok t
 :set-ignore-ok t
