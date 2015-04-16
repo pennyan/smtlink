@@ -130,7 +130,7 @@
 		 state)))
 
 ;; construct augmented result
-(defun augment-hypothesis (rewritten-term let-expr orig-param main-hints state)
+(defun augment-hypothesis-helper (rewritten-term let-expr orig-param main-hints state)
   "augment-hypothesis: augment the returned clause with \
 new hypothesis in lambda expression"
   (cond ((and (endp let-expr) (endp main-hints))
@@ -143,12 +143,26 @@ new hypothesis in lambda expression"
 	 (add-hints main-hints (list (list 'not rewritten-term)) state))
 	(t
 	 (add-hints main-hints
-		     (list (list 'not
-				 (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
-				       (append (assoc-get-value let-expr) orig-param))))
-		     state))
+		    (list (list 'not
+				(cons (list 'lambda (append (assoc-get-key let-expr) orig-param) rewritten-term)
+				      (append (assoc-get-value let-expr) orig-param))))
+		    state))
 	))
 
+(defun add-aux (clause aux-thms)
+  (if (endp aux-thms)
+      clause
+      (add-aux (let ((thm (car aux-thms)))
+		 (cons (list 'not
+			     (list 'implies (cadar thm) (cadr thm)))
+		       clause))
+	       (cdr aux-thms)
+	       )))
+
+(defun augment-hypothesis (rewritten-term let-expr orig-param main-hints aux-thms state)
+  (prog2$ (cw "aux-thms: ~q0~%" aux-thms)
+  (let ((res (augment-hypothesis-helper rewritten-term let-expr orig-param main-hints state)))
+    (add-aux res aux-thms))))
 
 ;;separate-type
 (defun separate-type (let-expr)
@@ -297,12 +311,15 @@ new hypothesis in lambda expression"
 											 hypo-hints
 											 state))
 						      (fn-type-theorem (create-fn-type-theorem (cadr term)
-											       fn-var-decl))
-						      (aug-theorem (augment-hypothesis expanded-term-list-2
-										       let-expr-translated
-										       orig-param
-										       main-hints
-										       state)))
+											       fn-var-decl)))
+						  (let ((aug-theorem (augment-hypothesis expanded-term-list-2
+											 let-expr-translated
+											 orig-param
+											 main-hints
+											 (append fn-type-theorem
+											   (append hypo-theorem
+											     (append type-theorem)))
+											 state)))
 						  (if (car (SMT-interpreter file-dir))
 						      (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem state)
-						      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state)))))))))))))
+						      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state))))))))))))))

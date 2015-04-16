@@ -1,4 +1,4 @@
-;; 2014-07-01
+0;136;0c;; 2014-07-01
 ;; add an expand level for function expansion
 ;; :hints
 ;;   (("Goal"
@@ -36,12 +36,13 @@
 
 ;; test cases
 (in-package "ACL2")
-(logic)
-:set-state-ok t
-:set-ignore-ok t
+;;(logic)
+;;:set-state-ok t
+;;:set-ignore-ok t
 
 (include-book "arithmetic/top-with-meta" :dir :system)
-(include-book "top")
+(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
+(include-book "top" :dir :cp)
 (tshell-ensure)
 
 ;; test0
@@ -172,7 +173,7 @@
 						   (d4 rationalp)
 						   (e4 rationalp)
 						   (f4 rationalp))))
-			             ;;(:expansion-level 1)
+			             (:expansion-level 1)
 			     )
 			    (:python-file "test4")
 			    (:let ())
@@ -186,26 +187,26 @@
 ;; (fac)
 ;; This test case is buggy!!!!!!!!!!!!!!!!!!!!!!
 ;; Because isInteger is translated into isReal!!!!
-(defun fac (x) (if (zp x) 1 (* x (fac (1- x)))))
+;; (defun fac (x) (if (zp x) 1 (* x (fac (1- x)))))
 
-(defthm test5
-    (implies (and (and (integerp a))
-		  (and (>= a 10)))
-	     (>= (fac a) 20))
-  :hints
-  (("Goal"
-    :clause-processor
-    (my-clause-processor clause
-			 '( (:expand ((:functions ((fac integerp)
-						   (zp booleanp)))
-				      (:expansion-level 3)))
-			    (:python-file "test5")
-			    (:let ())
-			    (:hypothesize ())
-			    (:use ((:type ())
-				   (:hypo ())
-				   (:main ()))))
-			 state))))
+;; (defthm test5
+;;     (implies (and (and (integerp a))
+;; 		  (and (>= a 10)))
+;; 	     (>= (fac a) 20))
+;;   :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (my-clause-processor clause
+;; 			 '( (:expand ((:functions ((fac integerp)
+;; 						   (zp booleanp)))
+;; 				      (:expansion-level 3)))
+;; 			    (:python-file "test5")
+;; 			    (:let ())
+;; 			    (:hypothesize ())
+;; 			    (:use ((:type ())
+;; 				   (:hypo ())
+;; 				   (:main ()))))
+;; 			 state))))
 
 
 ;; test6: user given hypothesis

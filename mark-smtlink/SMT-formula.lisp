@@ -23,8 +23,8 @@
 	       (integerp integerp 1)
 	       (rationalp rationalp 1)
 	       (booleanp booleanp 1)
-	       (my-floor my-floor 1)
-	       (expt expt 2))))  ;; mrg: added my-expt
+	       (expt expt 2)
+	       (my-floor my-floor 1))))
 
 (defun is-SMT-operator (opr)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"
