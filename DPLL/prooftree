@@ -1,0 +1,79 @@
+;; (defthm my-floor-type
+;; (defthm my-floor-lower-bound
+;; (defthm my-floor-upper-bound
+;; (defthm my-floor-comparison
+(defthm B-term-neg-lemma1
+(defthm B-term-neg
+(defthm B-sum-neg
+ (defthm B-neg-lemma1
+ (defthm B-expt->-0
+ (defthm B-neg-lemma2
+ (defthm B-neg-type-lemma3
+ (defthm B-neg-type-lemma4
+(defthm B-neg
+(defthm delta-rewrite-1-lemma1
+(defthm delta-rewrite-1
+(defthm delta-rewrite-2-lemma1
+(defthm delta-rewrite-2-lemma2
+(defthm delta-rewrite-2-lemma3
+(defthm delta-rewrite-2
+(defthm delta-rewrite-3-lemma1-lemma1
+(defthm delta-rewrite-3-lemma1-stupidlemma
+(defthm delta-rewrite-3-lemma1
+ (defthm delta-rewrite-3-lemma2-lemma1-lemma1
+ (defthm delta-rewrite-3-lemma2-lemma1-stupidlemma
+ (defthm delta-rewrite-3-lemma2-lemma1-lemma2
+ (defthm delta-rewrite-3-lemma2-lemma1-lemma3
+(defthm delta-rewrite-3-lemma2-lemma1
+(defthm delta-rewrite-3-lemma2-stupidlemma
+(defthm delta-rewrite-3-lemma2
+(defthm delta-rewrite-3-lemma3
+(defthm delta-rewrite-3
+(defthm delta-rewrite-4
+(defthm delta-rewrite-5
+(defthm delta-<-0-lemma1-lemma
+(defthm delta-<-0-lemma1
+(defthm delta-<-0-lemma2-lemma
+(defthm delta-<-0-lemma2
+(defthm delta-<-0-lemma3-lemma1
+ (defthm delta-<-0-lemma3-lemma2-stupidlemma
+ (defthm delta-<-0-lemma3-lemma2-stupidlemma-omg
+ (defthm delta-<-0-lemma3-lemma2-lemma1
+(defthm delta-<-0-lemma3-lemma2
+(defthm delta-<-0-lemma3-lemma3-stupidlemma
+(defthm delta-<-0-lemma3-lemma3
+(defthm delta-<-0-lemma3-lemma4-stupidlemma
+(defthm delta-<-0-lemma3-lemma4
+(defthm delta-<-0-lemma3
+(defthm delta-<-0-lemma4
+(defthm delta-<-0
+(defthm split-phi-2n+1-lemma1-lemma1
+(defthm split-phi-2n+1-lemma1-lemma2
+(defthm split-phi-2n+1-lemma1-A
+(defthm split-phi-2n+1-lemma2-lemma1
+(defthm split-phi-2n+1-lemma2-lemma2
+(defthm split-phi-2n+1-lemma2-lemma3
+(defthm split-phi-2n+1-lemma2-lemma4
+(defthm split-phi-2n+1-lemma2-lemma5
+(defthm split-phi-2n+1-lemma2-B
+(defthm split-phi-2n+1-lemma3-delta-stupidlemma
+(defthm split-phi-2n+1-lemma3-delta
+(defthm split-phi-2n+1-lemma4
+(defthm split-phi-2n+1-lemma5
+(defthm split-phi-2n+1-lemma6
+(defthm split-phi-2n+1
+(defthm except-for-delta-<-0-lemma1
+(defthm except-for-delta-<-0
+(defthm phi-2n+1-<-0-inductive
+(defthm phi-2n+1-<-0-inductive-corollary
+(defthm phi-2n+1-<-0-inductive-corollary-2
+(defthm phi-2n+1-<-0-base
+(defthm phi-2n+1-<-0-base-new
+(defthm phi-2n+1-<-0-base-corollary
+(defthm phi-2n+1-<-0-base-corollary-2
+(defthm stupid-proof
+(defthm phi-2n+1-<-0-lemma-lemma1
+(defthm phi-2n+1-<-0-lemma-lemma2
+(defthm phi-2n+1-<-0-lemma
+(defthm phi-2n+1-<-0
+(defthm phi-2n-1-<-0

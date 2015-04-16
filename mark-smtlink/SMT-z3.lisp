@@ -5,7 +5,7 @@
 (include-book "./SMT-function")
 (include-book "./SMT-translator")
 (defttag :tshell)
-(value-triple (tshell-ensure))
+(tshell-ensure)
 (set-state-ok t)
 (set-ignore-ok t)
 (program)
@@ -118,13 +118,15 @@
 ;; get-hint-formula
 (defun get-hint-formula (name state)
   "get-hint-formula: get the formula by a hint's name"
-  (formula name t (w state)))
+  (prog2$ (cw "formula(~q0): ~q1 ~%" name (formula name t (w state)))
+  (formula name t (w state))))
 
 ;; add-hints
 (defun add-hints (hints clause state)
   "add-hints: add a list of hint to a clause, in the form of ((not hint3) ((not hint2) ((not hint1) clause)))"
   (if (endp hints)
-      clause
+      (prog2$ (cw "After added hints: ~q0 ~%" clause)
+      clause)
       (add-hints (cdr hints)
 		 (cons (list 'not (get-hint-formula (car hints) state)) clause)
 		 state)))
@@ -148,7 +150,6 @@ new hypothesis in lambda expression"
 				       (append (assoc-get-value let-expr) orig-param))))
 		     state))
 	))
-
 
 ;;separate-type
 (defun separate-type (let-expr)

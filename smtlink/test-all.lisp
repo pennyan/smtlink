@@ -41,7 +41,8 @@
 :set-ignore-ok t
 
 (include-book "arithmetic/top-with-meta" :dir :system)
-(include-book "./SMT-connect")
+(include-book "top")
+(tshell-ensure)
 
 ;; test0
 (defconst *a* 1)
@@ -63,7 +64,8 @@
 			   (:use ((:type ())
 				  (:hypo ())
 				  (:main ()))))
-			 ))))
+
+			 state))))
 
 ;; test1
 (defun foo1 (x y) (* x (+ 1 y)))
@@ -87,7 +89,8 @@
 			   (:hypothesize ())
 			   (:use ((:type ())
 				  (:hypo ())
-				  (:main ()))))))))
+				  (:main ()))))
+			 state))))
 
 ;; test2
 (defun foo2 (x) (+ x 3))
@@ -109,7 +112,8 @@
 			    (:hypothesize ())
 			    (:use ((:type ())
 				   (:hypo ())
-				   (:main ()))))))))
+				   (:main ()))))
+			 state))))
 
 ;; test3
 (defun foo3 (x args) (+ x (nth 0 args) (nth 1 args)))
@@ -133,7 +137,8 @@
 			    (:hypothesize ())
 			    (:use ((:type ())
 				   (:hypo ())
-				   (:main ()))))))))
+				   (:main ()))))
+			 state))))
 
 ;; test4
 ;; x^2 + y^2 >= 2xy
@@ -174,7 +179,8 @@
 			    (:hypothesize ())
 			    (:use ((:type ())
 				   (:hypo ())
-				   (:main ()))))))))
+				   (:main ()))))
+			 state))))
 
 ;; test5: with recursive call
 ;; (fac)
@@ -198,7 +204,8 @@
 			    (:hypothesize ())
 			    (:use ((:type ())
 				   (:hypo ())
-				   (:main ()))))))))
+				   (:main ()))))
+			 state))))
 
 
 ;; test6: user given hypothesis
@@ -255,7 +262,8 @@
 					   (> expt_gamma_n 0)))
 			    (:use ((:type ())
 				   (:hypo ())
-				   (:main ()))))))))
+				   (:main ()))))
+			 state))))
 
 ;; test7: user given hints
 ;; Design:
@@ -308,4 +316,5 @@
 			    (:use ((:type ())
 			    	   (:hypo ((hint-thm-7-1)))
 			    	   (:main (hint-thm-7-1))))
-			   )))))
+			   )
+			 state))))

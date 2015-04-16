@@ -1,89 +1,102 @@
 level 0:
 (IF 
   (NOT 
-    (RATIONALP DC)) 'T 
+    (RATIONALP V0)) 'T 
   (IF 
     (NOT 
-      (RATIONALP V0)) 'T 
+      (RATIONALP PHI0)) 'T 
     (IF 
       (NOT 
-        (RATIONALP PHI0)) 'T 
+        (RATIONALP DV)) 'T 
       (IF 
-        (NOT 
-          (RATIONALP DV)) 'T 
+        (< 
+          (BINARY-* '10/9 V0) '1) 'T 
         (IF 
-          (< DC '0) 'T 
+          (< '11/10 V0) 'T 
           (IF 
-            (NOT 
-              (< DC '1)) 'T 
+            (< '1 
+              (UNARY-- 
+                (BINARY-* '8000 DV))) 'T 
             (IF 
-              (< 
-                (BINARY-* '10/9 V0) '1) 'T 
+              (< '1 
+                (BINARY-* '8000 DV)) 'T 
               (IF 
-                (< '11/10 V0) 'T 
+                (< PHI0 '0) 'T 
                 (IF 
-                  (< '1 
-                    (UNARY-- 
-                      (BINARY-* '8000 DV))) 'T 
-                  (IF 
-                    (< '1 
-                      (BINARY-* '8000 DV)) 'T 
-                    (IF 
-                      (< PHI0 '0) 'T 
-                      (IF 
-                        (NOT 
-                          (< PHI0 
-                            (BINARY-+ '-1 
-                              (BINARY-* 
-                                (BINARY-+ '1 
-                                  (BINARY-+ DV V0)) 
-                                (UNARY-/ 
-                                  (BINARY-+ '2561/3200 
-                                    (BINARY-+ V0 
-                                      (BINARY-* '1/3200 DC)))))))) 'T 
-                        (< 
+                  (NOT 
+                    (< PHI0 
+                      (BINARY-+ '-1 
+                        (BINARY-+ 
+                          (UNARY-/ 
+                            (BINARY-+ '2561/3200 V0)) 
                           (BINARY-+ 
-                            (BINARY-* '1/3125 PHI0) 
+                            (BINARY-* DV 
+                              (UNARY-/ 
+                                (BINARY-+ '2561/3200 V0))) 
+                            (BINARY-* V0 
+                              (UNARY-/ 
+                                (BINARY-+ '2561/3200 V0)))))))) 'T 
+                  (< 
+                    (BINARY-+ 
+                      (BINARY-* '1/3125 PHI0) 
+                      (BINARY-+ 
+                        (UNARY-/ 
+                          (BINARY-+ '3201/3200 V0)) 
+                        (BINARY-+ 
+                          (BINARY-* '1/125 
+                            (UNARY-/ 
+                              (BINARY-+ '1599/1600 V0))) 
+                          (BINARY-+ 
+                            (BINARY-* '1/25 
+                              (UNARY-/ 
+                                (BINARY-+ '3199/3200 V0))) 
                             (BINARY-+ 
-                              (BINARY-* 
-                                (BINARY-+ '1 
-                                  (BINARY-+ DV V0)) 
+                              (BINARY-* '1/625 
                                 (UNARY-/ 
-                                  (BINARY-+ '3201/3200 
-                                    (BINARY-+ V0 
-                                      (BINARY-* '1/3200 DC))))) 
+                                  (BINARY-+ '3197/3200 V0))) 
                               (BINARY-+ 
-                                (BINARY-* '1/125 
-                                  (BINARY-* 
-                                    (BINARY-+ '1 
-                                      (BINARY-+ DV V0)) 
-                                    (UNARY-/ 
-                                      (BINARY-+ '1599/1600 
-                                        (BINARY-+ V0 
-                                          (BINARY-* '1/3200 DC)))))) 
+                                (BINARY-* DV 
+                                  (UNARY-/ 
+                                    (BINARY-+ '3201/3200 V0))) 
                                 (BINARY-+ 
-                                  (BINARY-* '1/25 
-                                    (BINARY-* 
-                                      (BINARY-+ '1 
-                                        (BINARY-+ DV V0)) 
-                                      (UNARY-/ 
-                                        (BINARY-+ '3199/3200 
-                                          (BINARY-+ V0 
-                                            (BINARY-* '1/3200 DC)))))) 
-                                  (BINARY-* '1/625 
-                                    (BINARY-* 
-                                      (BINARY-+ '1 
-                                        (BINARY-+ DV V0)) 
-                                      (UNARY-/ 
-                                        (BINARY-+ '3197/3200 
-                                          (BINARY-+ V0 
-                                            (BINARY-* '1/3200 DC)))))))))) '656/625)))))))))))))
+                                  (BINARY-* V0 
+                                    (UNARY-/ 
+                                      (BINARY-+ '3201/3200 V0))) 
+                                  (BINARY-+ 
+                                    (BINARY-* '1/125 
+                                      (BINARY-* DV 
+                                        (UNARY-/ 
+                                          (BINARY-+ '1599/1600 V0)))) 
+                                    (BINARY-+ 
+                                      (BINARY-* '1/125 
+                                        (BINARY-* V0 
+                                          (UNARY-/ 
+                                            (BINARY-+ '1599/1600 V0)))) 
+                                      (BINARY-+ 
+                                        (BINARY-* '1/25 
+                                          (BINARY-* DV 
+                                            (UNARY-/ 
+                                              (BINARY-+ '3199/3200 V0)))) 
+                                        (BINARY-+ 
+                                          (BINARY-* '1/25 
+                                            (BINARY-* V0 
+                                              (UNARY-/ 
+                                                (BINARY-+ '3199/3200 V0)))) 
+                                          (BINARY-+ 
+                                            (BINARY-* '1/625 
+                                              (BINARY-* DV 
+                                                (UNARY-/ 
+                                                  (BINARY-+ '3197/3200 V0)))) 
+                                            (BINARY-* '1/625 
+                                              (BINARY-* V0 
+                                                (UNARY-/ 
+                                                  (BINARY-+ '3197/3200 V0)))))))))))))))) '656/625))))))))))
 
 level 1:IMPLIES
 
 level 2:
 (IF 
-  (RATIONALP DC) nil 'nil)
+  (RATIONALP V0) nil 'nil)
 
 level 3:'T
 

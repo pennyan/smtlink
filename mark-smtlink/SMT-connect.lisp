@@ -8,8 +8,8 @@
 (program)
 (defttag :my-cl-proc)
 
-(include-book "SMT-z3")
-(value-triple (tshell-ensure))
+;;(include-book "SMT-z3")
+;;(value-triple (tshell-ensure))
 
 (progn
 
@@ -20,6 +20,7 @@
   (progn!
 
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
+   (load "SMT-z3.lisp")
    
    (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
      (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)))
@@ -50,6 +51,7 @@
 	      (if res
 		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
 					    (list (append expanded-cl cl))
+					    ;;(cons (list 'not expanded-cl) cl)
 					    )))
 		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause)
 			    (mv nil res-clause state)))

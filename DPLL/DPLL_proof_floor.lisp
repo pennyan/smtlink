@@ -9,10 +9,11 @@
 
 ;; for the clause processor to work
 (add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
-(include-book "SMT-connect" :dir :cp)
+(include-book "top" :dir :cp)
 (logic)
 :set-state-ok t
 :set-ignore-ok t
+(tshell-ensure)
 
 ;;:start-proof-tree
 
@@ -181,7 +182,8 @@
   					   (equal (* expt_gamma_minus_h expt_gamma_h) 1)))
 			   (:use ((:let ())
 				  (:hypo (()))
-				  (:main ())))))
+				  (:main ()))))
+			 state)
     ))
   )
 )
@@ -411,7 +413,8 @@
 				    (expt (gamma) (1+ (- n)))
 				     rationalp)
 				   ))
-			    (:hypothesize ())))
+			    (:hypothesize ()))
+			 state)
     )))
 )
 
@@ -663,7 +666,8 @@
 				   (:hypo ((delta-rewrite-3-lemma1)
 					   (delta-rewrite-3-lemma2)
 					   (delta-rewrite-3-lemma3)))
-				   (:main ()))))))))
+				   (:main ()))))
+			 state))))
 )
 
 (local
@@ -746,7 +750,8 @@
 					  (expt (gamma) (- 2 (* 2 n)))
 					   rationalp)
 					 ))
-				  (:hypothesize ((> expt_gamma_2n_minus_2 0))))))))
+				  (:hypothesize ((> expt_gamma_2n_minus_2 0))))
+				state))))
 )
 
 (local
@@ -813,7 +818,8 @@
 					  (expt (gamma) (- 2 (* 2 n)))
 					   rationalp)
 					 ))
-				  (:hypothesize ((> expt_gamma_2_minus_2n 0))))))))
+				  (:hypothesize ((> expt_gamma_2_minus_2n 0))))
+				state))))
 )
 
 (local
@@ -970,7 +976,8 @@
 				  (:use ((:type ())
 				   	 (:hypo ((delta-<-0-lemma3-lemma4)))
 				   	 (:main ())))
-				  ))
+				  )
+				state)
 	   :in-theory (disable delta-<-0-lemma3-lemma1
 	   		       delta-<-0-lemma3-lemma3-stupidlemma
 	   		       delta-<-0-lemma3-lemma2
@@ -1015,7 +1022,8 @@
 				  (:hypothesize ((equal expt_gamma_1 1/5)
 						 (equal expt_gamma_2 1/25)
 						 )
-				   )))
+				   ))
+				state)
 	   :in-theory (disable delta-<-0-lemma3-lemma1
 	   		       delta-<-0-lemma3-lemma3-stupidlemma
 	   		       delta-<-0-lemma3-lemma2
@@ -1299,7 +1307,8 @@
 					     (:expansion-level 1)))
 				  (:python-file "except-for-delta-smaller-than-0-lemma1")
 				  (:let ())
-				  (:hypothesize ())))))
+				  (:hypothesize ()))
+				state)))
   :rule-classes :linear)
 )
 
@@ -1355,7 +1364,8 @@
   					     (:expansion-level 1)))
   				  (:python-file "phi-2n+1-smaller-than-0-base")
   				  (:let ())
-  				  (:hypothesize ())))))
+  				  (:hypothesize ()))
+				state)))
   )
 
 (defthm phi-2n+1-<-0-base-new
@@ -1368,7 +1378,8 @@
   					     (:expansion-level 1)))
   				  (:python-file "phi-2n+1-smaller-than-0-base-new")
   				  (:let ())
-  				  (:hypothesize ())))))
+  				  (:hypothesize ()))
+				state)))
   )
 
 (defthm phi-2n+1-<-0-base-corollary
