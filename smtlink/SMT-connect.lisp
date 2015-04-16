@@ -55,7 +55,7 @@
 			    (mv nil res-clause state)))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
-			  (mv nil (list cl) state)))))))
+			  (mv t (list cl) state)))))))
   
   (push-untouchable acl2-my-prove t)
   )

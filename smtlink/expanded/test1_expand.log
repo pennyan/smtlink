@@ -19,9 +19,9 @@ level 0:
           (< 
             (BINARY-+ Y '40/3) X)) 'nil) 'nil) 'nil) 
   (< 
-    (FOO1 X Y) 
     (FOO1 X 
-      (FOO1 X Z))))
+      (FOO1 X Z)) 
+    (FOO1 X Y)))
 
 level 1:IMPLIES
 
@@ -51,15 +51,15 @@ level 3:
     (LAMBDA 
       (var0 var1) 
       (BINARY-* var0 
-        (BINARY-+ '1 var1))) X Y) 
-  (
-    (LAMBDA 
-      (var2 var3) 
-      (BINARY-* var2 
-        (BINARY-+ '1 var3))) X 
+        (BINARY-+ '1 var1))) X 
     (
       (LAMBDA 
-        (var4 var5) 
-        (BINARY-* var4 
-          (BINARY-+ '1 var5))) X Z)))
+        (var2 var3) 
+        (BINARY-* var2 
+          (BINARY-+ '1 var3))) X Z)) 
+  (
+    (LAMBDA 
+      (var4 var5) 
+      (BINARY-* var4 
+        (BINARY-+ '1 var5))) X Y))
 

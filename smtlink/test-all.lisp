@@ -77,7 +77,7 @@
 			    (and (not (<= x 0))
 				 (equal z (- 7 3/2))
 				 (or (> x y) (> x (+ y 40/3)))))
-		       (> (foo1 x (foo1 x z)) (foo1 x y)))
+		       (< (foo1 x (foo1 x z)) (foo1 x y)))
   :hints
   (("Goal"
     :clause-processor
