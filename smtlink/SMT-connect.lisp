@@ -2,11 +2,11 @@
 (set-state-ok t)
 
 (defstub acl2-my-prove
-    (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
-    (mv t nil nil nil nil state))
+  (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
+  (mv t nil nil nil nil state))
 
 (program)
-(defttag :my-cl-proc)
+(defttag :Smtlink)
 
 (include-book "SMT-z3")
 (value-triple (tshell-ensure))
@@ -25,7 +25,7 @@
      (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)))
   
   ;; put fn-lst level and fname into the hint list
-  (defun my-clause-processor (cl hint state)
+  (defun Smtlink (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
     (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
@@ -61,6 +61,6 @@
   )
 
 (define-trusted-clause-processor
-  my-clause-processor
+  Smtlink
   nil
-  :ttag my-cl-proc)
+  :ttag Smtlink)

@@ -182,7 +182,7 @@
 
 ; if changing gamma to a variable works, then I'll need to fix B-sum, B-term, and B-term-expt
 ; in the code below
-;;(defthm stop-here nil)
+(defthm stop-here nil)
 
 (defthm B-term-neg-mrg1-a
   (implies (and (and (integerp h) (rationalp v0) (rationalp dv) (rationalp g1))
