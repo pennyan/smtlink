@@ -1,3 +1,5 @@
+(in-package "ACL2")
+
 (defstub acl2-my-prove (term) t)
 
 (program)

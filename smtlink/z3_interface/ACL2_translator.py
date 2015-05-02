@@ -95,23 +95,23 @@ class to_smt:
         self.solver.add(And(Implies(condx, v == thenx), Implies(Not(condx), v == elsex)))
         return(v)
 
-    # array
-    def array(self, mylist):
-        if not mylist:
-           raise("Can't determine type of an empty list.")
-        else:
-            ty = sort(mylist[0])
-            a = Array(self.newVar(), IntSort(), ty)
-            n = len(mylist)
-            for i in range(0,n):
-                j = Int(self.newVar())
-                self.solver.add(j == i)
-                self.solver.add(Select(a, j) == mylist[i])
-        return a
+    # # array
+    # def array(self, mylist):
+    #     if not mylist:
+    #        raise("Can't determine type of an empty list.")
+    #     else:
+    #         ty = sort(mylist[0])
+    #         a = Array(self.newVar(), IntSort(), ty)
+    #         n = len(mylist)
+    #         for i in range(0,n):
+    #             j = Int(self.newVar())
+    #             self.solver.add(j == i)
+    #             self.solver.add(Select(a, j) == mylist[i])
+    #     return a
     
-    # nth
-    def nth(self, i, a):
-        return Select(a, i)
+    # # nth
+    # def nth(self, i, a):
+    #     return Select(a, i)
 
     # usage prove(claim) or prove(hypotheses, conclusion)
     def prove(self, hypotheses, conclusion=0):

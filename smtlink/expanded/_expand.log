@@ -1,9 +1,21 @@
-level 0:nil
+level 0:
+(IMPLIES 
+  (IF 
+    (RATIONALP X) 'T 'nil) 
+  (EQUAL 
+    (BINARY-+ X X) 
+    (BINARY-* '1 
+      (BAR0 X))))
 
 level 1:IMPLIES
 
 level 2:
-(IF nil nil 'nil)
+(IF 
+  (RATIONALP X) 'T 'nil)
 
-level 3:nil
+level 3:
+(EQUAL 
+  (BINARY-+ X X) 
+  (BINARY-* '1 
+    (BAR0 X)))
 

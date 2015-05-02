@@ -167,7 +167,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (my-clause-processor clause
+    (Smtlink clause
   			 '( (:expand ((:functions ((B-term-rest rationalp)
   						   (gamma rationalp)
   						   (mu rationalp)
@@ -391,7 +391,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (my-clause-processor clause
+    (Smtlink clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)
@@ -628,7 +628,7 @@
     :in-theory (disable delta-rewrite-2-lemma1)
     :do-not-induct t
     :clause-processor
-    (my-clause-processor clause
+    (Smtlink clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)
@@ -722,7 +722,7 @@
 		       0)))
   :hints (("Goal"
 	   :clause-processor
-	   (my-clause-processor clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -790,7 +790,7 @@
 		       0)))
   :hints (("Goal"
 	   :clause-processor
-	   (my-clause-processor clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -944,7 +944,7 @@
 		       (expt (gamma) (- 2 (* 2 n))))))
   :hints (("Goal"
 	   :clause-processor
-	   (my-clause-processor clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -1003,7 +1003,7 @@
 	      (* 2 n)))
   :hints (("Goal"
 	   :clause-processor
-	   (my-clause-processor clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -1302,7 +1302,7 @@
 	   (< (+ (* c c A) (* c B)) 0))
   :hints (("Goal"
 	   :clause-processor
-	   (my-clause-processor clause
+	   (Smtlink clause
 				'( (:expand ((:function ())
 					     (:expansion-level 1)))
 				  (:python-file "except-for-delta-smaller-than-0-lemma1")
@@ -1359,7 +1359,7 @@
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1 dc) 0))
   :hints (("Goal''"
 	   :clause-processor
-  	   (my-clause-processor clause
+  	   (Smtlink clause
   				'( (:expand ((:function ())
   					     (:expansion-level 1)))
   				  (:python-file "phi-2n+1-smaller-than-0-base")
@@ -1373,7 +1373,7 @@
 	   (< (phi-2n-1 (- i 1) phi0 v0 dv g1 dc) 0))
   :hints (("Goal''"
 	   :clause-processor
-  	   (my-clause-processor clause
+  	   (Smtlink clause
   				'( (:expand ((:function ())
   					     (:expansion-level 1)))
   				  (:python-file "phi-2n+1-smaller-than-0-base-new")

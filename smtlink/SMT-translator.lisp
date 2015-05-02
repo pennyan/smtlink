@@ -21,8 +21,8 @@
 	       (if "s.ifx" 3)
 	       (not "s.notx" 1)
 	       (lambda "lambda" 2)
-	       (nth "s.nth" 2)
-	       (list "s.array" 0)
+	       ;; (nth "s.nth" 2)
+	       ;; (list "s.array" 0)
 	       (implies "s.implies" 2)
 	       (integerp "s.integerp" 1)
 	       (rationalp "s.rationalp" 1)
@@ -200,12 +200,12 @@
 		       #\Space
 		       (translate-expression-long (cdr expression)))
 		   '\)))
-	    ((and (is-SMT-operator (car expression))
-		  (equal (car expression) 'list))
-	     (list (translate-operator (car expression))
-		   '\( '\[
-		   (translate-expression-long (cdr expression))
-		   '\] '\)))
+	    ;; ((and (is-SMT-operator (car expression))
+	    ;; 	  (equal (car expression) 'list))
+	    ;;  (list (translate-operator (car expression))
+	    ;; 	   '\( '\[
+	    ;; 	   (translate-expression-long (cdr expression))
+	    ;; 	   '\] '\)))
 	    ((is-SMT-operator (car expression))
 	     (list (translate-operator (car expression))
 		   '\(

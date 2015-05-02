@@ -1,4 +1,14 @@
+;;
+;; This file is adapted from :doc define-trusted-clause-processor
+;; The dependent files, instead of being in raw Lisp, are in ACL2.
+;; That makes me doubt if I really need to do defstub, progn,
+;; progn!, and push-untouchable...
+;;
+;; However, I'm using them right now in case if there are
+;; behaviours with those constructs that are not known to me.
+;;
 (in-package "ACL2")
+(include-book "tools/bstar" :dir :system)
 (set-state-ok t)
 
 (defstub acl2-my-prove
@@ -22,29 +32,32 @@
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
    
    (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
-     (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)))
+     (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state))
+   )
+
+  (defun Smtlink-arguments (hint)
+    (b* ((fn-lst (cadr (assoc ':functions
+			      (cadr (assoc ':expand hint)))))
+	 (fn-level (cadr (assoc ':expansion-level
+				(cadr (assoc ':expand hint)))))
+	 (fname (cadr (assoc ':python-file hint)))
+	 (let-expr (cadr (assoc ':let hint)))
+	 (new-hypo (cadr (assoc ':hypothesize hint)))
+	 (let-hints (cadr (assoc ':type
+				 (cadr (assoc ':use hint)))))
+	 (hypo-hints (cadr (assoc ':hypo
+				  (cadr (assoc ':use hint)))))
+	 (main-hints (cadr (assoc ':main
+				  (cadr (assoc ':use hint))))))
+	(mv fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints))
+    )
   
-  ;; put fn-lst level and fname into the hint list
   (defun Smtlink (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
     (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
-    (let ((fn-lst (cadr (assoc ':functions
-			       (cadr (assoc ':expand hint)))))
-	  ;; 2014-07-01: added function expansion level
-	  (fn-level (cadr (assoc ':expansion-level
-				 (cadr (assoc ':expand hint)))))
-	  (fname (cadr (assoc ':python-file hint)))
-	  (let-expr (cadr (assoc ':let hint)))
-	  ;; translate formulas in let associate list into underling representation
-	  (new-hypo (cadr (assoc ':hypothesize hint)))
-	  ;; hints for let bindings' type assertion, hypothesis and the main theorem
-	  (let-hints (cadr (assoc ':type
-				  (cadr (assoc ':use hint)))))
-	  (hypo-hints (cadr (assoc ':hypo
-				   (cadr (assoc ':use hint)))))
-	  (main-hints (cadr (assoc ':main
-				   (cadr (assoc ':use hint))))))
+    (b* (((mv fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
+	  (Smtlink-arguments hint)))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
 	      (acl2-my-prove (disjoin cl) fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
 	      (if res
