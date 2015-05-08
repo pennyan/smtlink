@@ -55,11 +55,12 @@
 		 concl-list)))
 
 ;; my-prove-write-file
-(defun my-prove-write-file (term fdir state)
+(defun my-prove-write-file (term fdir smt-cnf state)
   "my-prove-write-file: write translated term into a file"
   (write-SMT-file fdir
 		  (translate-SMT-formula
 		   (my-prove-SMT-formula term))
+		  smt-cnf
 		  state))
 
 ;; my-prove-write-expander-file
@@ -269,9 +270,9 @@ new hypothesis in lambda expression"
 ;; mk-fname make a file name for the z3 file
 ;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
 ;; if fname is not nil, it will use that user provided name
-(defun mk-fname (fname)
+(defun mk-fname (fname smt-cnf)
   (if (endp fname)
-      (let ((cmd (concatenate 'string "mktemp " *dir-files* "/smtlink_XXXXX.py")))
+      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-cnf) "/smtlink_XXXXX.py")))
 	(mv-let (finishedp exit-status lines)
 		(time$ (tshell-call cmd
 				    :print t
@@ -283,17 +284,17 @@ new hypothesis in lambda expression"
 		    (car lines)
 		    (cw "Error(SMT-z3): Generate file error."))))
       (concatenate 'string
-		   *dir-files*
+		   (smtlink-config->dir-files smt-cnf)
 		   "/"
 		   fname
 		   ".py")))
 
 ;; my-prove
-(defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
+(defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
   "my-prove: return the result of calling SMT procedure"
-  (let ((file-dir (mk-fname fname))
+  (let ((file-dir (mk-fname fname smt-cnf))
 	(expand-dir (concatenate 'string
-				 *dir-expanded*
+				 (smtlink-config->dir-expanded smt-cnf)
 				 "/"
 				 fname
 				 "\_expand.log")))
@@ -316,6 +317,7 @@ new hypothesis in lambda expression"
 					      (let ((state (my-prove-write-file
 							    expanded-term-list
 							    file-dir
+							    smt-cnf
 							    state)))
 						(let ((type-theorem (create-type-theorem (cadr term)
 											 let-expr-translated
@@ -338,6 +340,6 @@ new hypothesis in lambda expression"
 											   (append hypo-theorem
 											     (append type-theorem)))
 											 state)))
-						  (if (car (SMT-interpreter file-dir))
+						  (if (car (SMT-interpreter file-dir smt-cnf))
 						      (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem state)
 						      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state))))))))))))))

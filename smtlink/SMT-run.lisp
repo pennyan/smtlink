@@ -41,26 +41,26 @@
 	  (t (cw "Error(run): Invalid list ~q0." (car slist))))))
 
 ;; write-head
-(defun write-head ()
+(defun write-head (smt-cnf)
   "write-head: writes the head of a z3 file"
   (coerce-str-and-char-to-str
    (list "from sys import path"
 	 #\Newline
-	 "path.insert(0,\"" *dir-interface* "\")"
+	 "path.insert(0,\"" (smtlink-config->dir-interface smt-cnf) "\")"
 	 #\Newline
-	 "from " *z3-module* " import " *z3-class* ", Q"
+	 "from "(smtlink-config->SMT-module smt-cnf) " import " (smtlink-config->SMT-class smt-cnf) ", Q"
 	 #\Newline
-	 "s = " *z3-class* "()"
+	 "s = " (smtlink-config->SMT-class smt-cnf) "()"
 	 #\Newline)))
 
 ;; write-SMT-file
-(defun write-SMT-file (filename translated-formula state)
+(defun write-SMT-file (filename translated-formula smt-cnf state)
   "write-SMT-file: writes the translated formula into a python file, it opens and closes the channel and write the including of Z3 inteface"
   (mv-let
    (channel state)
    (open-output-channel! filename :character state)
    (let ((state (princ$-list-of-strings
-		 (write-head) channel state)))
+		 (write-head smt-cnf) channel state)))
      (let ((state (princ$-list-of-strings translated-formula channel state)))
        (close-output-channel channel state)))))
 
@@ -76,9 +76,9 @@
      (close-output-channel channel state))))
 
 ;; SMT-run
-(defun SMT-run (filename)                                   
+(defun SMT-run (filename smt-cnf)                                   
   "SMT-run: run the external SMT procedure from ACL2"
-  (let ((cmd (concatenate 'string *smt-cmd* " " filename)))
+  (let ((cmd (concatenate 'string (smtlink-config->smt-cmd smt-cnf) " " filename)))
     (time$ (tshell-call cmd
                         :print t
                         :save t)

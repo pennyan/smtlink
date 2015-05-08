@@ -12,13 +12,14 @@
 (set-state-ok t)
 
 (defstub acl2-my-prove
-  (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
+  (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
   (mv t nil nil nil nil state))
 
 (program)
 (defttag :Smtlink)
 
 (include-book "SMT-z3")
+(include-book "config")
 (value-triple (tshell-ensure))
 
 (progn
@@ -31,8 +32,8 @@
 
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
    
-   (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
-     (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state))
+   (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
+     (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state))
    )
 
   (defun Smtlink-arguments (hint)
@@ -59,7 +60,7 @@
     (b* (((mv fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
 	  (Smtlink-arguments hint)))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
-	      (acl2-my-prove (disjoin cl) fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
+	      (acl2-my-prove (disjoin cl) fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints (smt-cnf) state)
 	      (if res
 		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
 					    (list (append expanded-cl cl))

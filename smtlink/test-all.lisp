@@ -43,6 +43,26 @@
 (include-book "arithmetic/top-with-meta" :dir :system)
 (add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
 (include-book "top" :dir :cp)
+
+;; configurations
+(local
+ (progn
+   (defun my-smtlink-config ()
+     (declare (xargs :guard t))
+     (make-smtlink-config :dir-interface
+			  "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface"
+			  :dir-files
+			  "z3\_files"
+			  :SMT-module
+			  "ACL22SMT"
+			  :SMT-class
+			  "to_smt"
+			  :smt-cmd
+			  "python"
+			  :dir-expanded
+			  "expanded"))
+   (defattach smt-cnf my-smtlink-config)))
+
 (tshell-ensure)
 
 ;; test0
@@ -57,7 +77,8 @@
   (("Goal"
     :clause-processor
     (Smtlink clause
-	     '( (:expand ((:functions ((bar0 rationalp)))
+	     '( (:config (smt-cnf))
+	       (:expand ((:functions ((bar0 rationalp)))
 			  (:expansion-level 1)))
 	       )
 	     state))))
