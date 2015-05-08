@@ -76,7 +76,7 @@
      (close-output-channel channel state))))
 
 ;; SMT-run
-(defun SMT-run (filename)                                     
+(defun SMT-run (filename)                                   
   "SMT-run: run the external SMT procedure from ACL2"
   (let ((cmd (concatenate 'string *smt-cmd* " " filename)))
     (time$ (tshell-call cmd

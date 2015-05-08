@@ -266,14 +266,32 @@ new hypothesis in lambda expression"
 	      (cadddr (cadr term)))
 	(caddr term)))
 
+;; mk-fname make a file name for the z3 file
+;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
+;; if fname is not nil, it will use that user provided name
+(defun mk-fname (fname)
+  (if (endp fname)
+      (let ((cmd (concatenate 'string "mktemp " *dir-files* "/smtlink_XXXXX.py")))
+	(mv-let (finishedp exit-status lines)
+		(time$ (tshell-call cmd
+				    :print t
+				    :save t)
+		       :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
+		       :args (list cmd))
+		(if (and (equal finishedp t)
+			 (equal exit-status 0))
+		    (car lines)
+		    (cw "Error(SMT-z3): Generate file error."))))
+      (concatenate 'string
+		   *dir-files*
+		   "/"
+		   fname
+		   ".py")))
+
 ;; my-prove
 (defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
   "my-prove: return the result of calling SMT procedure"
-  (let ((file-dir (concatenate 'string
-			       *dir-files*
-			       "/"
-			       fname
-			       ".py"))
+  (let ((file-dir (mk-fname fname))
 	(expand-dir (concatenate 'string
 				 *dir-expanded*
 				 "/"

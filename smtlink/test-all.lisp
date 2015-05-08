@@ -45,28 +45,22 @@
 (include-book "top" :dir :cp)
 (tshell-ensure)
 
-;; ;; test0
-;; (defconst *a* 1)
-;; (defun bar0 (x) (* 2 x))
+;; test0
+(defconst *a* 1)
+(defun bar0 (x) (* 2 x))
 
-;; ;; a very simple theorem
-;; (defthm test0
-;;   (implies (and (and (rationalp x)) (and))
-;; 	   (equal (+ x x) (* *a* (bar0 x))))
-;;   :hints
-;;   (("Goal"
-;;     :clause-processor
-;;     (Smtlink clause
-;; 	     '( (:expand ((:functions ((bar0 rationalp)))
-;; 			  (:expansion-level 1)))
-;; 	       (:python-file "test0")
-;; 	       ;;(:let ())
-;; 	       ;;(:hypothesize ())
-;; 	       ;;(:use ((:type ())
-;; 	       ;;      (:hypo ())
-;; 	       ;;      (:main ())))
-;; 	       )
-;; 	     state))))
+;; a very simple theorem
+(defthm test0
+  (implies (and (and (rationalp x)) (and))
+	   (equal (+ x x) (* *a* (bar0 x))))
+  :hints
+  (("Goal"
+    :clause-processor
+    (Smtlink clause
+	     '( (:expand ((:functions ((bar0 rationalp)))
+			  (:expansion-level 1)))
+	       )
+	     state))))
 
 ;; ;; test1
 ;; (defun foo1 (x y) (* x (+ 1 y)))
@@ -116,30 +110,24 @@
 ;; 		      (:main ()))))
 ;; 	     state))))
 
-;; test3
-(defun foo3 (x args) (+ x (nth 0 args) (nth 1 args)))
+;; ;; test3
+;; (defun foo3 (x args) (+ x (nth 0 args) (nth 1 args)))
 
-(defthm test3
-  (implies (and (and (rationalp x)
-		     (integerp i)
-		     (integerp j))
-		(and (> x 0)
-		     (> i 0)
-		     (> j 0)))
-	   (> (foo3 x '(i j)) 0))
-  :hints
-  (("Goal"
-    :clause-processor
-    (Smtlink clause
-	     '( (:expand ((:functions ((foo3 rationalp)))
-			  (:expansion-level 1)))
-	       (:python-file "test3")
-	       (:let ())
-	       (:hypothesize ())
-	       (:use ((:type ())
-		      (:hypo ())
-		      (:main ()))))
-	     state))))
+;; (defthm test3
+;;   (implies (and (and (rationalp x)
+;; 		     (integerp i)
+;; 		     (integerp j))
+;; 		(and (> x 0)
+;; 		     (> i 0)
+;; 		     (> j 0)))
+;; 	   (> (foo3 x '(i j)) 0))
+;;   :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (Smtlink clause
+;; 	     '( (:expand ((:functions ((foo3 rationalp)))
+;; 			  (:expansion-level 1))))
+;; 	     state))))
 
 ;; ;; test4
 ;; ;; x^2 + y^2 >= 2xy

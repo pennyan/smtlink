@@ -17,5 +17,8 @@ level 3:
 (EQUAL 
   (BINARY-+ X X) 
   (BINARY-* '1 
-    (BAR0 X)))
+    (
+      (LAMBDA 
+        (var0) 
+        (BINARY-* '2 var0)) X)))
 
