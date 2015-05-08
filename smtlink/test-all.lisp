@@ -77,8 +77,7 @@
   (("Goal"
     :clause-processor
     (Smtlink clause
-	     '( (:config (smt-cnf))
-	       (:expand ((:functions ((bar0 rationalp)))
+	     '((:expand ((:functions ((bar0 rationalp)))
 			  (:expansion-level 1)))
 	       )
 	     state))))
