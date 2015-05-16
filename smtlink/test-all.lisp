@@ -67,7 +67,7 @@
 
 ;; test0
 (defconst *a* 1)
-(defun bar0 (x) (* 2 x))
+(defun bar0 (x) (* 4 1/2 x))
 
 ;; a very simple theorem
 (defthm test0
@@ -78,9 +78,24 @@
     :clause-processor
     (Smtlink clause
 	     '((:expand ((:functions ((bar0 rationalp)))
-			  (:expansion-level 1)))
+                   (:expansion-level 1)))
 	       )
 	     state))))
+
+;; ;; an example showing uninterpreted function usage
+;; (defun uninter (x) (* x x x))
+
+;; (defthm test8
+;;   (implies (and (rationalp x)
+;;                 (> x 0))
+;;            (> (uninter x) 0))
+;;   :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (Smtlink clause
+;;              '((:uninterpreted ))
+;;              state)))
+;;   )
 
 ;; ;; test1
 ;; (defun foo1 (x y) (* x (+ 1 y)))

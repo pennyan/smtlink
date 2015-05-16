@@ -62,7 +62,7 @@
 (defun translate-number (num)
   "translate-number: translates ACL2 SMT-number into a Z3 number"
   (if (is-SMT-rational num)
-      (list "Q(" (numerator num) "," (denominator num) ")")
+      (list "s.Qx(" (numerator num) "," (denominator num) ")")
     (if (is-SMT-integer num)
 	num
       (cw "Error(translator): Cannot translate an unrecognized number: ~q0" num))))

@@ -5,7 +5,6 @@
 (include-book "config")
 (defttag :tshell)
 
-
 ;; SMT-interpreter
 (defun SMT-interpreter (filename smt-cnf)
   "SMT-intepreter: get the result returned from calling SMT procedure"

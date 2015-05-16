@@ -80,6 +80,9 @@ class to_smt:
 
     def implies(self, x, y): return Implies(x,y)
 
+    # This function assumes x and y to be numbers
+    def Qx(self, x, y): return Q(x,y)
+
     # type related functions
     def integerp(self, x): return x.sort() == IntSort()
     def rationalp(self, x): return x.sort() == RealSort()
