@@ -11,10 +11,29 @@
 ;; for the clause processor to work
 (add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
 (include-book "top" :dir :cp)
-(logic)
-:set-state-ok t
-:set-ignore-ok t
-(tshell-ensure)
+;; (logic)
+;; :set-state-ok t
+;; :set-ignore-ok t
+;; configurations
+(local
+ (progn
+   (defun my-smtlink-config ()
+     (declare (xargs :guard t))
+     (make-smtlink-config :dir-interface
+			  "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface"
+			  :dir-files
+			  "z3\_files"
+			  :SMT-module
+			  "ACL22SMT"
+			  :SMT-class
+			  "to_smt"
+			  :smt-cmd
+			  "python"
+			  :dir-expanded
+        "expanded"))
+   (defattach smt-cnf my-smtlink-config)))
+
+;;(tshell-ensure)
 
 ;;:start-proof-tree
 

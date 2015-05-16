@@ -271,23 +271,23 @@ new hypothesis in lambda expression"
 ;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
 ;; if fname is not nil, it will use that user provided name
 (defun mk-fname (fname smt-cnf)
-  (if (endp fname)
+  (if (equal fname nil)
       (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-cnf) "/smtlink_XXXXX.py")))
-	(mv-let (finishedp exit-status lines)
-		(time$ (tshell-call cmd
-				    :print t
-				    :save t)
-		       :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
-		       :args (list cmd))
-		(if (and (equal finishedp t)
-			 (equal exit-status 0))
-		    (car lines)
-		    (cw "Error(SMT-z3): Generate file error."))))
-      (concatenate 'string
-		   (smtlink-config->dir-files smt-cnf)
-		   "/"
-		   fname
-		   ".py")))
+        (mv-let (finishedp exit-status lines)
+                (time$ (tshell-call cmd
+                                    :print t
+                                    :save t)
+                       :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
+                       :args (list cmd))
+                (if (and (equal finishedp t)
+                         (equal exit-status 0))
+                    (car lines)
+                  (cw "Error(SMT-z3): Generate file error."))))
+    (concatenate 'string
+                 (smtlink-config->dir-files smt-cnf)
+                 "/"
+                 fname
+                 ".py")))
 
 ;; my-prove
 (defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
