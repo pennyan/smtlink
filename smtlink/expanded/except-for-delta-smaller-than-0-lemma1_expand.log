@@ -1,0 +1,47 @@
+level 0:
+(IMPLIES 
+  (IF 
+    (IF 
+      (RATIONALP C) 
+      (IF 
+        (RATIONALP A) 
+        (RATIONALP B) 'nil) 'nil) 
+    (IF 
+      (< '0 C) 
+      (IF 
+        (< C '1) 
+        (IF 
+          (< 
+            (BINARY-+ A B) '0) 
+          (< B '0) 'nil) 'nil) 'nil) 'nil) 
+  (< 
+    (BINARY-+ 
+      (BINARY-* C 
+        (BINARY-* C A)) 
+      (BINARY-* C B)) '0))
+
+level 1:IMPLIES
+
+level 2:
+(IF 
+  (IF 
+    (RATIONALP C) 
+    (IF 
+      (RATIONALP A) 
+      (RATIONALP B) 'nil) 'nil) 
+  (IF 
+    (< '0 C) 
+    (IF 
+      (< C '1) 
+      (IF 
+        (< 
+          (BINARY-+ A B) '0) 
+        (< B '0) 'nil) 'nil) 'nil) 'nil)
+
+level 3:
+(< 
+  (BINARY-+ 
+    (BINARY-* C 
+      (BINARY-* C A)) 
+    (BINARY-* C B)) '0)
+

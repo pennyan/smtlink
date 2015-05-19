@@ -1,25 +1,73 @@
 level 0:
 (IMPLIES 
   (IF 
-    (RATIONALP X) 'T 'nil) 
-  (EQUAL 
-    (BINARY-+ X X) 
-    (BINARY-* '1 
-      (BAR0 X))))
+    (INTEGERP N) 
+    (NOT 
+      (< '2 N)) 'nil) 
+  (< 
+    (FAC N) '10))
 
 level 1:IMPLIES
 
 level 2:
 (IF 
-  (RATIONALP X) 'T 'nil)
+  (IF 
+    (INTEGERP var4) 
+    (INTEGERP N) 'nil) 
+  (NOT 
+    (< '2 N)) 'nil)
 
 level 3:
-(EQUAL 
-  (BINARY-+ X X) 
-  (BINARY-* '1 
-    (
-      (LAMBDA 
-        (var0) 
-        (BINARY-* '4 
-          (BINARY-* '1/2 var0))) X)))
+(< 
+  (
+    (LAMBDA 
+      (var0) 
+      (IF 
+        (IF 
+          (NOT 
+            (< '0 var0)) 
+          (NOT 
+            (< '0 var0)) 
+          (NOT 
+            (INTEGERP var0))) '1 
+        (BINARY-* var0 
+          (
+            (LAMBDA 
+              (var1) 
+              (IF 
+                (IF 
+                  (NOT 
+                    (< '0 var1)) 
+                  (NOT 
+                    (< '0 var1)) 
+                  (NOT 
+                    (INTEGERP var1))) '1 
+                (BINARY-* var1 
+                  (
+                    (LAMBDA 
+                      (var2) 
+                      (IF 
+                        (IF 
+                          (NOT 
+                            (< '0 var2)) 
+                          (NOT 
+                            (< '0 var2)) 
+                          (NOT 
+                            (INTEGERP var2))) '1 
+                        (BINARY-* var2 
+                          (
+                            (LAMBDA 
+                              (var3) 
+                              (IF 
+                                (IF 
+                                  (NOT 
+                                    (< '0 var3)) 
+                                  (NOT 
+                                    (< '0 var3)) 
+                                  (NOT 
+                                    (INTEGERP var3))) '1 
+                                (BINARY-* var3 var4))) 
+                            (BINARY-+ '-1 var2))))) 
+                    (BINARY-+ '-1 var1))))) 
+            (BINARY-+ '-1 var0))))) N) '10)
 

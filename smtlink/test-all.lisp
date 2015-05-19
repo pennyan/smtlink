@@ -65,22 +65,115 @@
 
 (tshell-ensure)
 
-;; test0
-(defconst *a* 1)
-(defun bar0 (x) (* 4 1/2 x))
+;; ;; test0
+;; (defconst *a* 1)
+;; (defun bar0 (x) (* 4 1/2 x))
 
-;; a very simple theorem
-(defthm test0
-  (implies (and (and (rationalp x)) (and))
-	   (equal (+ x x) (* *a* (bar0 x))))
+;; ;; a very simple theorem
+;; (defthm test0
+;;   (implies (and (and (rationalp x)) (and))
+;; 	   (equal (+ x x) (* *a* (bar0 x))))
+;;   :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (Smtlink clause
+;; 	     '((:expand ((:functions ((bar0 rationalp)))
+;;                    (:expansion-level 1)))
+;; 	       )
+;; 	     state))))
+
+;; an example to test the expansion
+
+(defun fac (n)
+  (if (or (<= n 0) (not (integerp n)))
+      1
+    (* n (fac (1- n)))))
+
+(defthm test-lemma (implies  (and
+                             (IMPLIES
+                              (IF
+                               (INTEGERP N)
+                               (IF (EQUAL |var4| (FAC (BINARY-+ '-1 |var3|)))
+                                   (NOT (< '2 N))
+                                   'NIL)
+                               'NIL)
+                              (INTEGERP |var4|))
+                            
+                             (IMPLIES
+                              (IF (INTEGERP N) (NOT (< '2 N)) 'NIL)
+                              (<
+                               ((LAMBDA
+                                 (|var0|)
+                                 (IF
+                                  (IF (NOT (< '0 |var0|))
+                                      (NOT (< '0 |var0|))
+                                      (NOT (INTEGERP |var0|)))
+                                  '1
+                                  (BINARY-*
+                                   |var0|
+                                   ((LAMBDA
+                                     (|var1|)
+                                     (IF
+                                      (IF (NOT (< '0 |var1|))
+                                          (NOT (< '0 |var1|))
+                                          (NOT (INTEGERP |var1|)))
+                                      '1
+                                      (BINARY-*
+                                       |var1|
+                                       ((LAMBDA
+                                         (|var2|)
+                                         (IF
+                                          (IF (NOT (< '0 |var2|))
+                                              (NOT (< '0 |var2|))
+                                              (NOT (INTEGERP |var2|)))
+                                          '1
+                                          (BINARY-*
+                                           |var2|
+                                           ((LAMBDA
+                                             (|var3|)
+                                             (IF
+                                              (IF (NOT (< '0 |var3|))
+                                                  (NOT (< '0 |var3|))
+                                                  (NOT (INTEGERP |var3|)))
+                                              '1
+                                              (BINARY-*
+                                               |var3|
+                                               (FAC (BINARY-+ '-1 |var3|)))))
+                                            (BINARY-+ '-1 |var2|)))))
+                                        (BINARY-+ '-1 |var1|)))))
+                                    (BINARY-+ '-1 |var0|)))))
+                                N)
+                               '10)))
+                            (IMPLIES (IF (INTEGERP N) (NOT (< '2 N)) 'NIL)
+                                     (< (FAC N) '10))))
+
+(defthm fac-thm
+  (implies (and (and (integerp n))
+                (and (<= n 2)))
+           (< (fac n) 10))
   :hints
   (("Goal"
     :clause-processor
     (Smtlink clause
-	     '((:expand ((:functions ((bar0 rationalp)))
-                   (:expansion-level 1)))
-	       )
-	     state))))
+             '((:expand ((:functions ((fac integerp)))
+                         (:expansion-level 4)))
+               (:use ((:main (test-lemma)))))
+             state)))
+  )
+
+;; ;; an example with counter example
+;; (defthm test9
+;;   (implies (and (and (rationalp a)
+;;                      (rationalp b))
+;;                 (and))
+;;            (> (+ (* a a) (* b b)) (* 2 a b)))
+;;   :hints
+;;   (("Goal"
+;;     :clause-processor
+;;     (Smtlink clause
+;;              '()
+;;              state)
+;;     )))
 
 ;; ;; an example showing uninterpreted function usage
 ;; (defun uninter (x) (* x x x))

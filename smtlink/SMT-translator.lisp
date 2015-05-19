@@ -44,7 +44,7 @@
 (defun translate-type-list (type)
   "translate-type-list: look up an associate list for the translation"
   (assoc type '((RATIONALP "s.isReal")
-		(INTEGERP "s.isReal")
+		(INTEGERP "s.isInt")
 		(BOOLEANP "s.isBool"))))
 
 ;; translate-type

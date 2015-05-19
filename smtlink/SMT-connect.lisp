@@ -23,7 +23,6 @@
 (value-triple (tshell-ensure))
 
 (progn
-
 ; We wrap everything here in a single progn, so that the entire form is
 ; atomic.  That's important because we want the use of push-untouchable to
 ; prevent anything besides my-clause-processor from calling acl2-my-prove.

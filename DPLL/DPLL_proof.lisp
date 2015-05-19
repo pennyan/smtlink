@@ -33,7 +33,7 @@
         "expanded"))
    (defattach smt-cnf my-smtlink-config)))
 
-;;(tshell-ensure)
+(tshell-ensure)
 
 ;;:start-proof-tree
 
