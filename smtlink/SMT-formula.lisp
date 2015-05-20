@@ -1,41 +1,41 @@
 ;; SMT-formula contains functions for constructing a SMT formula in ACL2
 (in-package "ACL2")
+(include-book "helper")
 
 ;; -------------- SMT-operator  -----------:
-(defun operator-list (opr)
+(defun operator-list (opr uninterpreted)
   "operator-list: an associate list with possible SMT operators"
-  (assoc opr '((binary-+ binary-+ 0)
-	       (binary-- binary-- 2)
-	       (binary-* binary-* 0)
-	       (unary-/ unary-/ 1)
-	       (unary-- unary-- 1)
-	       (equal equal 2)
-	       (> > 2)
-	       (>= >= 2)
-	       (< < 2)
-	       (<= <= 2)
-	       (if if 3)
-	       (not not 1)
-	       (lambda lambda 2)
-	       ;; (list list 0)
-	       ;; (nth nth 2)
-	       (implies implies 2)
-	       (integerp integerp 1)
-	       (rationalp rationalp 1)
-	       (booleanp booleanp 1)
-	       (my-floor my-floor 1))))
+  (assoc opr (combine '((binary-+ binary-+ 0)
+                        (binary-- binary-- 2)
+                        (binary-* binary-* 0)
+                        (unary-/ unary-/ 1)
+                        (unary-- unary-- 1)
+                        (equal equal 2)
+                        (> > 2)
+                        (>= >= 2)
+                        (< < 2)
+                        (<= <= 2)
+                        (if if 3)
+                        (not not 1)
+                        (lambda lambda 2)
+                        (implies implies 2)
+                        (integerp integerp 1)
+                        (rationalp rationalp 1)
+                        (booleanp booleanp 1))
+                      uninterpreted)
+         ))
 
-(defun is-SMT-operator (opr)
+(defun is-SMT-operator (opr uninterpreted)
   "is-SMT-operator: given an operator in ACL2 format, check if it's valid"
-    (if (equal (operator-list opr) nil)
+    (if (equal (operator-list opr uninterpreted) nil)
 	nil
       t))
 
 ;; SMT-operator
-(defun SMT-operator (opr)
+(defun SMT-operator (opr uninterpreted)
   "SMT-operator: given an operator in ACL2 format, establish its ACL2 format by looking up the associated list"
-  (if (is-SMT-operator opr)
-      (cadr (operator-list opr))
+  (if (is-SMT-operator opr uninterpreted)
+      (cadr (operator-list opr uninterpreted))
     (prog2$ (cw "Error(formula): Operator ~q0 does not exist!" opr)
 	    nil)))
 
@@ -186,36 +186,36 @@
       (cw "Error(formula): not a valid symbol in a formal list ~q0" (car formal)))))
 
 ;; SMT-expression-long
-(defun SMT-expression-long (expression)
+(defun SMT-expression-long (expression uninterpreted)
   "SMT-expression-long: recognize a SMT expression, in a SMT expression's parameters"
   (if (consp expression)
-      (cons (SMT-expression (car expression))
-	    (SMT-expression-long (cdr expression)))
+      (cons (SMT-expression (car expression) uninterpreted)
+	    (SMT-expression-long (cdr expression) uninterpreted))
     nil))
 
 ;; SMT-expression
-(defun SMT-expression (expression)
+(defun SMT-expression (expression uninterpreted)
   "SMT-expression: a SMT expression in ACL2"
   (if (consp expression)
       (cond ((and (consp (car expression))
-		  (is-SMT-operator (caar expression))
+		  (is-SMT-operator (caar expression) uninterpreted)
 		  (equal (caar expression) 'lambda))
 	     (cons (list (SMT-operator
-			  (car (car expression)))
+			  (car (car expression)) uninterpreted)
 			 (SMT-lambda-formal
 			  (cadr (car expression)))
 			 (SMT-expression
-			  (caddr (car expression))))
-		   (SMT-expression-long (cdr expression))))
-	    ((is-SMT-operator (car expression))
-	     (cons (SMT-operator (car expression))
-		   (SMT-expression-long (cdr expression))))
+			  (caddr (car expression)) uninterpreted))
+		   (SMT-expression-long (cdr expression) uninterpreted)))
+	    ((is-SMT-operator (car expression) uninterpreted)
+	     (cons (SMT-operator (car expression) uninterpreted)
+		   (SMT-expression-long (cdr expression) uninterpreted)))
 	    ;; for handling a list
 	    ((equal (car expression) 'QUOTE)
 	     (if (consp (cadr expression))
 		 (cons 'list
-		       (SMT-expression-long (cadr expression)))
-		 (SMT-expression (cadr expression))))
+		       (SMT-expression-long (cadr expression) uninterpreted))
+		 (SMT-expression (cadr expression) uninterpreted)))
 	    (t (cw "Error(formula): This is not a valid operator: ~q0" expression)))
     (cond ((is-SMT-number expression) (SMT-number expression))
 	  ((is-SMT-variable expression) (SMT-variable expression))
@@ -225,42 +225,45 @@
 ;; --------------------- SMT-hypothesis -------------------------:
 
 ;; SMT-hypothesis-list
-(defun SMT-hypothesis-list (hyp-list)
+(defun SMT-hypothesis-list (hyp-list uninterpreted)
   "SMT-hypothesis-list: This is a SMT hypothesis list"
   (if (not (listp hyp-list))
       (cw "Error(formula): The SMT hypothesis list is not in the right form: ~q0" hyp-list)
-    (SMT-expression hyp-list)))
+    (SMT-expression hyp-list uninterpreted)))
 
 ;; --------------------- SMT-conclusion -------------------------:
 
 ;; SMT-conclusion-list
-(defun SMT-conclusion-list (concl-list)
+(defun SMT-conclusion-list (concl-list uninterpreted)
   "SMT-conclusion-list: This is a SMT conclusion list"
   (if (not (listp concl-list))
       (cw "Error(formula): The SMT conclusion list is not in the right form: ~q0" concl-list)
-    (SMT-expression concl-list)))
+    (SMT-expression concl-list uninterpreted)))
 ;; --------------------- SMT-formula ----------------------------:
 
 ;; SMT-formula
 (defun SMT-formula (const-list
 		    decl-list
 		    hyp-list
-		    concl-list)
+		    concl-list
+        uninterpreted)
   "SMT-formula: This is a SMT formula"
   (list (SMT-constant-list const-list)
 	(SMT-declaration-list decl-list)
-	(SMT-hypothesis-list hyp-list)
-	(SMT-conclusion-list concl-list))
+	(SMT-hypothesis-list hyp-list uninterpreted)
+	(SMT-conclusion-list concl-list uninterpreted))
   )
 
 ;; SMT-formula-top
 (defmacro SMT-formula-top (&key const-list
 				decl-list
 				hyp-list
-				concl-list)
+				concl-list
+        uninterpreted)
   "SMT-formula-top: This is a macro for fetching parameters of a SMT formula"
   (list 'quote (SMT-formula const-list
 			    decl-list 
 			    hyp-list 
-			    concl-list))
+			    concl-list
+          uninterpreted))
   )

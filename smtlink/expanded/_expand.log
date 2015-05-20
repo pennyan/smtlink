@@ -1,73 +1,23 @@
 level 0:
 (IMPLIES 
   (IF 
-    (INTEGERP N) 
-    (NOT 
-      (< '2 N)) 'nil) 
-  (< 
-    (FAC N) '10))
+    (IF 
+      (RATIONALP X) 
+      (INTEGERP N) 'nil) 
+    (< '0 X) 'nil) 
+  (< '0 
+    (EXPT X N)))
 
 level 1:IMPLIES
 
 level 2:
 (IF 
   (IF 
-    (INTEGERP var4) 
+    (RATIONALP X) 
     (INTEGERP N) 'nil) 
-  (NOT 
-    (< '2 N)) 'nil)
+  (< '0 X) 'nil)
 
 level 3:
-(< 
-  (
-    (LAMBDA 
-      (var0) 
-      (IF 
-        (IF 
-          (NOT 
-            (< '0 var0)) 
-          (NOT 
-            (< '0 var0)) 
-          (NOT 
-            (INTEGERP var0))) '1 
-        (BINARY-* var0 
-          (
-            (LAMBDA 
-              (var1) 
-              (IF 
-                (IF 
-                  (NOT 
-                    (< '0 var1)) 
-                  (NOT 
-                    (< '0 var1)) 
-                  (NOT 
-                    (INTEGERP var1))) '1 
-                (BINARY-* var1 
-                  (
-                    (LAMBDA 
-                      (var2) 
-                      (IF 
-                        (IF 
-                          (NOT 
-                            (< '0 var2)) 
-                          (NOT 
-                            (< '0 var2)) 
-                          (NOT 
-                            (INTEGERP var2))) '1 
-                        (BINARY-* var2 
-                          (
-                            (LAMBDA 
-                              (var3) 
-                              (IF 
-                                (IF 
-                                  (NOT 
-                                    (< '0 var3)) 
-                                  (NOT 
-                                    (< '0 var3)) 
-                                  (NOT 
-                                    (INTEGERP var3))) '1 
-                                (BINARY-* var3 var4))) 
-                            (BINARY-+ '-1 var2))))) 
-                    (BINARY-+ '-1 var1))))) 
-            (BINARY-+ '-1 var0))))) N) '10)
+(< '0 
+  (EXPT X N))
 

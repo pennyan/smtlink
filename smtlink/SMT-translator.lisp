@@ -6,33 +6,32 @@
 ;; -------------- translate operator  -----------:
 
 ;; translate-operator-list
-(defun translate-operator-list (opr)
+(defun translate-operator-list (opr uninterpreted)
   "translate-operator-list: look up an associate list for the translation"
-  (assoc opr '((binary-+ "s.plus" 0)
-	       (binary-- "s.minus" 2)
-	       (binary-* "s.times" 0)
-	       (unary-/ "s.reciprocal" 1)
-	       (unary-- "s.negate" 1)
-	       (equal "s.equal" 2)
-	       (> "s.gt" 2)
-	       (>= "s.ge" 2)
-	       (< "s.lt" 2)
-	       (<= "s.le" 2)
-	       (if "s.ifx" 3)
-	       (not "s.notx" 1)
-	       (lambda "lambda" 2)
-	       ;; (nth "s.nth" 2)
-	       ;; (list "s.array" 0)
-	       (implies "s.implies" 2)
-	       (integerp "s.integerp" 1)
-	       (rationalp "s.rationalp" 1)
-	       (booleanp "s.booleanp" 1)
-	       (my-floor "s.floor" 1))))
+  (assoc opr (combine '((binary-+ "s.plus" 0)
+                        (binary-- "s.minus" 2)
+                        (binary-* "s.times" 0)
+                        (unary-/ "s.reciprocal" 1)
+                        (unary-- "s.negate" 1)
+                        (equal "s.equal" 2)
+                        (> "s.gt" 2)
+                        (>= "s.ge" 2)
+                        (< "s.lt" 2)
+                        (<= "s.le" 2)
+                        (if "s.ifx" 3)
+                        (not "s.notx" 1)
+                        (lambda "lambda" 2)
+                        (implies "s.implies" 2)
+                        (integerp "s.integerp" 1)
+                        (rationalp "s.rationalp" 1)
+                        (booleanp "s.booleanp" 1))
+                      uninterpreted)
+         ))
 
 ;; translate-operator
-(defun translate-operator (opr)
+(defun translate-operator (opr uninterpreted)
   "translate-operator: given an operator in ACL2 format, translate into its Z3 format by looking up the associated list"
-  (let ((result (translate-operator-list opr)))
+  (let ((result (translate-operator-list opr uninterpreted)))
     (if (equal result nil)
 	(prog2$ (cw "Error(translator): Operator ~q0 does not exist!" opr)
 		nil)
@@ -44,7 +43,7 @@
 (defun translate-type-list (type)
   "translate-type-list: look up an associate list for the translation"
   (assoc type '((RATIONALP "s.isReal")
-		(INTEGERP "s.isInt")
+		(INTEGERP "s.isReal")
 		(BOOLEANP "s.isBool"))))
 
 ;; translate-type
@@ -140,7 +139,7 @@
 
 ;; translate-declaration
 (defun translate-declaration (decl)
-   "translate-declaration: translate a declaration in ACL2 SMT formula into Z3 declaration"
+  "translate-declaration: translate a declaration in ACL2 SMT formula into Z3 declaration"
    (let ((type (car decl))
 	 (name (cadr decl)))
      (list (translate-variable name) '= (translate-type type) '\(  '\" (translate-variable name) '\" '\))))
@@ -167,38 +166,38 @@
 (mutual-recursion
 
 ;; translate-expression-long
-(defun translate-expression-long (expression)
+(defun translate-expression-long (expression uninterpreted)
   "translate-expression-long: translate a SMT expression's parameters in ACL2 into Z3 expression"
   (if (endp (cdr expression))
-      (translate-expression (car expression))
-    (cons (translate-expression (car expression))
+      (translate-expression (car expression) uninterpreted)
+    (cons (translate-expression (car expression) uninterpreted)
 	  (cons '\,
 		(translate-expression-long
-		 (cdr expression))))))
+		 (cdr expression) uninterpreted)))))
 
 ;; stuff.let(['x', 2.0], ['y', v('a')*v('b') + v('c')], ['z', ...]).inn(2*v('x') - v('y'))
 ;; translate-expression
-(defun translate-expression (expression)
+(defun translate-expression (expression uninterpreted)
   "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
   (if (and (not (equal expression nil))
 	   (consp expression)
 	   (not (equal expression ''1)))
       (cond ((and (consp (car expression))
-		  (is-SMT-operator (caar expression))
+		  (is-SMT-operator (caar expression) uninterpreted)
 		  ;; special treatment for let expression
 		  (equal (caar expression) 'lambda))
 	     (list '\(
-		   (translate-operator (caar expression))
+		   (translate-operator (caar expression) uninterpreted)
 		   #\Space
 		   (if (endp (cadr (car expression)))
 		       #\Space
 		       (make-lambda-list (cadr (car expression))))
 		   '\:
-		   (translate-expression (caddr (car expression)))
+		   (translate-expression (caddr (car expression)) uninterpreted)
 		   '\) '\(
 		   (if (endp (cdr expression))
 		       #\Space
-		       (translate-expression-long (cdr expression)))
+		       (translate-expression-long (cdr expression) uninterpreted))
 		   '\)))
 	    ;; ((and (is-SMT-operator (car expression))
 	    ;; 	  (equal (car expression) 'list))
@@ -206,35 +205,35 @@
 	    ;; 	   '\( '\[
 	    ;; 	   (translate-expression-long (cdr expression))
 	    ;; 	   '\] '\)))
-	    ((is-SMT-operator (car expression))
-	     (list (translate-operator (car expression))
+	    ((is-SMT-operator (car expression) uninterpreted)
+	     (list (translate-operator (car expression) uninterpreted)
 		   '\(
-		   (translate-expression-long (cdr expression))
+		   (translate-expression-long (cdr expression) uninterpreted)
 		   '\)))
-	    (t (list "s.unknown" '\( (translate-expression-long (cdr expression)) '\))))
+	    (t (list "s.unknown" '\( (translate-expression-long (cdr expression) uninterpreted) '\))))
     (cond ((is-SMT-number expression)
 	   (translate-number expression))
 	  ((equal expression 'nil) "False") ;; what if when 'nil is a list?
 	  ((equal expression 't) "True")
 	  ((is-SMT-variable expression)
 	   (translate-variable expression))
-	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression)))))
-)
+	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression))))
+))
 )
 ;; ----------------------- translate-hypothesis --------------------------:
 
 ;; translate-hypothesis-list
-(defun translate-hypothesis-list (hyp-list)
+(defun translate-hypothesis-list (hyp-list uninterpreted)
   "translate-hypothesis-list: translate a SMT-formula hypothesis statement into Z3"
   (list (cons "hypothesis" 
-	      (cons '= (translate-expression hyp-list))) #\Newline))
+	      (cons '= (translate-expression hyp-list uninterpreted))) #\Newline))
 
 ;; ----------------------- translate-conclusion --------------------------:
 ;; translate-conclusion-list
-(defun translate-conclusion-list (concl-list)
+(defun translate-conclusion-list (concl-list uninterpreted)
   "translate-conclusion-list: translate a SMT-formula conclusion statement into Z3"
   (list (cons "conclusion" 
-	      (cons '= (translate-expression concl-list))) #\Newline))
+	      (cons '= (translate-expression concl-list uninterpreted))) #\Newline))
 
 ;; ----------------------- translate-theorem --------------------------:
 ;; translate-theorem
@@ -245,15 +244,16 @@
 ;; ----------------------- translate-SMT-formula --------------------------:
 
 ;; translate-SMT-formula
-(defun translate-SMT-formula (formula)
+(defun translate-SMT-formula (formula uninterpreted)
   "translate-SMT-formula: translate a SMT formula into its Z3 code"
   (let (;(const-list (car formula))
 	(decl-list (cadr formula))
 	(hypo-list (caddr formula))
 	(concl-list (cadddr formula)))
     (list ;;(translate-constant-list
-	  ;;  (get-constant-list formula))
+     ;;  (get-constant-list formula))
 	  (translate-declaration-list decl-list)
-	  (translate-hypothesis-list hypo-list)
-	  (translate-conclusion-list concl-list)
-	  (translate-theorem))))
+    (translate-hypothesis-list hypo-list uninterpreted)
+	  (translate-conclusion-list concl-list uninterpreted)
+	  (translate-theorem)))
+)

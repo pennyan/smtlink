@@ -175,21 +175,37 @@
 ;;              state)
 ;;     )))
 
-;; ;; an example showing uninterpreted function usage
-;; (defun uninter (x) (* x x x))
+(local
+ (progn
+   (defun my-smtlink-expt-config ()
+     (declare (xargs :guard t))
+     (make-smtlink-config :dir-interface
+			  "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface"
+			  :dir-files
+			  "z3\_files"
+			  :SMT-module
+			  "RewriteExpt"
+			  :SMT-class
+			  "to_smt_w_expt"
+			  :smt-cmd
+			  "python"
+			  :dir-expanded
+			  "expanded"))
+   (defattach smt-cnf my-smtlink-expt-config)))
 
-;; (defthm test8
-;;   (implies (and (rationalp x)
-;;                 (> x 0))
-;;            (> (uninter x) 0))
-;;   :hints
-;;   (("Goal"
-;;     :clause-processor
-;;     (Smtlink clause
-;;              '((:uninterpreted ))
-;;              state)))
-;;   )
-
+;; an example showing uninterpreted function usage
+(defthm test8
+  (implies (and (and (rationalp x)
+                     (integerp n))
+                (and (> x 0)))
+           (> (expt x n) 0))
+  :hints
+  (("Goal"
+    :clause-processor
+    (Smtlink clause
+             '((:uninterpreted-functions ((expt rationalp integerp rationalp))))
+             state)))
+  )
 ;; ;; test1
 ;; (defun foo1 (x y) (* x (+ 1 y)))
 

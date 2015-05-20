@@ -7,9 +7,8 @@
 (defttag :tshell)
 (value-triple (tshell-ensure))
 
-;;(set-print-case :downcase state)
-
 (set-state-ok t)
+;;(set-print-case :downcase state)
 (defttag :writes-okp)
 
 ;; princ$-list-of-strings
@@ -48,7 +47,7 @@
 	 #\Newline
 	 "path.insert(0,\"" (smtlink-config->dir-interface smt-cnf) "\")"
 	 #\Newline
-	 "from "(smtlink-config->SMT-module smt-cnf) " import " (smtlink-config->SMT-class smt-cnf) ", Q"
+	 "from "(smtlink-config->SMT-module smt-cnf) " import " (smtlink-config->SMT-class smt-cnf)
 	 #\Newline
 	 "s = " (smtlink-config->SMT-class smt-cnf) "()"
 	 #\Newline)))

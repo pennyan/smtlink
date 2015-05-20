@@ -299,21 +299,15 @@
 
 ;; replace-a-rec-fn
 (defun replace-a-rec-fn (expr fn-lst-with-type fn-var-decl num)
-  ""(mv-let (name res-num)
+  ""
+  (mv-let (name res-num)
 	  (create-name num)
-	  (prog2$ (cw "~q0" name
-		      ;;(cons (list name
-		;;	  expr
-	;;		  (cadr (assoc (car expr) fn-lst-with-type)))
-		  ;;  fn-var-decl)
-		  ;;res-num
-		      )
 	  (mv name
 	      (cons (list name
 			  expr
 			  (cadr (assoc (car expr) fn-lst-with-type)))
 		    fn-var-decl)
-	      res-num))))
+	      res-num)))
 
 (mutual-recursion
 
@@ -341,11 +335,9 @@
 	 (let ((fn0 (car expr)) (params (cdr expr)))
 	    (cond
 	      ((and (atom fn0) (not (endp (assoc fn0 fn-lst-with-type)))) ;; function exists in the list
-	       (prog2$ (cw "fn-lst-with-type: ~q0" fn-lst-with-type)
 	       (mv-let (res fn-var-decl2 num2)
 		       (replace-a-rec-fn expr fn-lst-with-type fn-var-decl num)
-		       (prog2$ (cw "res: ~q0 fn-var-decl2: ~q1, num2: ~q2" res fn-var-decl2 num2)
-		       (mv res fn-var-decl2 num2)))))
+		       (mv res fn-var-decl2 num2)))
 	      ((atom fn0) ;; when expr is a un-expandable function
 	       (mv-let (res fn-var-decl2 num2)
 		       (replace-rec-fn-params params fn-lst-with-type fn-var-decl num)
@@ -399,5 +391,4 @@
 				       res
 					)
 				      (orig-param (extract-orig-param res)))
-				  (prog2$ (cw "~q0~%~q1~%" rewritten-expr expr-return)
-				  (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl)))))))))))
+				  (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))

@@ -10,9 +10,10 @@
 (in-package "ACL2")
 (include-book "tools/bstar" :dir :system)
 (set-state-ok t)
+(set-ignore-ok t)
 
 (defstub acl2-my-prove
-  (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
+  (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
   (mv t nil nil nil nil state))
 
 (program)
@@ -31,35 +32,52 @@
 
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
    
-   (defun acl2-my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
-     (my-prove term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state))
+   (defun acl2-my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
+     (my-prove term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state))
    )
 
+  ;; Supported arguments:
+  ;; expand - functions : a list of functions to be expanded
+  ;;          expansion-level : how many levels to expand a function
+  ;; uninterpreted-functions : a list of functions taken as uninterpreted functions after the expansion
+  ;; python-file : specify the file name of the python file to write to
+  ;; let : specify to replace a sub-expression as a variable
+  ;; hypothesis : specify hypotheses about those variables introduces by let-expr
+  ;; use - type : hints for type predicates from function expansion
+  ;;       hypo : hints for sub-expression hypotheses
+  ;;       main : hints for the main clause returned
   (defun Smtlink-arguments (hint)
     (b* ((fn-lst (cadr (assoc ':functions
-			      (cadr (assoc ':expand hint)))))
-	 (fn-level (cadr (assoc ':expansion-level
-				(cadr (assoc ':expand hint)))))
-	 (fname (cadr (assoc ':python-file hint)))
-	 (let-expr (cadr (assoc ':let hint)))
-	 (new-hypo (cadr (assoc ':hypothesize hint)))
-	 (let-hints (cadr (assoc ':type
-				 (cadr (assoc ':use hint)))))
-	 (hypo-hints (cadr (assoc ':hypo
-				  (cadr (assoc ':use hint)))))
-	 (main-hints (cadr (assoc ':main
-				  (cadr (assoc ':use hint))))))
-	(mv fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints))
+                              (cadr (assoc ':expand hint)))))
+         (fn-level (cadr (assoc ':expansion-level
+                                (cadr (assoc ':expand hint)))))
+         (uninterpreted (cadr (assoc ':uninterpreted-functions hint)))
+         (fname (cadr (assoc ':python-file hint)))
+         (let-expr (cadr (assoc ':let hint)))
+         (new-hypo (cadr (assoc ':hypothesize hint)))
+         (let-hints (cadr (assoc ':let
+                                 (cadr (assoc ':use hint)))))
+         (hypo-hints (cadr (assoc ':hypo
+                                  (cadr (assoc ':use hint)))))
+         (main-hints (cadr (assoc ':main
+                                  (cadr (assoc ':use hint))))))
+        ;; do sanity check
+        ;; (cond ((and (endp fn-lst) (not (endp uninterpreted)))
+        ;;        (prog2$ (cw "Error(connect): only uninterpreted function is provided. No return type provided.~%")
+        ;;                (mv nil nil nil nil nil nil nil nil nil)))
+        ;;       (t (mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)))
+        (mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
+        )
     )
   
   (defun Smtlink (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
     (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
-    (b* (((mv fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints)
+    (b* (((mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
 	  (Smtlink-arguments hint)))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
-	      (acl2-my-prove (disjoin cl) fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints (smt-cnf) state)
+	      (acl2-my-prove (disjoin cl) fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (smt-cnf) state)
 	      (if res
 		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
 					    (list (append expanded-cl cl))
