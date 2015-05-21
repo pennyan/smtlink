@@ -11,7 +11,7 @@ def sort(x):
         else:
             raise Exception('unknown sort for expression')
 
-class to_smt:
+class to_smt(object):
     class status:
         def __init__(self, value):
             self.value = value

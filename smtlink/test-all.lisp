@@ -43,7 +43,10 @@
 (include-book "arithmetic/top-with-meta" :dir :system)
 (add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
 (include-book "top" :dir :cp)
+(tshell-ensure)
 
+;; need the configurable trust tag
+;;(defttag :Smtlink-custom-config)
 ;; configurations
 (local
  (progn
@@ -63,8 +66,7 @@
 			  "expanded"))
    (defattach smt-cnf my-smtlink-config)))
 
-(tshell-ensure)
-
+(defttag nil)
 ;; ;; test0
 ;; (defconst *a* 1)
 ;; (defun bar0 (x) (* 4 1/2 x))
@@ -154,7 +156,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink clause
+    (Smtlink-custom-config clause
              '((:expand ((:functions ((fac integerp)))
                          (:expansion-level 4)))
                (:use ((:main (test-lemma)))))
@@ -179,18 +181,12 @@
  (progn
    (defun my-smtlink-expt-config ()
      (declare (xargs :guard t))
-     (make-smtlink-config :dir-interface
-			  "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface"
-			  :dir-files
-			  "z3\_files"
+     (change-smtlink-config *default-smtlink-config*
 			  :SMT-module
 			  "RewriteExpt"
 			  :SMT-class
 			  "to_smt_w_expt"
-			  :smt-cmd
-			  "python"
-			  :dir-expanded
-			  "expanded"))
+        ))
    (defattach smt-cnf my-smtlink-expt-config)))
 
 ;; an example showing uninterpreted function usage
@@ -202,7 +198,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink clause
+    (Smtlink-custom-config clause
              '((:uninterpreted-functions ((expt rationalp integerp rationalp))))
              state)))
   )

@@ -17,7 +17,14 @@
   (mv t nil nil nil nil state))
 
 (program)
-(defttag :Smtlink)
+
+;; Users need to define trust tags by themselves to
+;; select the right clause processor needed.
+;; :Smtlink or :Smtlink-custom-config.
+;; :Smtlink-custom-config let you configure your own external SMT solver.
+;; :Smtlink uses the default Z3 interface.
+;; By default, the trust tag is :Smtlink
+(defttag :SMT-connect)
 
 (include-book "SMT-z3")
 (include-book "config")
@@ -70,14 +77,14 @@
         )
     )
   
-  (defun Smtlink (cl hint state)
+  (defun Smtlink-raw (cl hint state custom-config)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
     (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
     (b* (((mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
 	  (Smtlink-arguments hint)))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
-	      (acl2-my-prove (disjoin cl) fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (smt-cnf) state)
+	      (acl2-my-prove (disjoin cl) fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) state)
 	      (if res
 		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
 					    (list (append expanded-cl cl))
@@ -86,7 +93,17 @@
 			    (mv nil res-clause state)))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
-			  (mv t (list cl) state)))))))
+              (mv t (list cl) state)))))))
+
+  (defun Smtlink (cl hint state)
+    (declare (xargs :guard (pseudo-term-listp cl)
+                    :mode :program))
+    (Smtlink-raw cl hint state nil))
+
+  (defun Smtlink-custom-config (cl hint state)
+    (declare (xargs :guard (pseudo-term-listp cl)
+                    :mode :program))
+    (Smtlink-raw cl hint state t))
   
   (push-untouchable acl2-my-prove t)
   )
@@ -94,5 +111,11 @@
 (define-trusted-clause-processor
   Smtlink
   nil
-  :ttag Smtlink)
+  ;;:ttag Smtlink
+  )
 
+(define-trusted-clause-processor
+  Smtlink-custom-config
+  nil
+  ;;:ttag Smtlink-custom-config
+  )
