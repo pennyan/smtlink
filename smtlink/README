@@ -1,2 +1,37 @@
-This is a README file.
-Pending ....
+-----------------------------------------------------------------
+
+                       Smtlink README
+
+-----------------------------------------------------------------
+
+Smtlink is a trusted clause processor that provides an interface
+for integrating an external SMT solver into ACL2.
+
+The default SMT solver integrated is Z3.
+
+-----------------------------------------------------------------
+
+                     REQUIREMENTS
+
+1. Z3 is properly installed. It should be included in the system
+   PATH.
+2. ACL2 is properly installed. It should be included in the
+   system PATH.
+3. Smtlink uses Unix commands that requires Unix environment.
+
+----------------------------------------------------------------
+
+                  BUILD INSTRUCTIONS
+
+1. Follow :doc cert.pl to certify the books using command
+   "cert.pl top.lisp".
+2. To setup environment for Python, add
+   export PYTHONPATH=*Smtlink-directory*/z3_interface
+   into your .bashrc file.
+
+----------------------------------------------------------------
+
+                     USAGE
+
+Refer to document "Extending ACL2 with SMT techniques"
+for usage.
