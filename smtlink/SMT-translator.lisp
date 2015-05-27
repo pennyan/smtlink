@@ -70,10 +70,10 @@
 
 ;; translate-variable
 (defun translate-variable (var)
-  "translate-variable: transalte a SMT variable into Z3 variable"
+  "translate-variable: translate a SMT variable into Z3 variable"
   (if (is-SMT-variable var)
-       var
-    (cw "Error(translator): Cannot translate an unrecognized variable: ~q0" var)))
+      var
+      (cw "Error(translator): Cannot translate an unrecognized variable: ~q0" var)))
 
 ;; ----------------------- translate-constant ---------------------------:
 
@@ -177,6 +177,9 @@
 
 ;; stuff.let(['x', 2.0], ['y', v('a')*v('b') + v('c')], ['z', ...]).inn(2*v('x') - v('y'))
 ;; translate-expression
+;  mrg -- I added a case for quoted symbols to support using define in lieu of defun.
+;    Note that (symbolp nil) is t.  Yan should check to see if she can think of anyway
+;    that this change might introduce an error into the translation.
 (defun translate-expression (expression uninterpreted)
   "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
   (if (and (not (equal expression nil))
@@ -210,6 +213,8 @@
 		   '\(
 		   (translate-expression-long (cdr expression) uninterpreted)
 		   '\)))
+	    ((and (equal (car expression) 'quote) (symbolp (cadr expression))) ; mrg: added 21 May 2015
+	     (list "s.atom" '\( '\" (translate-expression (cadr expression) uninterpreted) '\" '\) ))
 	    (t (list "s.unknown" '\( (translate-expression-long (cdr expression) uninterpreted) '\))))
     (cond ((is-SMT-number expression)
 	   (translate-number expression))
@@ -253,7 +258,7 @@
     (list ;;(translate-constant-list
      ;;  (get-constant-list formula))
 	  (translate-declaration-list decl-list)
-    (translate-hypothesis-list hypo-list uninterpreted)
+          (translate-hypothesis-list hypo-list uninterpreted)
 	  (translate-conclusion-list concl-list uninterpreted)
 	  (translate-theorem)))
 )

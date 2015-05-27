@@ -1,4 +1,5 @@
 (in-package "ACL2")
+(include-book "std/util/define" :dir :system)
 (include-book "global")
 
 (deftheory before-arith (current-theory :here))
@@ -8,358 +9,170 @@
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(include-book "SMT-connect")
+(include-book "../smtlink/SMT-connect" :ttags :all)
 (logic)
 :set-state-ok t
 :set-ignore-ok t
+(tshell-ensure)
+
+(local
+ (progn
+   (defun my-smtlink-expt-config ()
+     (declare (xargs :guard t))
+     (make-smtlink-config :dir-interface "../smtlink/z3_interface"
+			  :dir-files    "z3\_files"
+			  :SMT-module   "RewriteExpt"
+			  :SMT-class    "to_smt_w_expt"
+			  :smt-cmd      "python"
+			  :dir-expanded "expanded"))
+   (defattach smt-cnf my-smtlink-expt-config)))
+
+
+;;:start-proof-tree
 
 ;; functions
 ;; n can be a rational value when c starts from non-integer value
-(defun fdco (n v0 dv g1)
-  (/ (* (mu) (+ 1 (* *alpha* (+ v0 dv)))) (+ 1 (* *beta* n g1))))
 
-(defun B-term-expt (h gamma)
-  (expt gamma (- h)))
+(define B-term-expt (Kt h)
+  :guard (and (rationalp Kt) (integerp h) (< Kt 1))
+  :returns (x rationalp :hyp :guard)
+  (expt (- 1 Kt) (- h)))
 
-(defun B-term-rest (h v0 dv g1)
+(define B-term-rest (h v0 dv g1)
+  :guard (and (integerp h) (rationalp v0) (rationalp dv) (rationalp g1)
+  	      (> (+ (* h g1) (equ-c v0)) (/ -1 *beta*)))
+  :returns (x rationalp :hyp :guard)
   (- (* (mu) (/ (+ 1 (* *alpha* (+ v0 dv))) (+ 1 (* *beta* (+ (* h g1) (equ-c v0)))))) 1))
 
-(defun B-term (h v0 dv g1 gamma)
-  (* (B-term-expt h gamma) (B-term-rest h v0 dv g1)))
+(define B-term (h v0 dv g1 Kt)
+  :guard (and (integerp h) (rationalp v0) (rationalp dv) (rationalp g1) (rationalp Kt)
+  	      (< Kt 1) (> (+ (* h g1) (equ-c v0)) (/ -1 *beta*)))
+  :returns (x rationalp :hyp :guard)
+  (* (B-term-expt Kt h) (B-term-rest h v0 dv g1)))
 
-(defun B-sum (h_lo h_hi v0 dv g1 gamma)
-  (declare (xargs :measure (if (or (not (integerp h_hi)) (not (integerp h_lo)) (< h_hi h_lo))
-			       0
-			       (1+ (- h_hi h_lo)))))
-  (if (or (not (integerp h_hi)) (not (integerp h_lo)) (> h_lo h_hi))  0
-      (+ (B-term h_hi v0 dv g1 gamma) (B-term (- h_hi) v0 dv g1 gamma)
-	 (B-sum h_lo (- h_hi 1) v0 dv g1 gamma))))
+(encapsulate()
+  (local (defthm B-sum-lemma
+    (implies (and (< -1 (+ x y))
+		  (<= y z)
+		  (rationalp x)
+		  (rationalp y)
+		  (rationalp z))
+	     (< -1 (+ x z)))))
 
-(defun B-expt (n gamma)
-  (expt gamma (- n 2)))
+  (define b_sum (h_lo h_hi v0 dv g1 Kt)
+    :guard (and (integerp h_lo) (integerp h_hi) (<= 0 h_lo) (<= h_lo (1+ h_hi))
+		(rationalp v0) (rationalp dv) (rationalp g1) (rationalp Kt)
+		(< 0 g1) (< Kt 1)
+		(> (+ (* h_lo g1) (equ-c v0)) (/ -1 *beta*))
+		(< (- (* h_hi g1) (equ-c v0)) (/ *beta*)))
+    :returns (x rationalp :hyp :guard)
+    :measure (if (and (integerp h_hi) (integerp h_lo) (>= h_hi h_lo))
+		 (1+ (- h_hi h_lo))
+		 0)
+    (if (and (integerp h_hi) (integerp h_lo) (>= h_hi h_lo))
+	(+ (B-term h_hi v0 dv g1 Kt ) (B-term (- h_hi) v0 dv g1 Kt)
+	   (b_sum h_lo (- h_hi 1) v0 dv g1 Kt))
+	0)))
 
-(defun B (n v0 dv g1 gamma)
-  (* (B-expt n gamma)
-     (B-sum 1 (- n 2) v0 dv g1 gamma)))
 
-;; parameter list functions
-(defmacro basic-params-equal (n n-value &optional (v0 'nil) (dv 'nil) (g1 'nil) (gamma 'nil) (phi0 'nil) (other 'nil))
-  (list 'and
-	(append
-	 (append
-	  (append
-	   (append
-	   (append (list 'and
-			 (list 'integerp n))
-		   (if (equal g1 'nil) nil (list (list 'rationalp g1))))
-	   (if (equal v0 'nil) nil (list (list 'rationalp v0))))
-	  (if (equal phi0 'nil) nil (list (list 'rationalp phi0))))
-	 (if (equal dv 'nil) nil (list (list 'rationalp dv)))
-	 (if (equal gamma 'nil) nil (list (list 'rationalp gamma))))
-	(append
-	 (append
-	  (append
-	   (append
-	    (append
-	     (append
-	      (append
-	       (append
-		(append
-		(list 'and
-		      (list 'equal n n-value))
-		(if (equal g1 'nil) nil (list (list 'equal g1 '1/3200))))
-	       (if (equal v0 'nil) nil (list (list '>= v0 '9/10))))
-	      (if (equal v0 'nil) nil (list (list '<= v0 '11/10))))
-	     (if (equal dv 'nil) nil (list (list '>= dv (list '- (list 'dv0))))))
-	    (if (equal dv 'nil) nil (list (list '<= dv (list 'dv0)))))
-	    (if (equal gamma 'nil) nil (list (list '>= gamma '1/6))))
-	    (if (equal gamma 'nil) nil (list (list '<= gamma '1/5))))
-	   (if (equal phi0 'nil) nil (list (list '>= phi0 '0))))
-	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm '640 v0 g1)) v0 dv g1) '1)))))
-	 (if (equal other 'nil) nil (list other)))))
+(define B-expt (Kt n)
+  :guard (and (rationalp Kt) (integerp n) (< 0 Kt) (< Kt 1))
+  :returns (x rationalp :hyp :guard)
+  (expt (- 1 Kt) (- n 2)))
 
-(defmacro basic-params (n nupper &optional (v0 'nil) (dv 'nil) (g1 'nil) (gamma 'nil) (phi0 'nil) (other 'nil))
-  (list 'and
-	(append
-	 (append
-	  (append
-	   (append
-	   (append (list 'and
-			 (list 'integerp n))
-		   (if (equal g1 'nil) nil (list (list 'rationalp g1))))
-	   (if (equal v0 'nil) nil (list (list 'rationalp v0))))
-	  (if (equal dv 'nil) nil (list (list 'rationalp dv))))
-	 (if (equal phi0 'nil) nil (list (list 'rationalp phi0))))
-	 (if (equal gamma 'nil) nil (list (list 'rationalp gamma))))
-	(append
-	 (append
-	 (append
-	  (append
-	   (append
-	     (append
-	      (append
-	      (append
-	      (append
-	       (append
-		(append (list 'and
-			     (list '>= n nupper))
-			(list (list '<= n '640)))
-		       (if (equal g1 'nil) nil (list (list 'equal g1 '1/3200))))
-	       (if (equal v0 'nil) nil (list (list '>= v0 '9/10))))
-	      (if (equal v0 'nil) nil (list (list '<= v0 '11/10))))
-	     (if (equal dv 'nil) nil (list (list '>= dv (list '- (list 'dv0))))))
-	    (if (equal dv 'nil) nil (list (list '<= dv (list 'dv0)))))
-	  (if (equal gamma 'nil) nil (list (list '>= gamma '1/6))))
-	    (if (equal gamma 'nil) nil (list (list '<= gamma '1/5))))
-	   (if (equal phi0 'nil) nil (list (list '>= phi0 '0))))
-	  (if (equal phi0 'nil) nil (list (list '< phi0 (list '- (list 'fdco (list '1+ (list 'm '640 v0 g1)) v0 dv g1) '1)))))
-	 (if (equal other 'nil) nil (list other)))))
+(define B (n v0 dv g1 Kt)
+  :guard (and (integerp n) (rationalp v0) (rationalp dv) (rationalp g1) (rationalp Kt)
+  	      (<= 2 n) (< 0 g1) (< 0 Kt) (< Kt 1)
+	      (let ((h_lo 1) (h_hi (- n 2)))
+	        (and (> (+ (* h_lo g1) (equ-c v0)) (/ -1 *beta*))
+	             (< (- (* h_hi g1) (equ-c v0)) (/ *beta*)))))
+  :returns (x rationalp :hyp :guard)
+  (* (B-expt Kt n)
+     (b_sum 1 (- n 2) v0 dv g1 Kt)))
 
-;  The theorem exported by this encapsulation is:
+
+
+(defun smt-std-hint (clause-name)
+   `( (:expand ((:functions ((B-term rationalp)
+			     (B-term-expt rationalp)
+			     (B-term-rest rationalp)
+			     (mu rationalp)
+			     (equ-c rationalp)
+			     (dv0 rationalp)))
+		(:expansion-level 1)))
+      (:uninterpreted-functions ((expt rationalp rationalp rationalp)))
+      (:python-file ,clause-name)))
+
+;  B-term-neg: 
+;  We show that 
 ;    (< (+ (B-term h v0 dv g1) (B-term (- h) v0 dv g1)) 0)
-;  Yan's proof manually expanded B-term to expose the calls to expt.
-;    She then used her clause processor to show
-;      (and (< 0 (expt gamma (- h))) (<= (expt gamma (- h)) (/ 1 5)))
-;    Note: it would have been cleaner to write (gamma) instead of (/ 1 5).
-;    Yan then proved the main result for this encapsulation by stating it.
-;    ACL2 does the function expansions and finds that they match the lemma
-;    Yan had stated by doing the expansions herself.
-;  My plan was to use my "improved" version of the clause processor to automatically find
-;    instances of expt and generate the relevant facts for z3.  I collided with the
-;    the subtleties of Z3.  My pre-processor generated the assertion
-;        (<= (expt (gamma) -h) (gamma))
-;    as an extra hypotheses but Z3 didn't use it as needed.  If I first ask Z3 to show
-;        (implies extended-hyps new-hyp)
-;    where new-hyp is the inequality mentioned above, and new-hyp is a clause of extended-hyps,
-;    the proof goes through.  If I then ask z3 to prove the original theorem (in the same python
-;    session), that works too!
-;  I thought about ways to make the z3 approach less brittle.  In so doing I realized that Yan's
-;    proof is a rather brute-force way to avoid an induction argument.  Looking at (B-term ...)
-;    yields:
-;        (B-term h v0 dv g1) -> (* (B-term-expt h) (B-term-rest h v0 dv g1))
-;    Yan's argument is that if h > 0, then 
-;        (and (>= (B-term-expt h)     (/ (gamma))) (< (B-term-rest h v0 dv g1) 0)
-;             (<= (B-term-expt (- h)) (gamma))
-;             (<= (* (gamma) (gamma) (B-term-rest (- h) v0 dv g1)) (B-term-rest h v0 dv g1)))
-;    Of course, the messy algebra is handled by z3.  This approach requires an upper bound on h
-;    to make sure that (B-term-rest (- h) v0 dv g1) stays small enough -- the denominator
-;    decreases with increasing h.
-;  I'm going to try an inductive proof.  The induction hypothesis is
-;    (and (< (B-term h v0 dv g1) 0)
-;         (> (B-term (- h) v0 dv g1) 0)
-;         (> (- (B-term h v0 dv g1)) (B-term (- h) v0 dv g1)))
+;  for suitable bounds on h and the model parameters.
+;  I suspect that the bounds that g1 should depend on *beta*, but with *beta* = 1,
+;  the proof works anyway.
+;  I would expect to need a bound on g2, but I think the model in use here is
+;  abstracting away any updates to v (i.e. covering them with the uncertainty for dv).
 
-(defthm B-term-neg-mrg1
-  (implies (and (and (integerp h) (rationalp v0) (rationalp dv) (rationalp g1) (rationalp gamma))
-  		(and (< 0 v0) (< 0 dv) (< 0 g1)
-		     (<= 1/6 gamma) (<= gamma 1/5)
-		     (< dv (/ (* g1 *beta*) (* 2 *alpha*)))
-		     (< (- dv) (/ (* g1 *beta*) (* 2 *alpha*)))
-  		     (>= h 1)
-		     (< h (- (/ (1+ (* *beta* (equ-c v0))) (* g1 *beta*)) (/ (- 1 gamma))))
-		     (< (+ (B-term h v0 dv g1 gamma) (B-term (- h) v0 dv g1 gamma)) 0)))
-	   (< (+ (B-term (1+ h) v0 dv g1 gamma) (B-term (- (1+ h)) v0 dv g1 gamma)) 0))
+(defthm B-term-neg
+  (implies (and (and (integerp h) (rationalp v0) (rationalp dv) (rationalp g1) (rationalp Kt))
+                (<= 1 h) (< h  (/ (* 2 g1)))
+  		(< 0 v0)
+		(< 0 dv) (< dv (* (/ 4) (/ *alpha* *beta*) g1))
+		(< *g1-min* g1) (< g1 *g1-max*)
+		(< *Kt-min* Kt) (< Kt *Kt-max*))
+	   (< (+ (B-term h v0 dv g1 Kt) (B-term (- h) v0 dv g1 Kt)) 0))
     :hints
     (("Goal"
+      :in-theory (enable B-term B-term-expt B-term-rest mu equ-c dv0)
       :clause-processor
-      (my-clause-processor clause
-	 '( (:expand ((:functions ((B-term rationalp)
-				   (B-term-expt rationalp)
-				   (B-term-rest rationalp)
-				   ;;(gamma rationalp)
-				   (mu rationalp)
-				   (equ-c rationalp)
-				   (dv0 rationalp)))
-		      (:expansion-level 1)))
-	    (:python-file "B-term-neg-mrg1") ;;mktemp
-	    (:let ())
-	    (:hypothesize ())
-	    (:use ((:type ())   
-		  (:hypo (()))
-		  (:main ()))))
-	 state)))
-    )
-
-; if changing gamma to a variable works, then I'll need to fix B-sum, B-term, and B-term-expt
-; in the code below
-(defthm stop-here nil)
-
-(defthm B-term-neg-mrg1-a
-  (implies (and (and (integerp h) (rationalp v0) (rationalp dv) (rationalp g1))
-		(and (< 0 g1) (< g1 (/ 16))
-  		     (< (/ 2) v0) (< v0 2)
-		     (< dv (/ (* g1 *beta*) (* 2 *alpha*)))
-		     (< (- dv) (/ (* g1 *beta*) (* 2 *alpha*)))
-  		     (>= h 1)
-		     (< h (- (/ (1+ (* *beta* (equ-c v0))) (* g1 *beta*)) (/ (- 1 (gamma)))))))
-	    (< (B-term (1+ h) v0 dv g1) (B-term h v0 dv g1)))
-    :hints
-    (("Goal"
-      :clause-processor
-      (my-clause-processor clause
-	 '( (:expand ((:functions ((B-term rationalp)
-				   (B-term-expt rationalp)
-				   (B-term-rest rationalp)
-				   (gamma rationalp)
-				   (mu rationalp)
-				   (equ-c rationalp)
-				   (dv0 rationalp)))
-		      (:expansion-level 1)))
-	    (:python-file "B-term-neg-mrg1") ;;mktemp
-	    (:let ())
-	    (:hypothesize ())
-	    (:use ((:let ())
-		  (:hypo (()))
-		  (:main ()))))))))
-
-
-; (> (+ 1 (* *beta* (- (equ-c v0) (* (1+ h) g1)))) (gamma))
-; (> (* *beta* (- (equ-c v0) (* (1+ h) g1))) (- (gamma) 1))
-; (> (equ-c v0) (+ (* (1+ h) g1)) (/ (- (gamma) 1) *beta*))
-; (> (/ (+ (equ-c v0) (/ (- 1 (gamma)) *beta*)) g1) (1+ h))
-; (> (1- (/ (+ (equ-c v0) (/ (- 1 (gamma)) *beta*)) g1)) h)
-
-(defthm B-term-neg-mrg1-b
-  (implies (and (and (integerp h) (rationalp v0) (rationalp dv) (rationalp g1))
-		(and (< 0 g1) (< g1 (/ 16))
-  		     (< (/ 2) v0) (< v0 2)
-		     (< dv (/ (* g1 *beta*) (* 2 *alpha*)))
-		     (< (- dv) (/ (* g1 *beta*) (* 2 *alpha*)))
-  		     (>= h 1)
-		     (< h (1- (/ (+ (equ-c v0) (/ (- 1 (gamma)) *beta*)) g1)))))
-	    (< (B-term (- (1+ h)) v0 dv g1) (B-term (- h) v0 dv g1)))
-    :hints
-    (("Goal"
-      :clause-processor
-      (my-clause-processor clause
-	 '( (:expand ((:functions ((B-term rationalp)
-				   (B-term-expt rationalp)
-				   (B-term-rest rationalp)
-				   (gamma rationalp)
-				   (mu rationalp)
-				   (equ-c rationalp)
-				   (dv0 rationalp)))
-		      (:expansion-level 1)))
-	    (:python-file "B-term-neg-mrg1") ;;mktemp
-	    (:let ())
-	    (:hypothesize ())
-	    (:use ((:let ())
-		  (:hypo (()))
-		  (:main ()))))))))
-
-
-                
-(defun B-term-expt (h)
-  (expt (gamma) (- h)))
-
-(defun B-term-rest (h v0 dv g1)
-  (- (* (mu) (/ (+ 1 (* *alpha* (+ v0 dv))) (+ 1 (* *beta* (+ (* h g1) (equ-c v0)))))) 1))
-
-(defun B-term (h v0 dv g1)
-  (* (B-term-expt h) (B-term-rest h v0 dv g1)))
-
-(defun B-sum (h_lo h_hi v0 dv g1)
-                
-;    (and (< (B-term h v0 dv g1) 0)
-;         (> (B-term (- h) v0 dv g1) 0)
-;         (> (- (B-term h v0 dv g1)) (B-term (- h) v0 dv g1)))
-  
-(encapsulate ()
-  (local (defthm B-term-neg-lemma1-1
-    (implies (and (rationalp x) (integerp n) (<= 1 x) (<= 1 n)) (<= x (expt x n)))))
-
-  (local (defthm B-term-neg-lemma1
-    (implies (basic-params h 1 v0 dv g1)
-	     (< (+ (* (B-term-expt h) (B-term-rest h v0 dv g1))
-		   (* (B-term-expt (- h)) (B-term-rest (- h) v0 dv g1)))
-		0)
-	     )
-    :hints
-    (("Goal"
-      :clause-processor
-      (my-clause-processor clause
-			   '( (:expand ((:functions ((B-term-rest rationalp)
-						     (gamma rationalp)
-						     (mu rationalp)
-						     (equ-c rationalp)
-						     (dv0 rationalp)))
-					(:expansion-level 1)))
-			      (:python-file "B-term-neg-lemma1") ;;mktemp
-			      (:let ((expt_gamma_h (B-term-expt h) rationalp)
-				     (expt_gamma_minus_h (B-term-expt (- h)) rationalp)))
-			      (:hypothesize ((<= expt_gamma_minus_h (/ 1 5))
-					     (> expt_gamma_minus_h 0)
-					     (equal (* expt_gamma_minus_h expt_gamma_h) 1)))
-			     (:use ((:let ())
-				    (:hypo (()))
-				    (:main ())))))))))
-
-  (defthm B-term-neg
-    (implies (basic-params h 1 v0 dv g1)
-	     (< (+ (B-term h v0 dv g1) (B-term (- h) v0 dv g1)) 0))
-    :hints (("Goal"
-	     :use ( (:instance B-term)
-		   (:instance B-term-neg-lemma1)
-		    )))
+      (smtlink-custom-config clause (smt-std-hint "B-term-neg") state)))
     :rule-classes :linear)
-)
 
+; B-sum-neg: show that the sum of a bunch of B-term pairs is negative.
+;   This is a trivial induction proof that the sum of a bunch of negative values is negative.
+;   We need B-term-neg to know that the terms in the sum are individually negative.
+; B-term-neg gets a 'non-rec' warning.  I suspect that's why I need to disable it and
+;   then specify a particular instance in the proof for B-sum-neg below.
+;   On the other hand, I wonder if we could get a "computed hint" or similar to recognize
+;   when the smtlink clause processor is applicable, and use it automatically.
+;   In that case, we might not need to explicitly state and prove B-term-neg.
 (defthm B-sum-neg
-  (implies (basic-params n-minus-2 1 v0 dv g1)
-	   (< (B-sum 1 n-minus-2 v0 dv g1) 0))
-  :hints (("Goal"
-	   :in-theory (disable B-term)
-	   :induct ())))
+  (implies (and (integerp n-minus-2) (rationalp v0) (rationalp dv) (rationalp g1) (rationalp Kt)
+                (<= 1 n-minus-2) (< n-minus-2 (/ (* 2 g1)))
+  		(< 0 v0)
+		(< 0 dv) (< dv (* (/ 4) (/ *alpha* *beta*) g1))
+		(< *g1-min* g1) (< g1 *g1-max*)
+		(< *Kt-min* Kt) (< Kt *Kt-max*))
+	   (< (b_sum 1 n-minus-2 v0 dv g1 Kt) 0))
+  :hints (("Goal" :in-theory (e/d (b_sum) (B-term)))))
 
-(encapsulate ()
-
-(local ;; B = B-expt*B-sum
- (defthm B-neg-lemma1
-   (implies (basic-params n 3 v0 dv g1)
-	    (equal (B n v0 dv g1)
-		   (* (B-expt n)
-		      (B-sum 1 (- n 2) v0 dv g1))))))
-
-(local
- (defthm B-expt->-0
-   (implies (basic-params n 3)
-	    (> (B-expt n) 0))
-   :rule-classes :linear))
-
-(local
- (defthm B-neg-lemma2
-   (implies (and (rationalp a)
-		 (rationalp b)
-		 (> a 0)
-		 (< b 0))
-	    (< (* a b) 0))
-   :rule-classes :linear))
-
-(local
- (defthm B-neg-type-lemma3
-   (implies (and (and (rationalp n-minus-2) (rationalp v0) (rationalp g1) (rationalp dv)))
-	    (rationalp (B-sum 1 n-minus-2 v0 dv g1)))
-   :rule-classes :type-prescription))
-
-(local
- (defthm B-neg-type-lemma4
-   (implies (basic-params n 3)
-	    (rationalp (B-expt n)))
-   :rule-classes :type-prescription))
+(defthm B-expt->-0
+  (implies (and (rationalp Kt) (integerp n) (< 0 Kt) (< Kt 1))
+	   (> (B-expt Kt n) 0))
+  :hints (("Goal" :in-theory (enable B-expt)))
+  :rule-classes :linear)
 
 (defthm B-neg
-  (implies (basic-params n 3 v0 dv g1)
-	   (< (B n v0 dv g1) 0))
-  :hints (("Goal"
-	   :do-not-induct t
-	   :in-theory (disable B-expt B-sum B-sum-neg B-expt->-0)
-	   :use ((:instance B-sum-neg (n-minus-2 (- n 2)))
-		 (:instance B-expt->-0)
-		 (:instance B-neg-type-lemma3 (n-minus-2 (- n 2)))
-		 (:instance B-neg-type-lemma4)
-		 (:instance B-neg-lemma2 (a (B-expt n))
-			                 (b (B-sum 1 (+ -2 n) v0 dv g1)))))))
-)
+  (implies (and (and (integerp n) (rationalp v0) (rationalp dv) (rationalp g1) (rationalp Kt))
+                (<= 3 n) (< n (/ (* 2 g1)))
+  		(< 0 v0)
+		(< 0 dv) (< dv (* (/ 4) (/ *alpha* *beta*) g1))
+		(< *g1-min* g1) (< g1 *g1-max*)
+		(< *Kt-min* Kt) (< Kt *Kt-max*))
+           (< (B n v0 dv g1 Kt) 0))
+  :hints (("Goal" :in-theory (enable B)
+    :clause-processor
+    (smtlink-custom-config clause
+      '( (:expand ((:functions ((B rationalp) (B-expt rationalp)))
+		   (:expansion-level 1)))
+         (:uninterpreted-functions (
+	   (expt rationalp integerp rationalp)
+	   (b_sum integerp integerp rationalp rationalp rationalp rationalp  rationalp)))
+         (:python-file "B-neg") ;;mktemp
+	 (:hypothesize ((< (b_sum 1 (+ -2 N) V0 DV G1 KT) 0)))
+	 (:use ((:hypo ((B-sum-neg)))))) state))))
+
+(defthm stop-here nil)
+
 
 (defun A (n phi0 v0 dv g1)
   (+ (* (expt (gamma) (- (* 2 n) 1)) phi0)
@@ -497,7 +310,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (my-clause-processor clause
+    (Smtlink clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)
@@ -733,7 +546,7 @@
     :in-theory (disable delta-rewrite-2-lemma1)
     :do-not-induct t
     :clause-processor
-    (my-clause-processor clause
+    (Smtlink clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)

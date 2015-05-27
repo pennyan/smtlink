@@ -1,7 +1,6 @@
 import collections
-import ACL2_translator
+import ACL22SMT
 import z3
-from z3 import Q
 
 def prod(stuff):
     """ prod(stuff):
@@ -20,7 +19,7 @@ def longVal(x):
     return None
 # end longVal
 
-class to_smt_w_expt(ACL2_translator.to_smt):
+class to_smt_w_expt(ACL22SMT.to_smt):
     class ExptRewriteFailure(Exception): pass
 
     def __init__(self, *args):
@@ -29,6 +28,8 @@ class to_smt_w_expt(ACL2_translator.to_smt):
         # the translator turns integerp to isReal!  That's because the z3
         # solver (understandably) chokes on mixed integer/real polynomials.
         self.expt = z3.Function('expt', z3.RealSort(), z3.RealSort(), z3.RealSort())
+        self.b_sum = z3.Function('b_sum', z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort())
+        self.b_expt = z3.Function('b_expt', z3.RealSort(), z3.RealSort(), z3.RealSort())
         self.maxPowExpand = 10
 
     def simplify(self, expr, **kwargs):

@@ -7,7 +7,7 @@
   (if (endp lista)
       nil
     (if (equal elem (car lista))
-	t
+        t
       (exist elem (cdr lista)))))
 
 ;; end
@@ -17,10 +17,24 @@
       (car lista)
     (end (cdr lista))))
 
-;; my-last
-(defun my-last (listx)
- "my-last: fetch the last element from list"
-  (car (last listx)))
+;; prefix
+(defun prefix (listx end)
+  (if (or (zp end) (< end 0))
+      nil
+    (cons (car listx) (prefix (cdr listx) (1- end)))))
+
+;; head
+;; this will be faster than defined with prefix
+(defun head (listx)
+  (if (endp (cdr listx))
+      nil
+    (cons (car listx) (head (cdr listx)))))
+
+;; sublist
+(defun sublist (listx start end)
+  (if (zp start)
+      (prefix listx end)
+    (sublist (cdr listx) (1- start) end)))
 
 ;; my-delete
 (defun my-delete (listx elem)
@@ -154,3 +168,4 @@ pair from assoc-list."
 	 (append lista (list listb)))
 	((and (listp lista) (listp listb))
 	 (append lista listb))))
+

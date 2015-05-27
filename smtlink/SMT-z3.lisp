@@ -65,14 +65,14 @@
           (create-uninterpreted-formula (cdr uninterpreted)))))
 
 ;; my-prove-write-file
-(defun my-prove-write-file (term fdir smt-cnf uninterpreted state)
+(defun my-prove-write-file (term fdir smt-config uninterpreted state)
   "my-prove-write-file: write translated term into a file"
   (write-SMT-file fdir
 		  (translate-SMT-formula
 		   (my-prove-SMT-formula term
-                             (create-uninterpreted-formula uninterpreted))
+			     (create-uninterpreted-formula uninterpreted))
        uninterpreted)
-		  smt-cnf
+		  smt-config
 		  state))
 
 ;; my-prove-write-expander-file
@@ -281,9 +281,9 @@ new hypothesis in lambda expression"
 ;; mk-fname make a file name for the z3 file
 ;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
 ;; if fname is not nil, it will use that user provided name
-(defun mk-fname (fname smt-cnf)
+(defun mk-fname (fname smt-config)
   (if (equal fname nil)
-      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-cnf) "/smtlink_XXXXX.py")))
+      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-config) "/smtlink_XXXXX.py")))
         (mv-let (finishedp exit-status lines)
                 (time$ (tshell-call cmd
                                     :print t
@@ -295,7 +295,7 @@ new hypothesis in lambda expression"
                     (car lines)
                   (cw "Error(SMT-z3): Generate file error."))))
     (concatenate 'string
-                 (smtlink-config->dir-files smt-cnf)
+                 (smtlink-config->dir-files smt-config)
                  "/"
                  fname
                  ".py")))
@@ -338,11 +338,11 @@ new hypothesis in lambda expression"
           (uninterpreted-operator (cdr uninterpreted-assoc)))))
 
 ;; my-prove
-(defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
+(defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state)
   "my-prove: return the result of calling SMT procedure"
-  (let ((file-dir (mk-fname fname smt-cnf))
+  (let ((file-dir (mk-fname fname smt-config))
 	(expand-dir (concatenate 'string
-				 (smtlink-config->dir-expanded smt-cnf)
+				 (smtlink-config->dir-expanded smt-config)
 				 "/"
 				 fname
 				 "\_expand.log")))
@@ -368,7 +368,7 @@ new hypothesis in lambda expression"
 					      (let ((state (my-prove-write-file
 							    expanded-term-list
 							    file-dir
-							    smt-cnf
+							    smt-config
                   uninterpreted-func
 							    state)
                        ))
@@ -393,6 +393,6 @@ new hypothesis in lambda expression"
 											   (append hypo-theorem
 											     (append type-theorem)))
 											 state)))
-						  (if (car (SMT-interpreter file-dir smt-cnf))
+						  (if (car (SMT-interpreter file-dir smt-config))
 						      (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem state)
 						      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state)))))))))))))))

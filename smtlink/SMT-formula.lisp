@@ -210,12 +210,14 @@
 	    ((is-SMT-operator (car expression) uninterpreted)
 	     (cons (SMT-operator (car expression) uninterpreted)
 		   (SMT-expression-long (cdr expression) uninterpreted)))
-	    ;; for handling a list
-	    ((equal (car expression) 'QUOTE)
-	     (if (consp (cadr expression))
-		 (cons 'list
-		       (SMT-expression-long (cadr expression) uninterpreted))
-		 (SMT-expression (cadr expression) uninterpreted)))
+	    ; mrg: added support for quoted symbols, 21 May 2015
+	    ;; for handling a list and atoms
+	    ( (equal (car expression) 'QUOTE)
+	      (let ( (quoted-expr (cadr expression)))
+		     (cond ( (consp quoted-expr) ; it's a quoted list
+			     (cons 'list (SMT-expression-long quoted-expr uninterpreted)) )
+			   ( (and quoted-expr (symbolp quoted-expr)) expression ) ; mrg leave quoted symbols untouched
+		           ( t (SMT-expression (cadr expression) uninterpreted) ))) )
 	    (t (cw "Error(formula): This is not a valid operator: ~q0" expression)))
     (cond ((is-SMT-number expression) (SMT-number expression))
 	  ((is-SMT-variable expression) (SMT-variable expression))

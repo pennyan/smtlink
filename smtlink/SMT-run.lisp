@@ -18,7 +18,7 @@
     (let ((state (princ$-list-of-strings (car alist) channel state)))
       (princ$-list-of-strings (cdr alist) channel state))
     (if (and (not (equal alist nil)) 
-	     (not (acl2-numberp alist)))   ;; if alist is a number, should be treated seperately
+	     (not (acl2-numberp alist)))   ;; if alist is a number, should be treated separately
       (princ$ (string alist) channel state)
       (if (acl2-numberp alist)
         (princ$ alist channel state)
@@ -40,26 +40,26 @@
 	  (t (cw "Error(run): Invalid list ~q0." (car slist))))))
 
 ;; write-head
-(defun write-head (smt-cnf)
+(defun write-head (smt-config)
   "write-head: writes the head of a z3 file"
   (coerce-str-and-char-to-str
    (list "from sys import path"
 	 #\Newline
-	 "path.insert(0,\"" (smtlink-config->dir-interface smt-cnf) "\")"
+	 "path.insert(0,\"" (smtlink-config->dir-interface smt-config) "\")"
 	 #\Newline
-	 "from "(smtlink-config->SMT-module smt-cnf) " import " (smtlink-config->SMT-class smt-cnf)
+	 "from "(smtlink-config->SMT-module smt-config) " import " (smtlink-config->SMT-class smt-config)
 	 #\Newline
-	 "s = " (smtlink-config->SMT-class smt-cnf) "()"
+	 "s = " (smtlink-config->SMT-class smt-config) "()"
 	 #\Newline)))
 
 ;; write-SMT-file
-(defun write-SMT-file (filename translated-formula smt-cnf state)
+(defun write-SMT-file (filename translated-formula smt-config state)
   "write-SMT-file: writes the translated formula into a python file, it opens and closes the channel and write the including of Z3 inteface"
   (mv-let
    (channel state)
    (open-output-channel! filename :character state)
    (let ((state (princ$-list-of-strings
-		 (write-head smt-cnf) channel state)))
+		 (write-head smt-config) channel state)))
      (let ((state (princ$-list-of-strings translated-formula channel state)))
        (close-output-channel channel state)))))
 
@@ -75,9 +75,9 @@
      (close-output-channel channel state))))
 
 ;; SMT-run
-(defun SMT-run (filename smt-cnf)                                   
+(defun SMT-run (filename smt-config)                                   
   "SMT-run: run the external SMT procedure from ACL2"
-  (let ((cmd (concatenate 'string (smtlink-config->smt-cmd smt-cnf) " " filename)))
+  (let ((cmd (concatenate 'string (smtlink-config->smt-cmd smt-config) " " filename)))
     (time$ (tshell-call cmd
                         :print t
                         :save t)

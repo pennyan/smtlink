@@ -44,7 +44,7 @@
 )
 
 ;; my-prove-SMT-formula
-(defun my-prove-SMT-formula (term)
+(defun my-prove-SMT-formula (term uninterpreted)
   "my-prove-SMT-formula: check if term is a valid SMT formula"
   (let ((decl-list (cadr (cadr term)))
 	(hypo-list (caddr (cadr term)))
@@ -52,14 +52,27 @@
     (SMT-formula '()
 		 decl-list
 		 hypo-list
-		 concl-list)))
+		 concl-list
+     uninterpreted)))
+
+;; create-uninterpreted-formula
+(defun create-uninterpreted-formula (uninterpreted)
+  (if (endp uninterpreted)
+      nil
+    (cons (list (caar uninterpreted)
+                (caar uninterpreted)
+                (caddar uninterpreted))
+          (create-uninterpreted-formula (cdr uninterpreted)))))
 
 ;; my-prove-write-file
-(defun my-prove-write-file (term fdir state)
+(defun my-prove-write-file (term fdir smt-config uninterpreted state)
   "my-prove-write-file: write translated term into a file"
   (write-SMT-file fdir
 		  (translate-SMT-formula
-		   (my-prove-SMT-formula term))
+		   (my-prove-SMT-formula term
+			     (create-uninterpreted-formula uninterpreted))
+       uninterpreted)
+		  smt-config
 		  state))
 
 ;; my-prove-write-expander-file
@@ -160,9 +173,8 @@ new hypothesis in lambda expression"
 	       )))
 
 (defun augment-hypothesis (rewritten-term let-expr orig-param main-hints aux-thms state)
-  (prog2$ (cw "aux-thms: ~q0~%" aux-thms)
   (let ((res (augment-hypothesis-helper rewritten-term let-expr orig-param main-hints state)))
-    (add-aux res aux-thms))))
+    (add-aux res aux-thms)))
 
 ;;separate-type
 (defun separate-type (let-expr)
@@ -266,19 +278,77 @@ new hypothesis in lambda expression"
 	      (cadddr (cadr term)))
 	(caddr term)))
 
+;; mk-fname make a file name for the z3 file
+;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
+;; if fname is not nil, it will use that user provided name
+(defun mk-fname (fname smt-config)
+  (if (equal fname nil)
+      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-config) "/smtlink_XXXXX.py")))
+        (mv-let (finishedp exit-status lines)
+                (time$ (tshell-call cmd
+                                    :print t
+                                    :save t)
+                       :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
+                       :args (list cmd))
+                (if (and (equal finishedp t)
+                         (equal exit-status 0))
+                    (car lines)
+                  (cw "Error(SMT-z3): Generate file error."))))
+    (concatenate 'string
+                 (smtlink-config->dir-files smt-config)
+                 "/"
+                 fname
+                 ".py")))
+
+;; create-uninterpreted-item
+(defun create-uninterpreted-item (item)
+  (cons (car item)
+        (cons (head (cdr item))
+              (end (cdr item)))))
+
+;; uninterpreted-type-&-name: processing the list of uninterpreted functions
+;; produces an associate list. Key is the function name, value is a 2 element
+;; list. First element is a list of input argument type, second element is the
+;; return type.
+(defun uninterpreted-type-&-name (uninterpreted)
+  (if (endp uninterpreted)
+      nil
+    (cons (create-uninterpreted-item (car uninterpreted))
+          (uninterpreted-type-&-name (cdr uninterpreted))))
+  )
+
+;; create-proc-name
+;; given name "XXX", create name "s.XXX"
+;; User defined uninterpreted functions are assumed to be all in lower case
+(defun create-proc-name (name)
+  (concatenate 'string "s." (string-downcase (string name))))
+
+;; create-uninterpreted-oprt-item
+;; By default, using the same name in ACL2.
+(defun create-uninterpreted-oprt-item (item)
+  (list (car item)
+        (create-proc-name (car item))
+        (length (cadr item))))
+
+;; uninterpreted-operator
+(defun uninterpreted-operator (uninterpreted-assoc)
+  (if (endp uninterpreted-assoc)
+      nil
+    (cons (create-uninterpreted-oprt-item (car uninterpreted-assoc))
+          (uninterpreted-operator (cdr uninterpreted-assoc)))))
+
 ;; my-prove
-(defun my-prove (term fn-lst fn-level fname let-expr new-hypo let-hints hypo-hints main-hints state)
+(defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state)
   "my-prove: return the result of calling SMT procedure"
-  (let ((file-dir (concatenate 'string
-			       *dir-files*
-			       "/"
-			       fname
-			       ".py"))
+  (let ((file-dir (mk-fname fname smt-config))
 	(expand-dir (concatenate 'string
-				 *dir-expanded*
+				 (smtlink-config->dir-expanded smt-config)
 				 "/"
 				 fname
 				 "\_expand.log")))
+    (let ((uninterpreted-func
+           (uninterpreted-operator
+            (uninterpreted-type-&-name uninterpreted))))
     (mv-let (hypo-translated state)
 	    (translate-hypo new-hypo state)
     (mv-let (let-expr-translated-with-type state)
@@ -298,7 +368,10 @@ new hypothesis in lambda expression"
 					      (let ((state (my-prove-write-file
 							    expanded-term-list
 							    file-dir
-							    state)))
+							    smt-config
+                  uninterpreted-func
+							    state)
+                       ))
 						(let ((type-theorem (create-type-theorem (cadr term)
 											 let-expr-translated
 											 let-type
@@ -320,6 +393,6 @@ new hypothesis in lambda expression"
 											   (append hypo-theorem
 											     (append type-theorem)))
 											 state)))
-						  (if (car (SMT-interpreter file-dir))
+						  (if (car (SMT-interpreter file-dir smt-config))
 						      (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem state)
-						      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state))))))))))))))
+						      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state)))))))))))))))

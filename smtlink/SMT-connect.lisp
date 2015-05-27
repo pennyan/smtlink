@@ -13,18 +13,11 @@
 (set-ignore-ok t)
 
 (defstub acl2-my-prove
-  (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
+  (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state)
   (mv t nil nil nil nil state))
 
 (program)
-
-;; Users need to define trust tags by themselves to
-;; select the right clause processor needed.
-;; :Smtlink or :Smtlink-custom-config.
-;; :Smtlink-custom-config let you configure your own external SMT solver.
-;; :Smtlink uses the default Z3 interface.
-;; By default, the trust tag is :Smtlink
-(defttag :SMT-connect)
+(defttag :Smtlink)
 
 (include-book "SMT-z3")
 (include-book "config")
@@ -33,14 +26,14 @@
 (progn
 ; We wrap everything here in a single progn, so that the entire form is
 ; atomic.  That's important because we want the use of push-untouchable to
-; prevent anything besides my-clause-processor from calling acl2-my-prove.
+; prevent anything besides Smtlink-raw from calling acl2-my-prove.
 
   (progn!
 
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
    
-   (defun acl2-my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state)
-     (my-prove term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-cnf state))
+   (defun acl2-my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state)
+     (my-prove term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state))
    )
 
   ;; Supported arguments:
@@ -93,7 +86,7 @@
 			    (mv nil res-clause state)))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
-              (mv t (list cl) state)))))))
+			  (mv t (list cl) state)))))))
 
   (defun Smtlink (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
@@ -111,11 +104,10 @@
 (define-trusted-clause-processor
   Smtlink
   nil
-  ;;:ttag Smtlink
-  )
+  :ttag Smtlink)
 
 (define-trusted-clause-processor
   Smtlink-custom-config
   nil
-  ;;:ttag Smtlink-custom-config
-  )
+  :ttag Smtlink-custom-config)
+

@@ -20,10 +20,10 @@
 ;; and bind all variables with values.
 ;; Need to tell user informations on how to leave the
 ;; session.
-(defun SMT-interpreter (filename smt-cnf)
+(defun SMT-interpreter (filename smt-config)
   "SMT-intepreter: get the result returned from calling SMT procedure"
   (mv-let (finishedp exit-status lines)
-          (SMT-run filename smt-cnf)
+          (SMT-run filename smt-config)
 	  (cond ((equal finishedp nil)
 		 (cw "Warning: the command was interrupted."))
 		((not (equal exit-status 0))
