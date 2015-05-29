@@ -191,10 +191,10 @@
 
 ;; an example showing uninterpreted function usage
 (defthm test8
-  (implies (and (and (rationalp x)
+  (implies (and (and (rationalp 2x!-++__)
                      (integerp n))
-                (and (> x 0)))
-           (> (expt x n) 0))
+                (and (> 2x!-++__ 0)))
+           (> (expt 2x!-++__ n) 0))
   :hints
   (("Goal"
     :clause-processor
