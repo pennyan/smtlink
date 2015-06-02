@@ -2,6 +2,7 @@
 (in-package "ACL2")
 
 ;; exist
+;; mrg: this is the same as the built-in function member-equal
 (defun exist (elem lista)
   "exist: check if an element exist in a list"
   (if (endp lista)
@@ -11,6 +12,7 @@
       (exist elem (cdr lista)))))
 
 ;; end
+;; mrg: this is the same as (car (last lista))
 (defun end (lista)
   "end: return the last element in a list"
   (if (endp (cdr lista))
@@ -18,6 +20,7 @@
     (end (cdr lista))))
 
 ;; prefix
+;; mrg: (prefix lst n) is the same as (take n lst)
 (defun prefix (listx end)
   (if (or (zp end) (< end 0))
       nil
@@ -71,6 +74,13 @@
      (coerce (symbol-name name)'list))
     'string)
    'ACL2))
+
+
+;; and-list-logic
+(defun and-list-logic (lst)
+  (cond ((endp lst) t)    
+        ((endp (cdr lst)) (car lst))
+	(t `(if ,(car lst) ,(and-list-logic (cdr lst)) 'nil))))
 
 ;; append-and-decl
 (defun append-and-decl (listx listy let-type)

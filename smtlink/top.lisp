@@ -8,5 +8,5 @@
 ;; (include-book "SMT-translator")
 ;; (include-book "SMT-interpreter")
 ;; (include-book "SMT-run")
-;; (include-book "SMT-z3")
+;; (include-book "SMT-py")  ; note (mrg, 28 May 2015): I renamed SMT-z3.lisp to SMT-py.lisp
 (include-book "SMT-connect")

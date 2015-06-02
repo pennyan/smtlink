@@ -16,7 +16,7 @@
   :tag :smtlink-config)
 
 (defconst *default-smtlink-config*
-  (make-smtlink-config :dir-interface "./"
+  (make-smtlink-config :dir-interface "./z3_interface"
 		       :dir-files "z3\_files" 
 		       :SMT-module "ACL22SMT"
 		       :SMT-class "to_smt"

@@ -1,4 +1,5 @@
 (in-package "ACL2")
+(include-book "tools/bstar" :dir :system) 
 (include-book "./helper")
 (include-book "./SMT-run")
 (include-book "./SMT-interpreter")
@@ -30,7 +31,7 @@
 	      (equal (car lisp-code) 'quote))
 	 (cons "'"
 	       (lisp-code-print (cadr lisp-code)
-				(cons #\Space
+	 			(cons #\Space
 				      (cons #\Space indent)))))
 	(t
 	 (list #\Newline indent '\(
@@ -46,14 +47,9 @@
 ;; my-prove-SMT-formula
 (defun my-prove-SMT-formula (term uninterpreted)
   "my-prove-SMT-formula: check if term is a valid SMT formula"
-  (let ((decl-list (cadr (cadr term)))
-	(hypo-list (caddr (cadr term)))
-	(concl-list (caddr term)))
-    (SMT-formula '()
-		 decl-list
-		 hypo-list
-		 concl-list
-     uninterpreted)))
+  (b* ( ( (mv decl-list hypothesis concl)
+          (SMT-extract term) ))
+      (SMT-formula decl-list (and-list-logic hypothesis) concl uninterpreted)))
 
 ;; create-uninterpreted-formula
 (defun create-uninterpreted-formula (uninterpreted)
@@ -67,13 +63,11 @@
 ;; my-prove-write-file
 (defun my-prove-write-file (term fdir smt-config uninterpreted state)
   "my-prove-write-file: write translated term into a file"
-  (write-SMT-file fdir
-		  (translate-SMT-formula
-		   (my-prove-SMT-formula term
-			     (create-uninterpreted-formula uninterpreted))
-       uninterpreted)
-		  smt-config
-		  state))
+  (b* ( ( (mv decl-list hypotheses concl)
+          (my-prove-SMT-formula term (create-uninterpreted-formula uninterpreted)) )
+        ( translated-formula (translate-SMT-formula decl-list hypotheses concl uninterpreted) )
+      )
+      (write-SMT-file fdir translated-formula smt-config state)))
 
 ;; my-prove-write-expander-file
 (defun my-prove-write-expander-file (expanded-term fdir state)
@@ -135,7 +129,7 @@
 
 ;; add-hints
 (defun add-hints (hints clause state)
-  "add-hints: add a list of hint to a clause, in the form of ((not hint3) ((not hint2) ((not hint1) clause)))"
+  "add-hints: add a list of hints to a clause, in the form of ((not hint3) ((not hint2) ((not hint1) clause)))"
   (if (endp hints)
       clause
       (add-hints (cdr hints)
@@ -293,7 +287,7 @@ new hypothesis in lambda expression"
                 (if (and (equal finishedp t)
                          (equal exit-status 0))
                     (car lines)
-                  (cw "Error(SMT-z3): Generate file error."))))
+                  (cw "Error(SMT-py): Generate file error."))))
     (concatenate 'string
                  (smtlink-config->dir-files smt-config)
                  "/"
@@ -338,61 +332,35 @@ new hypothesis in lambda expression"
           (uninterpreted-operator (cdr uninterpreted-assoc)))))
 
 ;; my-prove
-(defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state)
+(defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo
+                 let-hints hypo-hints main-hints smt-config state)
   "my-prove: return the result of calling SMT procedure"
-  (let ((file-dir (mk-fname fname smt-config))
-	(expand-dir (concatenate 'string
-				 (smtlink-config->dir-expanded smt-config)
-				 "/"
-				 fname
-				 "\_expand.log")))
-    (let ((uninterpreted-func
-           (uninterpreted-operator
-            (uninterpreted-type-&-name uninterpreted))))
-    (mv-let (hypo-translated state)
-	    (translate-hypo new-hypo state)
-    (mv-let (let-expr-translated-with-type state)
-	    (translate-let let-expr state)
-      (mv-let (let-expr-translated let-type)
-	      (separate-type let-expr-translated-with-type)
-	      (mv-let (expanded-term-list-1 expanded-term-list-2 num orig-param fn-var-decl)
-		      (expand-fn term fn-lst fn-level let-expr-translated let-type hypo-translated state)
-		      (let ((expanded-term-list
-			      (add-fn-var-decl expanded-term-list-1 fn-var-decl)))
-			      (prog2$ (cw "Expanded(SMT-z3): ~q0 Final index number: ~q1" expanded-term-list num)
-				      (let ((state (my-prove-write-expander-file
-						    (my-prove-build-log-file
-						     (cons term expanded-term-list) 0)
-						    expand-dir
-						    state)))
-					      (let ((state (my-prove-write-file
-							    expanded-term-list
-							    file-dir
-							    smt-config
-                  uninterpreted-func
-							    state)
-                       ))
-						(let ((type-theorem (create-type-theorem (cadr term)
-											 let-expr-translated
-											 let-type
-											 let-hints
-											 state))
-						      (hypo-theorem (create-hypo-theorem (cadr term)
-											 let-expr-translated
-											 hypo-translated
-											 orig-param
-											 hypo-hints
-											 state))
-						      (fn-type-theorem (create-fn-type-theorem (cadr term)
-											       fn-var-decl)))
-						  (let ((aug-theorem (augment-hypothesis expanded-term-list-2
-											 let-expr-translated
-											 orig-param
-											 main-hints
-											 (append fn-type-theorem
-											   (append hypo-theorem
-											     (append type-theorem)))
-											 state)))
-						  (if (car (SMT-interpreter file-dir smt-config))
-						      (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem state)
-						      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state)))))))))))))))
+  (b*
+    ( ((mv decl-list hypo-list concl) (SMT-extract term))
+      (decl-and-hypo (and-list-logic (append decl-list hypo-list)))
+      (file-dir (mk-fname fname smt-config))
+      (expand-dir (concatenate 'string
+			       (smtlink-config->dir-expanded smt-config)
+			       "/"
+			       fname
+			       "\_expand.log"))
+      (uninterpreted-func (uninterpreted-operator (uninterpreted-type-&-name uninterpreted)))
+      ((mv hypo-translated state) (translate-hypo new-hypo state))
+      ((mv let-expr-translated-with-type state) (translate-let let-expr state))
+      ((mv let-expr-translated let-type) (separate-type let-expr-translated-with-type))
+      ( (mv expanded-term-list-1 expanded-term-list-2 num orig-param fn-var-decl)
+	(expand-fn term fn-lst fn-level let-expr-translated let-type hypo-translated state))
+      (expanded-term-list (add-fn-var-decl expanded-term-list-1 fn-var-decl))
+      ( - (cw "Expanded(SMT-py): ~q0 Final index number: ~q1" expanded-term-list num))
+      (state (my-prove-write-expander-file (my-prove-build-log-file (cons term expanded-term-list) 0)
+					    expand-dir state))
+      (state (my-prove-write-file expanded-term-list file-dir smt-config uninterpreted-func state))
+      (type-theorem (create-type-theorem decl-and-hypo let-expr-translated let-type let-hints state))
+      (hypo-theorem (create-hypo-theorem decl-and-hypo let-expr-translated hypo-translated orig-param hypo-hints state))
+      (fn-type-theorem (create-fn-type-theorem decl-and-hypo fn-var-decl))
+      (aug-theorem (augment-hypothesis expanded-term-list-2 let-expr-translated orig-param main-hints
+				       (append fn-type-theorem (append hypo-theorem (append type-theorem)))
+				       state)))
+    (if (car (SMT-interpreter file-dir smt-config))
+        (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem state)
+        (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state))))

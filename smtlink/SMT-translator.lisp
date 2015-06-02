@@ -308,16 +308,16 @@
 	  ((equal expression 't) "True")
 	  ((is-SMT-variable expression)
 	   (translate-variable expression))
-	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression))))
-))
-)
+	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression)))))))
+
 ;; ----------------------- translate-hypothesis --------------------------:
 
 ;; translate-hypothesis-list
-(defun translate-hypothesis-list (hyp-list uninterpreted)
+(defun translate-hypothesis-list (hypothesis uninterpreted)
   "translate-hypothesis-list: translate a SMT-formula hypothesis statement into Z3"
-  (list (cons "hypothesis" 
-	      (cons '= (translate-expression hyp-list uninterpreted))) #\Newline))
+  (prog2$ (cw "(mrg translate-hypothesis-list:~%  hypothesis = ~x0~%" hypothesis)
+  (list (cons "hypothesis"
+	      (cons '= (translate-expression hypothesis uninterpreted))) #\Newline)))
 
 ;; ----------------------- translate-conclusion --------------------------:
 ;; translate-conclusion-list
@@ -335,16 +335,11 @@
 ;; ----------------------- translate-SMT-formula --------------------------:
 
 ;; translate-SMT-formula
-(defun translate-SMT-formula (formula uninterpreted)
+(defun translate-SMT-formula (decl-list hypothesis concl uninterpreted)
   "translate-SMT-formula: translate a SMT formula into its Z3 code"
-  (let (;(const-list (car formula))
-	(decl-list (cadr formula))
-	(hypo-list (caddr formula))
-	(concl-list (cadddr formula)))
-    (list ;;(translate-constant-list
-     ;;  (get-constant-list formula))
-	  (translate-declaration-list decl-list)
-          (translate-hypothesis-list hypo-list uninterpreted)
-	  (translate-conclusion-list concl-list uninterpreted)
-	  (translate-theorem)))
-)
+  (list ;;(translate-constant-list
+   ;;  (get-constant-list formula))
+	(translate-declaration-list decl-list)
+	(translate-hypothesis-list hypothesis uninterpreted)
+	(translate-conclusion-list concl uninterpreted)
+	(translate-theorem)))
