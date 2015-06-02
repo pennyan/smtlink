@@ -144,32 +144,14 @@
 
 ;; --------------------- SMT-declaration -------------------------:
 
-;; SMT-declaration 
-(defun SMT-declaration (decl)
-  "SMT-declaration: This is a SMT variable declaration"
-  (if (not (equal (len decl) 2))
-      (cw "Error(formula): Wrong number of elements in a variable declaration list: ~q0" decl)
-    (let ((type (car decl))
-	  (name (cadr decl)))
-      (list (SMT-type type) (SMT-variable name)))))
-
-;; SMT-declaration-list-help
-(defun SMT-declaration-list-help (decl-list)
-  "SMT-declaration-list-help: This is a list of SMT variable declarations, the helper function"
-  (if (consp decl-list)
-      (cond ((equal (car decl-list) 'if)
-	     (cons (SMT-declaration (cadr decl-list))
-		   (SMT-declaration-list-help (caddr decl-list))))
-	    (t (cons (SMT-declaration decl-list)
-		     nil)))
-    nil))
-
 ;; SMT-declaration-list
 (defun SMT-declaration-list (decl-list)
   "SMT-decl-list: This is a list of SMT variable declarations"
-  (if (not (listp decl-list))
-      (cw "Error(formula): The SMT declaration list is not in the right form: ~q0" decl-list)
-    (SMT-declaration-list-help decl-list)))
+  (cond ( (not (listp decl-list))
+          (cw "Error(formula): The SMT declaration list is not in the right form: ~q0" decl-list) )
+        ( (endp decl-list) nil )
+	( t (cons (list (SMT-type (caar decl-list)) (SMT-variable (cadar decl-list)))
+	          (SMT-declaration-list (cdr decl-list))) )))
 
 ;; --------------------- SMT-expression -------------------------:
 
@@ -228,10 +210,11 @@
 
 ;; SMT-hypothesis-list
 (defun SMT-hypothesis-list (hyp-list uninterpreted)
-  "SMT-hypothesis-list: This is a SMT hypothesis list"
-  (if (not (listp hyp-list))
-      (cw "Error(formula): The SMT hypothesis list is not in the right form: ~q0" hyp-list)
-    (SMT-expression hyp-list uninterpreted)))
+  (cond ( (not (listp hyp-list))
+          (cw "Error(formula): The SMT hypothesis list is not in the right form: ~q0" hyp-list))
+	( (endp hyp-list) nil )
+	( t (cons (SMT-expression (car hyp-list) uninterpreted)
+	          (SMT-hypothesis-list (cdr hyp-list) uninterpreted)))))
 
 ;; --------------------- SMT-conclusion -------------------------:
 
@@ -244,28 +227,14 @@
 ;; --------------------- SMT-formula ----------------------------:
 
 ;; SMT-formula
-(defun SMT-formula (const-list
+(defun SMT-formula (; const-list
 		    decl-list
 		    hyp-list
-		    concl-list
+		    concl
         uninterpreted)
   "SMT-formula: This is a SMT formula"
-  (list (SMT-constant-list const-list)
-	(SMT-declaration-list decl-list)
-	(SMT-hypothesis-list hyp-list uninterpreted)
-	(SMT-conclusion-list concl-list uninterpreted))
-  )
-
-;; SMT-formula-top
-(defmacro SMT-formula-top (&key const-list
-				decl-list
-				hyp-list
-				concl-list
-        uninterpreted)
-  "SMT-formula-top: This is a macro for fetching parameters of a SMT formula"
-  (list 'quote (SMT-formula const-list
-			    decl-list 
-			    hyp-list 
-			    concl-list
-          uninterpreted))
+  (mv ; (SMT-constant-list const-list)
+      (SMT-declaration-list decl-list)
+      (SMT-hypothesis-list hyp-list uninterpreted)
+      (SMT-conclusion-list concl uninterpreted))
   )

@@ -41,7 +41,7 @@
 ;;:set-ignore-ok t
 
 (include-book "arithmetic/top-with-meta" :dir :system)
-(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
+(add-include-book-dir :cp ".")
 (include-book "top" :dir :cp)
 (tshell-ensure)
 
@@ -53,7 +53,7 @@
    (defun my-smtlink-config ()
      (declare (xargs :guard t))
      (make-smtlink-config :dir-interface
-			  "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface"
+			  "./\_interface"
 			  :dir-files
 			  "z3\_files"
 			  :SMT-module

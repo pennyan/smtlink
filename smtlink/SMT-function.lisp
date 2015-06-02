@@ -249,22 +249,14 @@
 
 ;; extract-orig-param
 (defun extract-orig-param (expr)
-  (mv-let (decl-list hypo-list concl-list)
-	  (SMT-extract expr)
-	  (get-orig-param decl-list)))
+  (get-orig-param (mv-nth 0 (mv-list 3 (SMT-extract expr))))) 
 
 ;; augment-formula
 (defun augment-formula (expr new-decl let-type new-hypo)
   "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
-  (mv-let (decl-list hypo-list concl-list)
-	  (SMT-extract expr)
-	  (list 'implies
-		    (list 'if
-			  (append-and-decl decl-list new-decl let-type)
-			  (append-and-hypo hypo-list new-hypo)
-			  ''nil)
-		    concl-list
-		    )))
+  (b* ( ((mv decl-list hypo-list concl) (SMT-extract expr)) )
+      (list 'implies (and-list-logic (append decl-list new-decl let-type hypo-list new-hypo))
+		     concl)))
 
 ;; reform-let
 (defun reform-let (let-expr)

@@ -19,7 +19,7 @@
 (program)
 (defttag :Smtlink)
 
-(include-book "SMT-z3")
+(include-book "SMT-py")
 (include-book "config")
 (value-triple (tshell-ensure))
 
@@ -73,7 +73,7 @@
   (defun Smtlink-raw (cl hint state custom-config)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (prog2$ (cw "Original clause(connect): ~q0" (disjoin cl))
+    (prog2$ (cw "Original clause(connect): ~x0" cl)
     (b* (((mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
 	  (Smtlink-arguments hint)))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
@@ -82,7 +82,7 @@
 		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
 					    (list (append expanded-cl cl))
 					    )))
-		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause)
+		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" "hello-world") ; res-clause)
 			    (mv nil res-clause state)))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
