@@ -45,39 +45,49 @@ level 1:IMPLIES
 
 level 2:
 (IF 
+  (INTEGERP H) 
   (IF 
-    (RATIONALP EXPT_GAMMA_MINUS_H) 
+    (RATIONALP G1) 
     (IF 
-      (RATIONALP EXPT_GAMMA_H) 
+      (RATIONALP V0) 
       (IF 
-        (INTEGERP H) 
+        (RATIONALP DV) 
         (IF 
-          (RATIONALP G1) 
+          (RATIONALP EXPT_GAMMA_H) 
           (IF 
-            (RATIONALP V0) 
-            (RATIONALP DV) 'nil) 'nil) 'nil) 'nil) 'nil) 
-  (IF 
-    (NOT 
-      (< H '1)) 
-    (IF 
-      (NOT 
-        (< '640 H)) 
-      (IF 
-        (EQUAL G1 '1/3200) 
-        (IF 
-          (NOT 
-            (< V0 '9/10)) 
-          (IF 
-            (NOT 
-              (< '11/10 V0)) 
+            (RATIONALP EXPT_GAMMA_MINUS_H) 
             (IF 
               (NOT 
-                (< DV 
-                  (UNARY-- 
-                    (BINARY-* '-2 '-1/16000)))) 
-              (NOT 
-                (< 
-                  (BINARY-* '-2 '-1/16000) DV)) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
+                (< H '1)) 
+              (IF 
+                (NOT 
+                  (< '640 H)) 
+                (IF 
+                  (EQUAL G1 '1/3200) 
+                  (IF 
+                    (NOT 
+                      (< V0 '9/10)) 
+                    (IF 
+                      (NOT 
+                        (< '11/10 V0)) 
+                      (IF 
+                        (NOT 
+                          (< DV 
+                            (UNARY-- 
+                              (BINARY-* '-2 '-1/16000)))) 
+                        (IF 
+                          (NOT 
+                            (< 
+                              (BINARY-* '-2 '-1/16000) DV)) 
+                          (IF 
+                            (NOT 
+                              (< 
+                                (BINARY-* '1 
+                                  (UNARY-/ '5)) EXPT_GAMMA_MINUS_H)) 
+                            (IF 
+                              (< '0 EXPT_GAMMA_MINUS_H) 
+                              (EQUAL 
+                                (BINARY-* EXPT_GAMMA_MINUS_H EXPT_GAMMA_H) '1) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil) 'nil)
 
 level 3:
 (< 

@@ -252,11 +252,13 @@
   (get-orig-param (mv-nth 0 (mv-list 3 (SMT-extract expr))))) 
 
 ;; augment-formula
-(defun augment-formula (expr new-decl let-type new-hypo)
+(defun augment-formula (expr let-type new-hypo)
   "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
   (b* ( ((mv decl-list hypo-list concl) (SMT-extract expr)) )
-      (list 'implies (and-list-logic (append decl-list new-decl let-type hypo-list new-hypo))
-		     concl)))
+      (prog2$ (cw "let-type:~q0~%" let-type)
+      (list 'implies (and-list-logic (append decl-list let-type hypo-list new-hypo))
+            concl)))
+  )
 
 ;; reform-let
 (defun reform-let (let-expr)
@@ -359,6 +361,14 @@
 
 )
 
+;; create-let-decl
+(defun create-let-decl (namelist typelist)
+  (if (endp namelist)
+      nil
+    (cons (list (car typelist) (car namelist))
+          (create-let-decl (cdr namelist) (cdr typelist))))
+  )
+
 ;; expand-fn
 (defun expand-fn (expr fn-lst-with-type fn-level let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
@@ -372,15 +382,10 @@
 		      (replace-rec-fn res-expr1 fn-lst-with-type nil res-num1)
 		      (let ((rewritten-expr
 			     (augment-formula (rewrite-formula res-expr reformed-let-expr)
-					      (assoc-get-value reformed-let-expr)
-					      let-type
+					      (create-let-decl (assoc-get-value reformed-let-expr)
+                                 let-type)
 					      new-hypo)))
 			      (let ((res (rewrite-formula res-expr1 reformed-let-expr)))
-				(let ((expr-return ;; (augment-formula res
-				       ;; 		  (assoc-get-value reformed-let-expr)
-				       ;; 		  let-type
-				       ;; 		  new-hypo)
-				       res
-					)
+				(let ((expr-return res)
 				      (orig-param (extract-orig-param res)))
 				  (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))

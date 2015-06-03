@@ -12,10 +12,10 @@ level 1:IMPLIES
 
 level 2:
 (IF 
+  (RATIONALP 2X!-++__) 
   (IF 
-    (RATIONALP 2X!-++__) 
-    (INTEGERP N) 'nil) 
-  (< '0 2X!-++__) 'nil)
+    (INTEGERP N) 
+    (< '0 2X!-++__) 'nil) 'nil)
 
 level 3:
 (< '0 

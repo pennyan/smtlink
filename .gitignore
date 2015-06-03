@@ -20,3 +20,5 @@ smtlink/expanded/*
 mark-smtlink/z3_files/*
 mark-smtlink/expanded/*
 
+*.pyc
+*.log
