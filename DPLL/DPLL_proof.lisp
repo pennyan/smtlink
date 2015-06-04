@@ -1372,24 +1372,74 @@
   :hints (("Goal"
 	   :use ((:instance phi-2n+1-<-0-inductive-corollary)))))
 
+
+(defthm phi-2n+1-<-0-base-lemma
+  (IMPLIES (AND (RATIONALP V0)
+              (RATIONALP PHI0)
+              (RATIONALP DV)
+              (<= 1 (* 10/9 V0))
+              (<= V0 11/10)
+              (<= (- (* 8000 DV)) 1)
+              (<= (* 8000 DV) 1)
+              (<= 0 PHI0)
+              (< PHI0
+                 (+ -1 (/ (+ 2561/3200 V0))
+                    (* DV (/ (+ 2561/3200 V0)))
+                    (* V0 (/ (+ 2561/3200 V0))))))
+         (< (+ (* 1/3125 PHI0)
+               (/ (+ 3201/3200 V0))
+               (* 1/125 (/ (+ 1599/1600 V0)))
+               (* 1/25 (/ (+ 3199/3200 V0)))
+               (* 1/625 (/ (+ 3197/3200 V0)))
+               (* DV (/ (+ 3201/3200 V0)))
+               (* V0 (/ (+ 3201/3200 V0)))
+               (* 1/125 DV (/ (+ 1599/1600 V0)))
+               (* 1/125 V0 (/ (+ 1599/1600 V0)))
+               (* 1/25 DV (/ (+ 3199/3200 V0)))
+               (* 1/25 V0 (/ (+ 3199/3200 V0)))
+               (* 1/625 DV (/ (+ 3197/3200 V0)))
+               (* 1/625 V0 (/ (+ 3197/3200 V0))))
+            656/625))
+  :hints (("Goal"
+	   :clause-processor
+  	   (Smtlink-custom-config clause
+  				'( (:expand ((:function ())
+  					     (:expansion-level 1)))
+  				  (:python-file "phi-2n+1-smaller-than-0-base")
+  				  (:let ())
+  				  (:hypothesize ()))
+          state)))
+  )
+
 (defthm phi-2n+1-<-0-base
     (implies (basic-params-equal n 2 v0 dv g1 phi0)
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
-  ;; :hints (("Goal''"
-	;;    :clause-processor
-  ;; 	   (Smtlink-custom-config clause
-  ;; 				'( (:expand ((:function ())
-  ;; 					     (:expansion-level 1)))
-  ;; 				  (:python-file "phi-2n+1-smaller-than-0-base")
-  ;; 				  (:let ())
-  ;; 				  (:hypothesize ()))
-	;; 			state)))
+  :hints (("Goal"
+           :use ((:instance phi-2n+1-<-0-base-lemma))))
   )
 
-(defthm phi-2n+1-<-0-base-new
-    (implies (basic-params-equal (- i 2) 1 v0 dv g1 phi0)
-	   (< (phi-2n-1 (- i 1) phi0 v0 dv g1) 0))
-  :hints (("Goal''"
+(defthm phi-2n+1-<-0-base-new-lemma
+  (IMPLIES (AND (RATIONALP V0)
+              (RATIONALP PHI0)
+              (RATIONALP DV)
+              (<= 1 (* 10/9 V0))
+              (<= V0 11/10)
+              (<= (- (* 8000 DV)) 1)
+              (<= (* 8000 DV) 1)
+              (<= 0 PHI0)
+              (< PHI0
+                 (+ -1 (/ (+ 2561/3200 V0))
+                    (* DV (/ (+ 2561/3200 V0)))
+                    (* V0 (/ (+ 2561/3200 V0))))))
+         (< (+ (* 1/30 PHI0)
+               (* 1/6 (/ (+ 1599/1600 V0)))
+               (* 5/6 (/ (+ 3199/3200 V0)))
+               (* 1/6 DV (/ (+ 1599/1600 V0)))
+               (* 1/6 V0 (/ (+ 1599/1600 V0)))
+               (* 5/6 DV (/ (+ 3199/3200 V0)))
+               (* 5/6 V0 (/ (+ 3199/3200 V0))))
+            1))
+   :hints (("Goal"
 	   :clause-processor
   	   (Smtlink-custom-config clause
   				'( (:expand ((:function ())
@@ -1399,6 +1449,12 @@
   				  (:hypothesize ()))
 				state)))
   )
+
+(defthm phi-2n+1-<-0-base-new
+    (implies (basic-params-equal (- i 2) 1 v0 dv g1 phi0)
+	   (< (phi-2n-1 (- i 1) phi0 v0 dv g1) 0))
+    :hints (("Goal"
+             :use ((:instance phi-2n+1-<-0-base-new-lemma)))))
 
 (defthm phi-2n+1-<-0-base-corollary
   (implies (basic-params-equal (1- i) 2 v0 dv g1 phi0)
