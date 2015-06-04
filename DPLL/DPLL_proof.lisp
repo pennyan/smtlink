@@ -175,7 +175,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink clause
+    (Smtlink-custom-config clause
   			 '( (:expand ((:functions ((B-term-rest rationalp)
   						   (gamma rationalp)
   						   (mu rationalp)
@@ -399,7 +399,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink clause
+    (Smtlink-custom-config clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)
@@ -636,7 +636,7 @@
     :in-theory (disable delta-rewrite-2-lemma1)
     :do-not-induct t
     :clause-processor
-    (Smtlink clause
+    (Smtlink-custom-config clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)
@@ -730,7 +730,7 @@
 		       0)))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink clause
+	   (Smtlink-custom-config clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -798,7 +798,7 @@
 		       0)))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink clause
+	   (Smtlink-custom-config clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -952,7 +952,7 @@
 		       (expt (gamma) (- 2 (* 2 n))))))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink clause
+	   (Smtlink-custom-config clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -1011,7 +1011,7 @@
 	      (* 2 n)))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink clause
+	   (Smtlink-custom-config clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -1320,7 +1320,7 @@
 	   (< (+ (* c c A) (* c B)) 0))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink clause
+	   (Smtlink-custom-config clause
 				'( (:expand ((:function ())
 					     (:expansion-level 1)))
 				  (:python-file "except-for-delta-smaller-than-0-lemma1")
@@ -1346,7 +1346,7 @@
 
 ;; for induction step 
 (encapsulate ()
-	     
+
 (defthm phi-2n+1-<-0-inductive
   (implies (basic-params n 3 v0 dv g1 phi0 (< (phi-2n-1 n phi0 v0 dv g1) 0))
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
@@ -1375,15 +1375,15 @@
 (defthm phi-2n+1-<-0-base
     (implies (basic-params-equal n 2 v0 dv g1 phi0)
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
-  :hints (("Goal''"
-	   :clause-processor
-  	   (Smtlink clause
-  				'( (:expand ((:function ())
-  					     (:expansion-level 1)))
-  				  (:python-file "phi-2n+1-smaller-than-0-base")
-  				  (:let ())
-  				  (:hypothesize ()))
-				state)))
+  ;; :hints (("Goal''"
+	;;    :clause-processor
+  ;; 	   (Smtlink-custom-config clause
+  ;; 				'( (:expand ((:function ())
+  ;; 					     (:expansion-level 1)))
+  ;; 				  (:python-file "phi-2n+1-smaller-than-0-base")
+  ;; 				  (:let ())
+  ;; 				  (:hypothesize ()))
+	;; 			state)))
   )
 
 (defthm phi-2n+1-<-0-base-new
@@ -1391,7 +1391,7 @@
 	   (< (phi-2n-1 (- i 1) phi0 v0 dv g1) 0))
   :hints (("Goal''"
 	   :clause-processor
-  	   (Smtlink clause
+  	   (Smtlink-custom-config clause
   				'( (:expand ((:function ())
   					     (:expansion-level 1)))
   				  (:python-file "phi-2n+1-smaller-than-0-base-new")
