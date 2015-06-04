@@ -34,7 +34,7 @@
   "translate-operator: given an operator in ACL2 format, translate into its Z3 format by looking up the associated list"
   (let ((result (translate-operator-list opr uninterpreted)))
     (if (equal result nil)
-	(prog2$ (cw "Error(translator): Operator ~q0 does not exist!" opr)
+	(prog2$ (er hard? 'top-level "Error(translator): Operator ~q0 does not exist!" opr)
 		nil)
       (cadr result))))
 
@@ -52,7 +52,7 @@
   "translate-type: translates a type in ACL2 SMT-formula into Z3 type"     ;; all using reals because Z3 is not very good at mixed types
   (let ((result (translate-type-list type)))
     (if (equal result nil)
-	(prog2$ (cw "Error(translator): Type ~q0 does not exist!" type)
+	(prog2$ (er hard? 'top-level "Error(translator): Type ~q0 does not exist!" type)
 		nil)
       (cadr result))))
 
@@ -65,7 +65,7 @@
       (list "s.Qx(" (numerator num) "," (denominator num) ")")
     (if (is-SMT-integer num)
 	num
-      (cw "Error(translator): Cannot translate an unrecognized number: ~q0" num))))
+      (er hard? 'top-level "Error(translator): Cannot translate an unrecognized number: ~q0" num))))
 
 ;; ----------------------- translate-variable ---------------------------:
 
@@ -159,7 +159,7 @@
   "translate-variable: translate a SMT variable into Z3 variable"
   (if (is-SMT-variable var)
       (lisp-to-python-names var)
-      (cw "Error(translator): Cannot translate an unrecognized variable: ~q0" var)))
+      (er hard? 'top-level "Error(translator): Cannot translate an unrecognized variable: ~q0" var)))
 
 ;; ----------------------- translate-constant ---------------------------:
 
@@ -308,7 +308,7 @@
 	  ((equal expression 't) "True")
 	  ((is-SMT-variable expression)
 	   (translate-variable expression))
-	  (t (cw "Error(translator): Invalid number or variable: ~q0" expression)))))))
+	  (t (er hard? 'top-level "Error(translator): Invalid number or variable: ~q0" expression)))))))
 
 ;; ----------------------- translate-hypothesis --------------------------:
 

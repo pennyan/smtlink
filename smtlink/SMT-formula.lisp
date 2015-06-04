@@ -36,7 +36,7 @@
   "SMT-operator: given an operator in ACL2 format, establish its ACL2 format by looking up the associated list"
   (if (is-SMT-operator opr uninterpreted)
       (cadr (operator-list opr uninterpreted))
-    (prog2$ (cw "Error(formula): Operator ~q0 does not exist!" opr)
+    (prog2$ (er hard? 'top-level "Error(formula): Operator ~q0 does not exist!" opr)
 	    nil)))
 
 ;; --------------------- SMT-type -------------------------:
@@ -55,7 +55,7 @@
   "SMT-type: given a type in ACL2 format, establish its ACL2 format by looking up the associated list"
   (if (is-SMT-type type)
       type
-    (prog2$ (cw "Error(formula): Type ~q0 not supported!" type)
+    (prog2$ (er hard? 'top-level "Error(formula): Type ~q0 not supported!" type)
 	    nil)))
 
 ;; --------------------- SMT-number -------------------------:
@@ -88,7 +88,7 @@
   "SMT-number: This is a SMT number"
   (if (is-SMT-number number)
       number
-    (cw "Error(formula): This is not a valid SMT number: ~q0" number)))
+    (er hard? 'top-level "Error(formula): This is not a valid SMT number: ~q0" number)))
 
 ;; --------------------- SMT-variable -------------------------:
 ;; Q: I want to add a check on possible SMT-variables.
@@ -103,7 +103,7 @@
   "SMT-variable: This is a SMT variable name"
   (if (is-SMT-variable var)
       var
-    (cw "Error(formula): This is not a valid SMT variable name: ~q0" var)))
+    (er hard? 'top-level "Error(formula): This is not a valid SMT variable name: ~q0" var)))
 
 ;; --------------------- SMT-constant -------------------------:
 
@@ -117,13 +117,13 @@
   "SMT-constant-name: This is a SMT constant name"
   (if (is-SMT-constant-name name)
       name
-    (cw "Error(formula): This is not a valid SMT constant name: ~q0" name)))
+    (er hard? 'top-level "Error(formula): This is not a valid SMT constant name: ~q0" name)))
 
 ;; SMT-constant
 (defun SMT-constant (constant)
   "SMT-constant: This is a SMT constant declaration"
   (if (not (equal (len constant) 2))
-      (cw "Error(formula): Wrong number of elements in a constant declaration list: ~q0" constant)
+      (er hard? 'top-level "Error(formula): Wrong number of elements in a constant declaration list: ~q0" constant)
     (let ((name (car constant)) 
 	  (value (cadr constant)))
       (list (SMT-constant-name name) (SMT-number value)))))
@@ -139,7 +139,7 @@
 (defun SMT-constant-list (constant-list)
   "SMT-constant-list: This is a list of SMT constant declarations"
   (if (not (listp constant-list))
-      (cw "Error(formula): The SMT constant list is not in the right form: ~q0" constant-list)
+      (er hard? 'top-level "Error(formula): The SMT constant list is not in the right form: ~q0" constant-list)
     (SMT-constant-list-help constant-list)))
 
 ;; --------------------- SMT-declaration -------------------------:
@@ -148,7 +148,7 @@
 (defun SMT-declaration-list (decl-list)
   "SMT-decl-list: This is a list of SMT variable declarations"
   (cond ( (not (listp decl-list))
-          (cw "Error(formula): The SMT declaration list is not in the right form: ~q0" decl-list) )
+          (er hard? 'top-level "Error(formula): The SMT declaration list is not in the right form: ~q0" decl-list) )
         ( (endp decl-list) nil )
 	( t (cons (list (SMT-type (caar decl-list)) (SMT-variable (cadar decl-list)))
 	          (SMT-declaration-list (cdr decl-list))) )))
@@ -165,7 +165,7 @@
     (if (symbolp (car formal))
 	(cons (car formal)
 	      (SMT-lambda-formal (cdr formal)))
-      (cw "Error(formula): not a valid symbol in a formal list ~q0" (car formal)))))
+      (er hard? 'top-level "Error(formula): not a valid symbol in a formal list ~q0" (car formal)))))
 
 ;; SMT-expression-long
 (defun SMT-expression-long (expression uninterpreted)
@@ -200,10 +200,10 @@
 			     (cons 'list (SMT-expression-long quoted-expr uninterpreted)) )
 			   ( (and quoted-expr (symbolp quoted-expr)) expression ) ; mrg leave quoted symbols untouched
 		           ( t (SMT-expression (cadr expression) uninterpreted) ))) )
-	    (t (cw "Error(formula): This is not a valid operator: ~q0" expression)))
+	    (t (er hard? 'top-level "Error(formula): This is not a valid operator: ~q0" expression)))
     (cond ((is-SMT-number expression) (SMT-number expression))
 	  ((is-SMT-variable expression) (SMT-variable expression))
-	  (t (cw "Error(formula): Invalid number or variable: ~q0" expression)))))
+	  (t (er hard? 'top-level "Error(formula): Invalid number or variable: ~q0" expression)))))
 )
 
 ;; --------------------- SMT-hypothesis -------------------------:
@@ -211,7 +211,7 @@
 ;; SMT-hypothesis-list
 (defun SMT-hypothesis-list (hyp-list uninterpreted)
   (cond ( (not (listp hyp-list))
-          (cw "Error(formula): The SMT hypothesis list is not in the right form: ~q0" hyp-list))
+          (er hard? 'top-level "Error(formula): The SMT hypothesis list is not in the right form: ~q0" hyp-list))
 	( (endp hyp-list) nil )
 	( t (cons (SMT-expression (car hyp-list) uninterpreted)
 	          (SMT-hypothesis-list (cdr hyp-list) uninterpreted)))))
@@ -222,7 +222,7 @@
 (defun SMT-conclusion-list (concl-list uninterpreted)
   "SMT-conclusion-list: This is a SMT conclusion list"
   (if (not (listp concl-list))
-      (cw "Error(formula): The SMT conclusion list is not in the right form: ~q0" concl-list)
+      (er hard? 'top-level "Error(formula): The SMT conclusion list is not in the right form: ~q0" concl-list)
     (SMT-expression concl-list uninterpreted)))
 ;; --------------------- SMT-formula ----------------------------:
 

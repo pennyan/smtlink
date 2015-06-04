@@ -14,7 +14,7 @@
 	(mv (intern-in-package-of-symbol
 	     (concatenate 'string "var" index) 'ACL2)
 	    (1+ num))
-      (prog2$ (cw "Error(function): create name failed: ~q0!" index)
+      (prog2$ (er hard? 'top-level "Error(function): create name failed: ~q0!" index)
 	      (mv nil num)))))
 
 ;; replace-var
@@ -188,10 +188,10 @@
 		       (mv-let (res2 num3)
 			       (expand-fn-help-list params fn-lst fn-level-lst fn-waiting fn-extended num2 state)
 			       (mv (cons res res2) num3))))
-	      (t (prog2$ (cw "Error(function): can not pattern match: ~q0" expr)
+	      (t (prog2$ (er hard? 'top-level "Error(function): can not pattern match: ~q0" expr)
 			 (mv expr num)))
 	      )))
-	 (t (prog2$ (cw "Error(function): strange expression == ~q0" expr)
+	 (t (prog2$ (er hard? 'top-level "Error(function): strange expression == ~q0" expr)
  		    (mv expr num)))))
 )
 )
@@ -244,7 +244,7 @@
 		     (cadr res-pair)
 		     (cons fn (rewrite-formula-params params let-expr)))))))
 	;; if expr is nil
-	(t (cw "Error(function): nil expression."))))
+	(t (er hard? 'top-level "Error(function): nil expression."))))
 )
 
 ;; extract-orig-param
@@ -255,9 +255,8 @@
 (defun augment-formula (expr let-type new-hypo)
   "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
   (b* ( ((mv decl-list hypo-list concl) (SMT-extract expr)) )
-      (prog2$ (cw "let-type:~q0~%" let-type)
       (list 'implies (and-list-logic (append decl-list let-type hypo-list new-hypo))
-            concl)))
+            concl))
   )
 
 ;; reform-let
@@ -266,7 +265,7 @@
   (let ((inverted-let-expr (invert-assoc let-expr)))
   (if (assoc-no-repeat inverted-let-expr)
       inverted-let-expr
-      (cw "Error(function): there's repetition in the associate list's values ~q0" let-expr))))
+      (er hard? 'top-level "Error(function): there's repetition in the associate list's values ~q0" let-expr))))
 
 ;; initial-level-help
 (defun initial-level-help (fn-lst fn-level)
@@ -353,10 +352,10 @@
 		       (mv-let (res2 fn-var-decl3 num3)
 			       (replace-rec-fn-params params fn-lst-with-type fn-var-decl2 num2)
 			       (mv (cons res res2) fn-var-decl3 num3))))
-	      (t (prog2$ (cw "Error(function): Can not pattern match, ~q0" expr)
+	      (t (prog2$ (er hard 'top-level "Error(function): Can not pattern match, ~q0" expr)
 			 (mv expr fn-var-decl  num)))
 	      )))
-	(t (prog2$ (cw "Error(function): Strange expr, ~q0" expr)
+	(t (prog2$ (er hard? 'top-level "Error(function): Strange expr, ~q0" expr)
 		   (mv expr fn-var-decl  num)))))
 
 )

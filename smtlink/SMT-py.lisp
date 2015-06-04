@@ -287,7 +287,7 @@ new hypothesis in lambda expression"
                 (if (and (equal finishedp t)
                          (equal exit-status 0))
                     (car lines)
-                  (cw "Error(SMT-py): Generate file error."))))
+                  (er hard? 'top-level "Error(SMT-py): Generate file error."))))
     (concatenate 'string
                  (smtlink-config->dir-files smt-config)
                  "/"
@@ -364,3 +364,4 @@ new hypothesis in lambda expression"
     (if (car (SMT-interpreter file-dir smt-config))
         (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem state)
         (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem state))))
+
