@@ -17,7 +17,7 @@
   (if (consp alist)
     (let ((state (princ$-list-of-strings (car alist) channel state)))
       (princ$-list-of-strings (cdr alist) channel state))
-    (if (and (not (equal alist nil)) 
+    (if (and (not (equal alist nil))
 	     (not (acl2-numberp alist)))   ;; if alist is a number, should be treated separately
       (princ$ (string alist) channel state)
       (if (acl2-numberp alist)
@@ -75,7 +75,7 @@
      (close-output-channel channel state))))
 
 ;; SMT-run
-(defun SMT-run (filename smt-config)                                   
+(defun SMT-run (filename smt-config)
   "SMT-run: run the external SMT procedure from ACL2"
   (let ((cmd (concatenate 'string (smtlink-config->smt-cmd smt-config) " " filename)))
     (time$ (tshell-call cmd

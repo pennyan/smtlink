@@ -5,6 +5,7 @@
 (include-book "./SMT-interpreter")
 (include-book "./SMT-function")
 (include-book "./SMT-translator")
+(include-book "./ACL22SMT")
 (defttag :tshell)
 (value-triple (tshell-ensure))
 (set-state-ok t)
@@ -67,7 +68,7 @@
           (my-prove-SMT-formula term (create-uninterpreted-formula uninterpreted)) )
         ( translated-formula (translate-SMT-formula decl-list hypotheses concl uninterpreted) )
       )
-      (write-SMT-file fdir translated-formula smt-config state)))
+      (write-SMT-file fdir (append (ACL22SMT) translated-formula) smt-config state)))
 
 ;; my-prove-write-expander-file
 (defun my-prove-write-expander-file (expanded-term fdir state)

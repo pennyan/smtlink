@@ -1,4 +1,4 @@
-from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Q, Array, Select, Store, ToInt
+from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Array, Select, Store, ToInt
 
 def sort(x):
     if type(x) == bool:    return BoolSort()
