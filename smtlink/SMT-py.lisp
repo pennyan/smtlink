@@ -1,6 +1,7 @@
 (in-package "ACL2")
 (include-book "tools/bstar" :dir :system) 
 (include-book "./helper")
+(include-book "./config")
 (include-book "./SMT-run")
 (include-book "./SMT-interpreter")
 (include-book "./SMT-function")
@@ -67,8 +68,10 @@
   (b* ( ( (mv decl-list hypotheses concl)
           (my-prove-SMT-formula term (create-uninterpreted-formula uninterpreted)) )
         ( translated-formula (translate-SMT-formula decl-list hypotheses concl uninterpreted) )
-      )
-      (write-SMT-file fdir (append (ACL22SMT) translated-formula) smt-config state)))
+        )
+      (if (equal (smtlink-config->dir-interface smt-config) "")
+          (write-SMT-file fdir (ACL22SMT) translated-formula smt-config state)
+        (write-SMT-file fdir '() translated-formula smt-config state))))
 
 ;; my-prove-write-expander-file
 (defun my-prove-write-expander-file (expanded-term fdir state)

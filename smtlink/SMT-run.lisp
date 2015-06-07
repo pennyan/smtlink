@@ -39,6 +39,14 @@
 			(coerce-str-and-char-to-str (cdr slist))))
 	  (t (er hard? 'top-level "Error(run): Invalid list ~q0." (car slist))))))
 
+;; write-head-simple
+(defun write-head-simple (smt-config)
+  (coerce-str-and-char-to-str
+   (list "s = "
+         (smtlink-config->SMT-class smt-config)
+         "()"
+         #\Newline)))
+
 ;; write-head
 (defun write-head (smt-config)
   "write-head: writes the head of a z3 file"
@@ -47,21 +55,26 @@
 	 #\Newline
 	 "path.insert(0,\"" (smtlink-config->dir-interface smt-config) "\")"
 	 #\Newline
-	 "from "(smtlink-config->SMT-module smt-config) " import " (smtlink-config->SMT-class smt-config)
+	 "from " (smtlink-config->SMT-module smt-config) " import " (smtlink-config->SMT-class smt-config)
 	 #\Newline
 	 "s = " (smtlink-config->SMT-class smt-config) "()"
 	 #\Newline)))
 
 ;; write-SMT-file
-(defun write-SMT-file (filename translated-formula smt-config state)
+(defun write-SMT-file (filename class-formula translated-formula smt-config state)
   "write-SMT-file: writes the translated formula into a python file, it opens and closes the channel and write the including of Z3 inteface"
   (mv-let
    (channel state)
    (open-output-channel! filename :character state)
    (let ((state (princ$-list-of-strings
-		 (write-head smt-config) channel state)))
+                 class-formula channel state)))
+     (let ((state (princ$-list-of-strings
+                   (if (equal (smtlink-config->dir-interface smt-config) "")
+                       (write-head-simple smt-config)
+                     (write-head smt-config))
+                   channel state)))
      (let ((state (princ$-list-of-strings translated-formula channel state)))
-       (close-output-channel channel state)))))
+       (close-output-channel channel state))))))
 
 ;; write-expander-file
 (defun write-expander-file (filename expanded-term state)
