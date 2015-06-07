@@ -134,7 +134,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink-custom-config clause
+    (Smtlink clause
              '((:expand ((:functions ((fac integerp)))
                          (:expansion-level 4)))
                (:use ((:main (test-lemma)))))

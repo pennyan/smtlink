@@ -91,13 +91,21 @@
   (defun Smtlink (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (Smtlink-raw cl hint state nil))
+    (if (equal (smt-cnf) (default-smtlink-config))
+        (Smtlink-raw cl hint state nil)
+      (mv (er hard? 'top-level "Error(connect): You've defined a user configuration, are you sure you want to use Smtlink, instead of Smtlink-custom-config?")
+          (list cl)
+          state)))
 
   (defun Smtlink-custom-config (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (Smtlink-raw cl hint state t))
-  
+    (if (not (equal (smt-cnf) (default-smtlink-config)))
+        (Smtlink-raw cl hint state t)
+      (mv (er hard? 'top-level "Error(connect): You haven't defined any customed configuration yet, or you haven't changed anything in the configuration. Please use Smtlink instead of Smtlink-custom-config.")
+          (list cl)
+          state)))
+
   (push-untouchable acl2-my-prove t)
   )
 
