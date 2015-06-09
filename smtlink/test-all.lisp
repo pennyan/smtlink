@@ -51,7 +51,8 @@
 
 ;; a very simple theorem
 (defthm test0
-  (implies (rationalp x)
+  (implies (and (and (rationalp x))
+                (>= x 0))
            (>= (* x x) 0))
   :hints
   (("Goal"

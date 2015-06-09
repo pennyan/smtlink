@@ -283,7 +283,7 @@ new hypothesis in lambda expression"
 ;; if fname is not nil, it will use that user provided name
 (defun mk-fname (fname smt-config)
   (if (equal fname nil)
-      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-config) "/smtlink_XXXXX.py")))
+      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-config) "/smtlink.py.XXXXX")))
         (mv-let (finishedp exit-status lines)
                 (time$ (tshell-call cmd
                                     :print t

@@ -315,9 +315,9 @@
 ;; translate-hypothesis-list
 (defun translate-hypothesis-list (hypothesis uninterpreted)
   "translate-hypothesis-list: translate a SMT-formula hypothesis statement into Z3"
-  (prog2$ (cw "(mrg translate-hypothesis-list:~%  hypothesis = ~x0~%" hypothesis)
+  ;;(prog2$ (cw "(mrg translate-hypothesis-list:~%  hypothesis = ~x0~%" hypothesis)
   (list (cons "hypothesis"
-	      (cons '= (translate-expression hypothesis uninterpreted))) #\Newline)))
+	      (cons '= (translate-expression hypothesis uninterpreted))) #\Newline))
 
 ;; ----------------------- translate-conclusion --------------------------:
 ;; translate-conclusion-list

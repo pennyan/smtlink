@@ -82,7 +82,7 @@
 		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
 					    (list (append expanded-cl cl))
 					    )))
-		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" "hello-world") ; res-clause)
+		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause)
 			    (mv nil res-clause state)))
 		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")

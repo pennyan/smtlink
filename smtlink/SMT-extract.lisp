@@ -61,6 +61,6 @@
 (defun SMT-extract (term)
   (b* ( ((mv decl-list hypo-list concl) (SMT-extract-y term))
         (- (cw "(mrg) SMT-extract:~%  term = ~x0~%  decl-list = ~x1~%  hypo-list = ~x2~%  concl = ~x3~%"
-	       term decl-list hypo-list concl))
+	        term decl-list hypo-list concl))
         (- (cw "  (and-list-logic hypo-list) = ~x0~%" (and-list-logic hypo-list))) )
       (mv decl-list hypo-list concl)))
