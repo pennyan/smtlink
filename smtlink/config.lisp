@@ -21,7 +21,7 @@
                        :SMT-module "ACL2_to_Z3"
                        :SMT-class "ACL22SMT"
                        :smt-cmd "python"
-                       :dir-expanded "expanded"))
+                       :dir-expanded nil))
 
 (encapsulate
   (((smt-cnf) => *))

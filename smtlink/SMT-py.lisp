@@ -37,13 +37,13 @@
 				      (cons #\Space indent)))))
 	(t
 	 (list #\Newline indent '\(
-	       (cons (lisp-code-print (car lisp-code)
-				      (cons #\Space
-					    (cons #\Space indent)))
-		     (lisp-code-print-help (cdr lisp-code)
-					   (cons #\Space
-						 (cons #\Space indent))))
-	       '\) ))))
+         (cons (lisp-code-print (car lisp-code)
+                                (cons #\Space
+                                      (cons #\Space indent)))
+               (lisp-code-print-help (cdr lisp-code)
+                                     (cons #\Space
+                                           (cons #\Space indent))))
+         '\) ))))
 )
 
 ;; my-prove-SMT-formula
@@ -78,9 +78,9 @@
 ;; my-prove-write-expander-file
 (defun my-prove-write-expander-file (expanded-term fdir state)
   "my-prove-write-expander-file: write expanded term into a log file"
-  (write-expander-file fdir
-		       expanded-term
-		       state))
+  (if (endp fdir)
+      state
+    (write-expander-file fdir expanded-term state)))
 
 ;; create-level
 (defun create-level (level index)
@@ -271,19 +271,21 @@ new hypothesis in lambda expression"
 ;;add-fn-var-decl
 (defun add-fn-var-decl (term fn-var-decl)
   ""
-  (list (car term)
-	(list (caadr term)
-	      (add-fn-var-decl-helper (cadadr term) fn-var-decl)
-	      (caddr (cadr term))
-	      (cadddr (cadr term)))
-	(caddr term)))
+  (if (endp fn-var-decl)
+      term
+    (list (car term)
+          (list (caadr term)
+                (add-fn-var-decl-helper (cadadr term) fn-var-decl)
+                (caddr (cadr term))
+                (cadddr (cadr term)))
+          (caddr term))))
 
 ;; mk-fname make a file name for the z3 file
 ;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
 ;; if fname is not nil, it will use that user provided name
-(defun mk-fname (fname smt-config)
-  (if (equal fname nil)
-      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-config) "/smtlink.py.XXXXX")))
+(defun mk-fname (fname smt-config suffix)
+  (if (endp fname)
+      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-config) "/smtlink" suffix ".XXXXX")))
         (mv-let (finishedp exit-status lines)
                 (time$ (tshell-call cmd
                                     :print t
@@ -298,7 +300,7 @@ new hypothesis in lambda expression"
                  (smtlink-config->dir-files smt-config)
                  "/"
                  fname
-                 ".py")))
+                 suffix)))
 
 ;; create-uninterpreted-item
 (defun create-uninterpreted-item (item)
@@ -337,6 +339,12 @@ new hypothesis in lambda expression"
     (cons (create-uninterpreted-oprt-item (car uninterpreted-assoc))
           (uninterpreted-operator (cdr uninterpreted-assoc)))))
 
+;; mk-expander-fname
+(defun mk-expander-fname (fname smt-config)
+  (if (endp (smtlink-config->dir-expanded smt-config))
+      nil
+    (mk-fname fname smt-config ".log")))
+
 ;; my-prove
 (defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo
                  let-hints hypo-hints main-hints smt-config custom-config state)
@@ -344,19 +352,16 @@ new hypothesis in lambda expression"
   (b*
     ( ((mv decl-list hypo-list concl) (SMT-extract term))
       (decl-and-hypo (and-list-logic (append decl-list hypo-list)))
-      (file-dir (mk-fname fname smt-config))
-      (expand-dir (concatenate 'string
-			       (smtlink-config->dir-expanded smt-config)
-			       "/"
-			       fname
-			       "\_expand.log"))
+      (file-dir (mk-fname fname smt-config ".py"))
+      (expand-dir (mk-expander-fname fname smt-config))
       (uninterpreted-func (uninterpreted-operator (uninterpreted-type-&-name uninterpreted)))
       ((mv hypo-translated state) (translate-hypo new-hypo state))
       ((mv let-expr-translated-with-type state) (translate-let let-expr state))
       ((mv let-expr-translated let-type) (separate-type let-expr-translated-with-type))
       ( (mv expanded-term-list-1 expanded-term-list-2 num orig-param fn-var-decl)
 	(expand-fn term fn-lst fn-level let-expr-translated let-type hypo-translated state))
-      (expanded-term-list (add-fn-var-decl expanded-term-list-1 fn-var-decl))
+      (expanded-term-list (prog2$ (cw "yan: ~q0~% ~q1~% " expanded-term-list-1 fn-var-decl)
+                                  (add-fn-var-decl expanded-term-list-1 fn-var-decl)))
       ( - (cw "Expanded(SMT-py): ~q0 Final index number: ~q1" expanded-term-list num))
       (state (my-prove-write-expander-file (my-prove-build-log-file (cons term expanded-term-list) 0)
 					    expand-dir state))

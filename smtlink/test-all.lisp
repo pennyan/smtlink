@@ -51,8 +51,7 @@
 
 ;; a very simple theorem
 (defthm test0
-  (implies (and (and (rationalp x))
-                (>= x 0))
+  (implies (and (rationalp x) (>= x 0))
            (>= (* x x) 0))
   :hints
   (("Goal"
@@ -75,7 +74,6 @@
                                    'NIL)
                                'NIL)
                               (INTEGERP |var4|))
-                            
                              (IMPLIES
                               (IF (INTEGERP N) (NOT (< '2 N)) 'NIL)
                               (<

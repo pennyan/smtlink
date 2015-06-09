@@ -44,7 +44,7 @@
 
 
 ;; SMT-extract
-(defun SMT-extract-y (term)
+(defun SMT-extract (term)
   "extract decl-list, hypo-list and concl from a ACL2 term"
   ;  term should be of the form (implies decl-and-hypo-tree concl)
   ;    We first check to see that term has this form.
@@ -58,9 +58,9 @@
       ( concl (caddr term) ) )
     (mv decl-list hypo-list concl)))
 
-(defun SMT-extract (term)
-  (b* ( ((mv decl-list hypo-list concl) (SMT-extract-y term))
-        (- (cw "(mrg) SMT-extract:~%  term = ~x0~%  decl-list = ~x1~%  hypo-list = ~x2~%  concl = ~x3~%"
-	        term decl-list hypo-list concl))
-        (- (cw "  (and-list-logic hypo-list) = ~x0~%" (and-list-logic hypo-list))) )
-      (mv decl-list hypo-list concl)))
+;; (defun SMT-extract (term)
+;;   (b* ( ((mv decl-list hypo-list concl) (SMT-extract-y term))
+;;         (- (cw "(mrg) SMT-extract:~%  term = ~x0~%  decl-list = ~x1~%  hypo-list = ~x2~%  concl = ~x3~%"
+;; 	        term decl-list hypo-list concl))
+;;         (- (cw "  (and-list-logic hypo-list) = ~x0~%" (and-list-logic hypo-list))) )
+;;       (mv decl-list hypo-list concl)))

@@ -142,16 +142,20 @@
       (er hard? 'top-level "Error(formula): The SMT constant list is not in the right form: ~q0" constant-list)
     (SMT-constant-list-help constant-list)))
 
-;; --------------------- SMT-declaration -------------------------:
+;; --------------------- SMT-declaration ------------------------- :
+
+(defun SMT-declaration-list-helper (decl-list)
+  (if (endp decl-list)
+      nil
+    (cons (list (SMT-type (caar decl-list)) (SMT-variable (cadar decl-list)))
+          (SMT-declaration-list-helper (cdr decl-list)))))
 
 ;; SMT-declaration-list
 (defun SMT-declaration-list (decl-list)
   "SMT-decl-list: This is a list of SMT variable declarations"
-  (cond ( (not (listp decl-list))
-          (er hard? 'top-level "Error(formula): The SMT declaration list is not in the right form: ~q0" decl-list) )
-        ( (endp decl-list) nil )
-	( t (cons (list (SMT-type (caar decl-list)) (SMT-variable (cadar decl-list)))
-	          (SMT-declaration-list (cdr decl-list))) )))
+  (cond ( (equal decl-list t) t )
+        ( (listp decl-list) (SMT-declaration-list-helper decl-list))
+        ( t (er hard? 'top-level "Error(formula): The SMT declaration list is not in the right form: ~q0" decl-list))))
 
 ;; --------------------- SMT-expression -------------------------:
 
@@ -208,13 +212,18 @@
 
 ;; --------------------- SMT-hypothesis -------------------------:
 
+;; SMT-hypothesis-list-helper
+(defun SMT-hypothesis-list-helper (hyp-list uninterpreted)
+  (if (endp hyp-list)
+      nil
+    (cons (SMT-expression (car hyp-list) uninterpreted)
+          (SMT-hypothesis-list-helper (cdr hyp-list) uninterpreted))))
+
 ;; SMT-hypothesis-list
 (defun SMT-hypothesis-list (hyp-list uninterpreted)
-  (cond ( (not (listp hyp-list))
-          (er hard? 'top-level "Error(formula): The SMT hypothesis list is not in the right form: ~q0" hyp-list))
-	( (endp hyp-list) nil )
-	( t (cons (SMT-expression (car hyp-list) uninterpreted)
-	          (SMT-hypothesis-list (cdr hyp-list) uninterpreted)))))
+  (cond ( (equal hyp-list t) t )
+        ( (listp hyp-list) (SMT-hypothesis-list-helper hyp-list uninterpreted))
+        (t (er hard? 'top-level "Error(formula): The SMT hypothesis list is not in the right form: ~q0" hyp-list))))
 
 ;; --------------------- SMT-conclusion -------------------------:
 
@@ -233,8 +242,10 @@
 		    concl
         uninterpreted)
   "SMT-formula: This is a SMT formula"
+  (prog2$ (cw "~q0~%~q1~%~q2~%" decl-list hyp-list concl)
   (mv ; (SMT-constant-list const-list)
       (SMT-declaration-list decl-list)
       (SMT-hypothesis-list hyp-list uninterpreted)
       (SMT-conclusion-list concl uninterpreted))
+  )
   )
