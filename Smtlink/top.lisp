@@ -21,6 +21,6 @@
   :long "<h3>Introduction</h3>
          <p><b>Smtlink</b> is a tool for integrating external SMT solvers into ACL2.
          It is based on the @(see Clause-processor) mechanism.</p>
-         <p>I donno what to write here .... 5555</p>")
+         <p>Under construction ...</p>")
 
 (xdoc::save "./Smtlink-manual")  ;; write the manual

@@ -1,24 +1,16 @@
 # ignoring intermediate files and tmp files
 
-smtlink/*.cert
-smtlink/*.port
-smtlink/*.cert.out
-smtlink/*.lx64fsl
-smtlink/Makefile-tmp
+*.cert
+*.port
+*.cert.out
+*.lx64fsl
+Makefile-tmp
 
-mark-smtlink/*.cert
-mark-smtlink/*.port
-mark-smtlink/*.cert.out
-mark-smtlink/*.lx64fsl
-mark-smtlink/Makefile-tmp
-
-
-DPLL/z3_files/*
-DPLL/expanded/*
-smtlink/z3_files/*
-smtlink/expanded/*
-mark-smtlink/z3_files/*
-mark-smtlink/expanded/*
+*/z3_files/*
+*/expanded/*
 
 *.pyc
 *.log
+*.swp
+
+*/Smtlink-manual/*
