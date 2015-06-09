@@ -9,23 +9,23 @@
 ;; translate-operator-list
 (defun translate-operator-list (opr uninterpreted)
   "translate-operator-list: look up an associate list for the translation"
-  (assoc opr (combine '((binary-+ "s.plus" 0)
-                        (binary-- "s.minus" 2)
-                        (binary-* "s.times" 0)
-                        (unary-/ "s.reciprocal" 1)
-                        (unary-- "s.negate" 1)
-                        (equal "s.equal" 2)
-                        (> "s.gt" 2)
-                        (>= "s.ge" 2)
-                        (< "s.lt" 2)
-                        (<= "s.le" 2)
-                        (if "s.ifx" 3)
-                        (not "s.notx" 1)
+  (assoc opr (combine '((binary-+ "_SMT_.plus" 0)
+                        (binary-- "_SMT_.minus" 2)
+                        (binary-* "_SMT_.times" 0)
+                        (unary-/ "_SMT_.reciprocal" 1)
+                        (unary-- "_SMT_.negate" 1)
+                        (equal "_SMT_.equal" 2)
+                        (> "_SMT_.gt" 2)
+                        (>= "_SMT_.ge" 2)
+                        (< "_SMT_.lt" 2)
+                        (<= "_SMT_.le" 2)
+                        (if "_SMT_.ifx" 3)
+                        (not "_SMT_.notx" 1)
                         (lambda "lambda" 2)
-                        (implies "s.implies" 2)
-                        (integerp "s.integerp" 1)
-                        (rationalp "s.rationalp" 1)
-                        (booleanp "s.booleanp" 1))
+                        (implies "_SMT_.implies" 2)
+                        (integerp "_SMT_.integerp" 1)
+                        (rationalp "_SMT_.rationalp" 1)
+                        (booleanp "_SMT_.booleanp" 1))
                       uninterpreted)
          ))
 
@@ -43,9 +43,9 @@
 ;; translate-type-list
 (defun translate-type-list (type)
   "translate-type-list: look up an associate list for the translation"
-  (assoc type '((RATIONALP "s.isReal")
-		(INTEGERP "s.isReal")
-		(BOOLEANP "s.isBool"))))
+  (assoc type '((RATIONALP "_SMT_.isReal")
+		(INTEGERP "_SMT_.isReal")
+		(BOOLEANP "_SMT_.isBool"))))
 
 ;; translate-type
 (defun translate-type (type)
@@ -62,7 +62,7 @@
 (defun translate-number (num)
   "translate-number: translates ACL2 SMT-number into a Z3 number"
   (if (is-SMT-rational num)
-      (list "s.Qx(" (numerator num) "," (denominator num) ")")
+      (list "_SMT_.Qx(" (numerator num) "," (denominator num) ")")
     (if (is-SMT-integer num)
 	num
       (er hard? 'top-level "Error(translator): Cannot translate an unrecognized number: ~q0" num))))
@@ -300,8 +300,8 @@
 		   (translate-expression-long (cdr expression) uninterpreted)
 		   '\)))
 	    ((and (equal (car expression) 'quote) (symbolp (cadr expression))) ; mrg: added 21 May 2015
-	     (list "s.atom" '\( '\" (translate-expression (cadr expression) uninterpreted) '\" '\) ))
-	    (t (list "s.unknown" '\( (translate-expression-long (cdr expression) uninterpreted) '\))))
+	     (list "_SMT_.atom" '\( '\" (translate-expression (cadr expression) uninterpreted) '\" '\) ))
+	    (t (list "_SMT_.unknown" '\( (translate-expression-long (cdr expression) uninterpreted) '\))))
     (cond ((is-SMT-number expression)
 	   (translate-number expression))
 	  ((equal expression 'nil) "False") ;; what if when 'nil is a list?
@@ -330,7 +330,7 @@
 ;; translate-theorem
 (defun translate-theorem ()
   "translate-theorem: construct a theorem statement for Z3"
-  (list "s.prove(hypothesis, conclusion)" #\Newline))
+  (list "_SMT_.prove(hypothesis, conclusion)" #\Newline))
 
 ;; ----------------------- translate-SMT-formula --------------------------:
 

@@ -1,5 +1,5 @@
 import collections
-import ACL22SMT
+import ACL2_to_Z3
 import z3
 
 def prod(stuff):
@@ -19,7 +19,7 @@ def longVal(x):
     return None
 # end longVal
 
-class to_smt_w_expt(ACL22SMT.to_smt):
+class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
     class ExptRewriteFailure(Exception): pass
 
     def __init__(self, *args):

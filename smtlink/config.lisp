@@ -16,12 +16,12 @@
   :tag :smtlink-config)
 
 (defconst *default-smtlink-config*
-  (make-smtlink-config :dir-interface ""
-		       :dir-files "z3\_files"
-		       :SMT-module "ACL22SMT"
-		       :SMT-class "to_smt"
-		       :smt-cmd "python"
-		       :dir-expanded  "expanded"))
+  (make-smtlink-config :dir-interface nil
+                       :dir-files "z3\_files"
+                       :SMT-module "ACL2_to_Z3"
+                       :SMT-class "ACL22SMT"
+                       :smt-cmd "python"
+                       :dir-expanded "expanded"))
 
 (encapsulate
   (((smt-cnf) => *))
@@ -33,10 +33,3 @@
   (change-smtlink-config *default-smtlink-config*))
 
 (defattach smt-cnf default-smtlink-config)
-
-;; (defconst *dir-interface* "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface")
-;; (defconst *dir-files* "z3\_files")
-;; (defconst *z3-module* "ACL22SMT")
-;; (defconst *z3-class* "to_smt")
-;; (defconst *smt-cmd* "python")
-;; (defconst *dir-expanded* "expanded")

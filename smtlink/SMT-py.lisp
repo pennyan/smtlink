@@ -63,15 +63,17 @@
           (create-uninterpreted-formula (cdr uninterpreted)))))
 
 ;; my-prove-write-file
-(defun my-prove-write-file (term fdir smt-config uninterpreted state)
+(defun my-prove-write-file (term fdir smt-config uninterpreted custom-config state)
   "my-prove-write-file: write translated term into a file"
   (b* ( ( (mv decl-list hypotheses concl)
           (my-prove-SMT-formula term (create-uninterpreted-formula uninterpreted)) )
         ( translated-formula (translate-SMT-formula decl-list hypotheses concl uninterpreted) )
         )
-      (if (equal (smtlink-config->dir-interface smt-config) "")
-          (write-SMT-file fdir (ACL22SMT) translated-formula smt-config state)
-        (write-SMT-file fdir '() translated-formula smt-config state))))
+      (if (or (equal (smt-cnf) (default-smtlink-config))
+              (equal custom-config nil))
+          (write-SMT-file fdir (ACL22SMT) translated-formula smt-config custom-config state)
+        (write-SMT-file fdir '() translated-formula smt-config custom-config state))
+      ))
 
 ;; my-prove-write-expander-file
 (defun my-prove-write-expander-file (expanded-term fdir state)
@@ -316,10 +318,10 @@ new hypothesis in lambda expression"
   )
 
 ;; create-proc-name
-;; given name "XXX", create name "s.XXX"
+;; given name "XXX", create name "_SMT_.XXX"
 ;; User defined uninterpreted functions are assumed to be all in lower case
 (defun create-proc-name (name)
-  (concatenate 'string "s." (string-downcase (string name))))
+  (concatenate 'string "_SMT_." (string-downcase (string name))))
 
 ;; create-uninterpreted-oprt-item
 ;; By default, using the same name in ACL2.
@@ -337,7 +339,7 @@ new hypothesis in lambda expression"
 
 ;; my-prove
 (defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo
-                 let-hints hypo-hints main-hints smt-config state)
+                 let-hints hypo-hints main-hints smt-config custom-config state)
   "my-prove: return the result of calling SMT procedure"
   (b*
     ( ((mv decl-list hypo-list concl) (SMT-extract term))
@@ -358,7 +360,7 @@ new hypothesis in lambda expression"
       ( - (cw "Expanded(SMT-py): ~q0 Final index number: ~q1" expanded-term-list num))
       (state (my-prove-write-expander-file (my-prove-build-log-file (cons term expanded-term-list) 0)
 					    expand-dir state))
-      (state (my-prove-write-file expanded-term-list file-dir smt-config uninterpreted-func state))
+      (state (my-prove-write-file expanded-term-list file-dir smt-config uninterpreted-func custom-config state))
       (type-theorem (create-type-theorem decl-and-hypo let-expr-translated let-type let-hints state))
       (hypo-theorem (create-hypo-theorem decl-and-hypo let-expr-translated hypo-translated orig-param hypo-hints state))
       (fn-type-theorem (create-fn-type-theorem decl-and-hypo fn-var-decl))

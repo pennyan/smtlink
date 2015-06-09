@@ -1,4 +1,4 @@
-from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Array, Select, Store, ToInt
+from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Array, Select, Store, ToInt, Q
 
 def sort(x):
     if type(x) == bool:    return BoolSort()
@@ -11,7 +11,7 @@ def sort(x):
         else:
             raise Exception('unknown sort for expression')
 
-class to_smt(object):
+class ACL22SMT(object):
     class status:
         def __init__(self, value):
             self.value = value
@@ -70,13 +70,9 @@ class to_smt(object):
 
     def minus(self, x,y): return x-y
 
-    # special care for reciprocal because
-    # in ACL2 3/0 = 0 and in z3 3/0 == 0
-    # will return a counter-example
     def reciprocal(self, x):
         if(type(x) is int): return(Q(1,x))
         elif(type(x) is float): return 1.0/x
-        elif(x.sort() == IntSort()): return 1/(Q(1,1)*x)
         else: return 1/x
         
     def negate(self, x): return -x

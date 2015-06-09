@@ -1,11 +1,11 @@
 # This python script generates a LISP file called ACL22SMT.lisp.
 # ACL22SMT.lisp contains a function called ACL22SMT that produces
-# the ACL22SMT.py string.
+# the ACL2_to_Z3.py string.
 # This is a string that stands for the interface class between
 # ACL2 and Z3.
 
 # The way we generate ACL22SMT.lisp:
-# We take the python file we've already written ACL22SMT.py
+# We take the python file we've already written ACL2_to_Z3.py
 # and the name of the LISP file we want to write to, which is
 # ACL22SMT.lisp
 # The user need to pass in the class name

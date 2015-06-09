@@ -49,18 +49,14 @@
 ;; (defconst *a* 1)
 ;; (defun bar0 (x) (* 4 1/2 x))
 
-;; ;; a very simple theorem
-;; (defthm test0
-;;   (implies (and (and (rationalp x)) (and))
-;; 	   (equal (+ x x) (* *a* (bar0 x))))
-;;   :hints
-;;   (("Goal"
-;;     :clause-processor
-;;     (Smtlink clause
-;; 	     '((:expand ((:functions ((bar0 rationalp)))
-;;                    (:expansion-level 1)))
-;; 	       )
-;; 	     state))))
+;; a very simple theorem
+(defthm test0
+  (implies (rationalp x)
+           (>= (* x x) 0))
+  :hints
+  (("Goal"
+    :clause-processor
+    (Smtlink clause nil state))))
 
 ;; an example to test the expansion
 

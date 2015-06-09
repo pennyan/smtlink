@@ -42,7 +42,7 @@
 ;; write-head-simple
 (defun write-head-simple (smt-config)
   (coerce-str-and-char-to-str
-   (list "s = "
+   (list "_SMT_ = "
          (smtlink-config->SMT-class smt-config)
          "()"
          #\Newline)))
@@ -57,11 +57,11 @@
 	 #\Newline
 	 "from " (smtlink-config->SMT-module smt-config) " import " (smtlink-config->SMT-class smt-config)
 	 #\Newline
-	 "s = " (smtlink-config->SMT-class smt-config) "()"
+	 "_SMT_ = " (smtlink-config->SMT-class smt-config) "()"
 	 #\Newline)))
 
 ;; write-SMT-file
-(defun write-SMT-file (filename class-formula translated-formula smt-config state)
+(defun write-SMT-file (filename class-formula translated-formula smt-config custom-config state)
   "write-SMT-file: writes the translated formula into a python file, it opens and closes the channel and write the including of Z3 inteface"
   (mv-let
    (channel state)
@@ -69,7 +69,8 @@
    (let ((state (princ$-list-of-strings
                  class-formula channel state)))
      (let ((state (princ$-list-of-strings
-                   (if (equal (smtlink-config->dir-interface smt-config) "")
+                   (if (or (equal (smt-cnf) (default-smtlink-config))
+                           (equal custom-config nil))
                        (write-head-simple smt-config)
                      (write-head smt-config))
                    channel state)))

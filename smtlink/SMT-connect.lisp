@@ -13,7 +13,7 @@
 (set-ignore-ok t)
 
 (defstub acl2-my-prove
-  (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state)
+  (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config custom-config state)
   (mv t nil nil nil nil state))
 
 (program)
@@ -32,8 +32,8 @@
 
    (set-raw-mode-on state) ;; conflict with assoc, should use assoc-equal, not assoc-eq
    
-   (defun acl2-my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state)
-     (my-prove term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config state))
+   (defun acl2-my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config custom-config state)
+     (my-prove term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config custom-config state))
    )
 
   ;; Supported arguments:
@@ -77,7 +77,7 @@
     (b* (((mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
 	  (Smtlink-arguments hint)))
       (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
-	      (acl2-my-prove (disjoin cl) fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) state)
+	      (acl2-my-prove (disjoin cl) fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) custom-config state)
 	      (if res
 		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
 					    (list (append expanded-cl cl))
@@ -91,11 +91,7 @@
   (defun Smtlink (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (if (equal (smt-cnf) (default-smtlink-config))
-        (Smtlink-raw cl hint state nil)
-      (mv (er hard? 'top-level "Error(connect): You've defined a user configuration, are you sure you want to use Smtlink, instead of Smtlink-custom-config?")
-          (list cl)
-          state)))
+        (Smtlink-raw cl hint state nil))
 
   (defun Smtlink-custom-config (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
@@ -114,4 +110,3 @@
   Smtlink-custom-config
   nil
   :ttag Smtlink-custom-config)
-
