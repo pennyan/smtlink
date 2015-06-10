@@ -13,7 +13,7 @@ The default SMT solver integrated is Z3.
 
                      REQUIREMENTS
 
-1. Python is properly installed.
+1. Python 2 is properly installed.
 2. Z3 is properly installed that it can be imported and used in
    Python.
 3. ACL2 and its book directory is properly installed.
