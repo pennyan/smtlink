@@ -12,6 +12,7 @@
 
 import io
 import re
+import sys
 
 specialChar = {
     r',' : r'#\,',
@@ -48,7 +49,7 @@ def gen(fromPyFile, toLispFile):
     for rline in rfile:
         rline = rline.rstrip()
         rline = re.split('(\W)' , rline)
-        print rline
+        #print rline
         wline = gen_LISPList(rline)     # a string that ends with a \n
         wfile.append(wline)
     tail = "))"
@@ -58,3 +59,20 @@ def gen(fromPyFile, toLispFile):
     wt.writelines(tail)
 
     wt.close()
+
+def main(argv):
+    inf = ''
+    outf = ''
+    if(len(argv) != 2):
+        print "Wrong number of input arguments:"
+        print "gen_ACL22SMT.py <inputfile> <outputfile>"
+        exit(2)
+    else:
+        inf = argv[0]
+        outf = argv[1]
+        gen(inf,outf)
+        print "Finish generating file %s from file %s." % ( inf, outf )
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+

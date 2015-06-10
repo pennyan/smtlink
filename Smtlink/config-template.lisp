@@ -1,8 +1,3 @@
-;; This file configs the path to below directories:
-;; 1. Z3_interface
-;; 2. Z3_files
-;; 3. name of z3 class
-;; 4. SMT command
 (in-package "ACL2")
 (include-book "std/util/defaggregate" :dir :system)
 
@@ -15,13 +10,7 @@
    dir-expanded)
   :tag :smtlink-config)
 
-(defconst *default-smtlink-config*
-  (make-smtlink-config :dir-interface nil
-                       :dir-files "py\_files"
-                       :SMT-module "ACL2_to_Z3"
-                       :SMT-class "ACL22SMT"
-                       :smt-cmd "python"
-                       :dir-expanded nil))
+;; Insert-code-for-default-smtlink-config
 
 (encapsulate
   (((smt-cnf) => *))

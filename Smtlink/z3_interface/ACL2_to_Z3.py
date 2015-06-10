@@ -1,4 +1,4 @@
-from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Array, Select, Store, ToInt, Q
+from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Array, Select, Store, ToInt, Q, If
 
 def sort(x):
     if type(x) == bool:    return BoolSort()
@@ -33,7 +33,7 @@ class ACL22SMT(object):
 	return(self.who_am_i != other.who_am_i)
       def __str__(self):
 	return(self.who_am_i)
-        
+
     def __init__(self, solver=0):
         if(solver != 0): self.solver = solver
         else: self.solver = Solver()
@@ -44,83 +44,31 @@ class ACL22SMT(object):
         self.nameNumber = self.nameNumber+1
         return varName
 
-    def isBool(self, who):
-        return Bool(who)
-
-    def isInt(self, who):
-        return Int(who)
-
-    def isReal(self, who):
-        return Real(who)
-
-    def floor(self, x):
-        return ToInt(x)
-        
-    def plus(self, *args):
-        return reduce(lambda x, y: x+y, args)
-
-    def times(self, *args):
-        return reduce(lambda x, y: x*y, args)
-
-    def andx(self, *args):
-        return reduce(lambda x, y: And(x,y), args)
-
-    def orx(self, *args):
-        return reduce(lambda x, y: Or(x,y), args)
-
-    def minus(self, x,y): return x-y
+    def isBool(self, who): return Bool(who)
+    def isInt(self, who): return Int(who)
+    def isReal(self, who): return Real(who)
+    def plus(self, *args): return reduce(lambda x, y: x+y, args)
+    def times(self, *args): return reduce(lambda x, y: x*y, args)
 
     def reciprocal(self, x):
         if(type(x) is int): return(Q(1,x))
         elif(type(x) is float): return 1.0/x
         else: return 1/x
-        
+
     def negate(self, x): return -x
-    def div(self, x, y): return times(self,x,reciprocal(self,y))
-    def gt(self, x,y): return x>y
     def lt(self, x,y): return x<y
-    def ge(self, x,y): return x>=y
-    def le(self, x,y): return x<=y
     def equal(self, x,y): return x==y
     def notx(self, x): return Not(x)
-
     def implies(self, x, y): return Implies(x,y)
-
-    # This function assumes x and y to be numbers
     def Qx(self, x, y): return Q(x,y)
 
     # type related functions
     def integerp(self, x): return x.sort() == IntSort()
     def rationalp(self, x): return x.sort() == RealSort()
     def booleanp(self, x): return x.sort() == BoolSort()
-    
-    def ifx(self, condx, thenx, elsex):
-        v = 0
-        if sort(thenx) == sort(elsex):
-            if sort(thenx) == BoolSort(): v = Bool(self.newVar())
-            if sort(thenx) == IntSort():  v = Int(self.newVar())
-            if sort(thenx) == RealSort(): v = Real(self.newVar())
-            if v is 0: raise Exception('mixed type for if-expression')
-        self.solver.add(And(Implies(condx, v == thenx), Implies(Not(condx), v == elsex)))
-        return(v)
 
-    # # array
-    # def array(self, mylist):
-    #     if not mylist:
-    #        raise("Can't determine type of an empty list.")
-    #     else:
-    #         ty = sort(mylist[0])
-    #         a = Array(self.newVar(), IntSort(), ty)
-    #         n = len(mylist)
-    #         for i in range(0,n):
-    #             j = Int(self.newVar())
-    #             self.solver.add(j == i)
-    #             self.solver.add(Select(a, j) == mylist[i])
-    #     return a
-    
-    # # nth
-    # def nth(self, i, a):
-    #     return Select(a, i)
+    def ifx(self, condx, thenx, elsex):
+        return If(condx, thenx, elsex)
 
     # usage prove(claim) or prove(hypotheses, conclusion)
     def prove(self, hypotheses, conclusion=0):

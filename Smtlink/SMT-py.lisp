@@ -285,7 +285,8 @@ new hypothesis in lambda expression"
 ;; if fname is not nil, it will use that user provided name
 (defun mk-fname (fname smt-config suffix)
   (if (endp fname)
-      (let ((cmd (concatenate 'string "mktemp " (smtlink-config->dir-files smt-config) "/smtlink" suffix ".XXXXX")))
+      (let ((cmd (concatenate 'string "mkdir -p " (smtlink-config->dir-files smt-config) " && "
+                              "mktemp " (smtlink-config->dir-files smt-config) "/smtlink" suffix ".XXXXX")))
         (mv-let (finishedp exit-status lines)
                 (time$ (tshell-call cmd
                                     :print t

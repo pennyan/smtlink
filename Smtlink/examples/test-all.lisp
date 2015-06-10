@@ -41,7 +41,7 @@
 ;;:set-ignore-ok t
 
 (include-book "arithmetic/top-with-meta" :dir :system)
-(add-include-book-dir :cp ".")
+(add-include-book-dir :cp "../")
 (include-book "top" :dir :cp)
 (tshell-ensure)
 
@@ -156,7 +156,7 @@
      (declare (xargs :guard t))
      (change-smtlink-config *default-smtlink-config*
         :dir-interface
-        "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3_interface"
+        "/ubc/cs/home/y/yanpeng/project/Smtlink/z3_interface"
 			  :SMT-module
 			  "RewriteExpt"
 			  :SMT-class

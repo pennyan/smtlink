@@ -13,22 +13,27 @@ The default SMT solver integrated is Z3.
 
                      REQUIREMENTS
 
-1. Python is properly installed. It should be included in the system
-   PATH.
+1. Python is properly installed.
 2. Z3 is properly installed that it can be imported and used in
    Python.
-3. ACL2 is properly installed. It should be included in the
-   system PATH.
+3. ACL2 and its book directory is properly installed.
 4. Smtlink uses Unix commands that requires Unix environment.
 
 ----------------------------------------------------------------
 
                   BUILD INSTRUCTIONS
 
-1. Run script ... to generate the ACL2_to_Z3.lisp file:
+1. Run script gen_ACL22SMT.py to generate the ACL2_to_Z3.lisp
+   file using command:
 
-2. Run Script ... to generate the config.lisp file:
+     python gen_ACL22SMT.py z3_interface/ACL2_to_Z3.py ACL22SMT.lisp
 
+2. Run Script gen_config.py to generate the config.lisp file:
+
+     python gen_config.py -p <dir-to-py-exe>
+                          -z <dir-to-py-files>
+                          -e <dir-to-expand-files>
+     
 3. Follow :doc cert.pl to certify the books using command
    "cert.pl top.lisp".
 ----------------------------------------------------------------
