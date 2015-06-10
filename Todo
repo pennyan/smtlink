@@ -4,7 +4,6 @@ Easy todos:
 (The paper is written assuming these changes as it simplifies the representation)
 1. Write gen_config.py script for generating the configuration file.
 2. Return the result of type predicates back to ACL2.
-3. Block :let bindings from going into a lambda expression.
 
 More involved todos:
 (The paper is written assuming these changes has not been made.
