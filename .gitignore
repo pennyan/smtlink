@@ -6,11 +6,11 @@
 *.lx64fsl
 Makefile-tmp
 
-*/z3_files/*
-*/expanded/*
+z3_files/*
+expanded/*
 
 *.pyc
 *.log
 *.swp
-
-*/Smtlink-manual/*
+# .#*
+Smtlink-manual/*
