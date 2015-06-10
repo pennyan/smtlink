@@ -3,30 +3,9 @@
 (in-package "ACL2")
 
 (include-book "arithmetic/top" :dir :system)
-(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
+(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/Smtlink")
 (include-book "top" :dir :cp)
 (tshell-ensure)
-
-;; need the configurable trust tag
-;;(defttag :Smtlink-custom-config)
-;; configurations
-(local
- (progn
-   (defun my-smtlink-config ()
-     (declare (xargs :guard t))
-     (make-smtlink-config :dir-interface
-			  "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface"
-			  :dir-files
-			  "z3\_files"
-			  :SMT-module
-			  "ACL22SMT"
-			  :SMT-class
-			  "to_smt"
-			  :smt-cmd
-			  "python"
-			  :dir-expanded
-			  "expanded"))
-   (defattach smt-cnf my-smtlink-config)))
 
 
 ;; 2.1 A simple example
@@ -38,9 +17,7 @@
            (>= (+ (* x x) (* y y)) 4))
   :hints (("Goal"
            :clause-processor
-           (Smtlink-custom-config clause
-                                  '()
-                                  state)
+           (Smtlink clause '() state)
            ))
   )
 
@@ -55,11 +32,11 @@
            (>=  (udf-func x y) 4))
   :hints (("Goal"
            :clause-processor
-           (Smtlink-custom-config clause
-                                  '((:expand ((:functions ((udf-func rationalp)))
-                                               (:expansion-levels 1)))
-                                    )
-                                  state)
+           (Smtlink clause
+                    '((:expand ((:functions ((udf-func rationalp)))
+                                (:expansion-levels 1)))
+                      )
+                    state)
            ))
   )
 
@@ -135,7 +112,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink-custom-config clause
+    (Smtlink clause
              '((:expand ((:functions ((fac integerp)))
                          (:expansion-level 4)))
                (:use ((:main (test-lemma)))))
@@ -158,7 +135,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink-custom-config clause
+    (Smtlink clause
 	     '((:let ((expt_gamma_m (expt gamma m) rationalp)
 		      (expt_gamma_n (expt gamma n) rationalp)))
 	       (:hypothesize ((< expt_gamma_n expt_gamma_m)
@@ -177,6 +154,8 @@
    (defun my-smtlink-expt-config ()
      (declare (xargs :guard t))
      (change-smtlink-config *default-smtlink-config*
+        :dir-interface
+        "/ubc/cs/home/y/yanpeng/project/Smtlink/z3_interface"
 			  :SMT-module
 			  "RewriteExpt"
 			  :SMT-class

@@ -28,14 +28,20 @@ The default SMT solver integrated is Z3.
 
      python gen_ACL22SMT.py z3_interface/ACL2_to_Z3.py ACL22SMT.lisp
 
-2. Run Script gen_config.py to generate the config.lisp file:
+//2. Run Script gen_config.py to generate the config.lisp file:
+//
+//     python gen_config.py config-template.lisp config.lisp
+//                          -p <dir-to-py-exe>
+//                          -z <dir-to-py-files>
+//                          -e <dir-to-expand-files>
+// This feature will come up soooon...
+// Right now, config.lisp is provided.
+// It assumes the Python executable is in system $PATH
+// and its name is python.
+// Current setting for generated python file directory is ./py_files.
+// CUrrent setting for generated expand files is nil.
 
-     python gen_config.py config-template.lisp config.lisp
-                          -p <dir-to-py-exe>
-                          -z <dir-to-py-files>
-                          -e <dir-to-expand-files>
-     
-3. Follow :doc cert.pl to certify the books using command
+2. Follow :doc cert.pl to certify the books using command
    "cert.pl top.lisp".
 ----------------------------------------------------------------
 

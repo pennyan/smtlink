@@ -1,0 +1,15 @@
+A list of todos after submitting the paper:
+
+Easy todos:
+(The paper is written assuming these changes as it simplifies the representation)
+1. Write gen_config.py script for generating the configuration file.
+2. Return the result of type predicates back to ACL2.
+3. Block :let bindings from going into a lambda expression.
+
+More involved todos:
+(The paper is written assuming these changes has not been made.
+ We will update the final version of the paper to match the Smtlink at that time.
+ We will happily consider suggestions for improvements from the reviewers or
+ others.)
+1. Fulfill the XDOC for Smtlink, add a tutorial
+2. Simplify function expansion.
