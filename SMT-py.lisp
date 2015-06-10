@@ -78,7 +78,7 @@
 ;; my-prove-write-expander-file
 (defun my-prove-write-expander-file (expanded-term fdir state)
   "my-prove-write-expander-file: write expanded term into a log file"
-  (if (endp fdir)
+  (if (equal fdir nil)
       state
     (write-expander-file fdir expanded-term state)))
 
@@ -283,25 +283,26 @@ new hypothesis in lambda expression"
 ;; mk-fname make a file name for the z3 file
 ;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
 ;; if fname is not nil, it will use that user provided name
-(defun mk-fname (fname smt-config suffix)
-  (if (endp fname)
-      (let ((cmd (concatenate 'string "mkdir -p " (smtlink-config->dir-files smt-config) " && "
-                              "mktemp " (smtlink-config->dir-files smt-config) "/smtlink" suffix ".XXXXX")))
-        (mv-let (finishedp exit-status lines)
-                (time$ (tshell-call cmd
-                                    :print t
-                                    :save t)
-                       :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
-                       :args (list cmd))
-                (if (and (equal finishedp t)
-                         (equal exit-status 0))
-                    (car lines)
-                  (er hard? 'top-level "Error(SMT-py): Generate file error."))))
-    (concatenate 'string
+(defun mk-fname (fname smt-config suffix flag)
+  (let ((dir (if (equal flag nil)
                  (smtlink-config->dir-files smt-config)
-                 "/"
-                 fname
-                 suffix)))
+               (smtlink-config->dir-expanded smt-config))))
+  (cond ((equal fname nil)
+         (let ((cmd (concatenate 'string "mkdir -p " dir " && "
+                                 "mktemp " dir "/smtlink" suffix ".XXXXX")))
+           (mv-let (finishedp exit-status lines)
+                   (time$ (tshell-call cmd
+                                       :print t
+                                       :save t)
+                          :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
+                          :args (list cmd))
+                   (if (and (equal finishedp t)
+                            (equal exit-status 0))
+                       (car lines)
+                     (er hard? 'top-level "Error(SMT-py): Generate file error.")))))
+        ((stringp fname)
+         (concatenate 'string dir "/" fname suffix))
+        (t (er hard? 'top-level "Error(SMT-py): fname should either be a string or nil.")))))
 
 ;; create-uninterpreted-item
 (defun create-uninterpreted-item (item)
@@ -342,9 +343,9 @@ new hypothesis in lambda expression"
 
 ;; mk-expander-fname
 (defun mk-expander-fname (fname smt-config)
-  (if (endp (smtlink-config->dir-expanded smt-config))
-      nil
-    (mk-fname fname smt-config ".log")))
+  (cond ((equal (smtlink-config->dir-expanded smt-config) nil) nil)
+        ((stringp fname) (mk-fname fname smt-config ".log" t))
+        (t (er hard? 'top-level "Error(SMT-py): expansion log directory should either by a string or nil."))))
 
 ;; my-prove
 (defun my-prove (term fn-lst fn-level uninterpreted fname let-expr new-hypo
@@ -353,7 +354,7 @@ new hypothesis in lambda expression"
   (b*
     ( ((mv decl-list hypo-list concl) (SMT-extract term))
       (decl-and-hypo (and-list-logic (append decl-list hypo-list)))
-      (file-dir (mk-fname fname smt-config ".py"))
+      (file-dir (mk-fname fname smt-config ".py" nil))
       (expand-dir (mk-expander-fname fname smt-config))
       (uninterpreted-func (uninterpreted-operator (uninterpreted-type-&-name uninterpreted)))
       ((mv hypo-translated state) (translate-hypo new-hypo state))

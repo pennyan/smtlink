@@ -8,70 +8,9 @@
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
+(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/Smtlink")
 (include-book "top" :dir :cp)
-;; (logic)
-;; :set-state-ok t
-;; :set-ignore-ok t
-;; configurations
-(local
- (progn
-   (defun my-smtlink-config ()
-     (declare (xargs :guard t))
-     (make-smtlink-config :dir-interface
-			  "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink/z3\_interface"
-			  :dir-files
-			  "z3\_files"
-			  :SMT-module
-			  "ACL22SMT"
-			  :SMT-class
-			  "to_smt"
-			  :smt-cmd
-			  "python"
-			  :dir-expanded
-        "expanded"))
-   (defattach smt-cnf my-smtlink-config)))
-
 (tshell-ensure)
-;; for the clause processor to work
-(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/ACL2/smtlink")
-(include-book "top" :dir :cp)
-(logic)
-:set-state-ok t
-:set-ignore-ok t
-(tshell-ensure)
-
-;;:start-proof-tree
-
-;; (encapsulate ()
-
-;; (local (include-book "arithmetic-5/top" :dir :system))
-
-;; (defun my-floor (x) (floor (numerator x) (denominator x)))
-
-;; (defthm my-floor-type
-;;   (implies (rationalp x)
-;; 	   (integerp (my-floor x)))
-;;   :rule-classes :type-prescription)
-
-;; (defthm my-floor-lower-bound
-;;   (implies (rationalp x)
-;; 	   (> (my-floor x) (- x 1)))
-;;   :rule-classes :linear)
-
-;; (defthm my-floor-upper-bound
-;;   (implies (rationalp x)
-;; 	   (<= (my-floor x) x))
-;;   :rule-classes :linear)
-
-;; (defthm my-floor-comparison
-;;   (implies (rationalp x)
-;; 	   (< (my-floor (1- x)) (my-floor x)))
-;;   :hints (("Goal"
-;; 	   :use ((:instance my-floor-upper-bound (x (1- x)))
-;; 		 (:instance my-floor-lower-bound))))
-;;   :rule-classes :linear)
-;; )
 
 ;; functions
 ;; n can be a rational value when c starts from non-integer value
@@ -193,7 +132,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink-custom-config clause
+    (Smtlink clause
   			 '( (:expand ((:functions ((B-term-rest rationalp)
   						   (gamma rationalp)
   						   (mu rationalp)
@@ -417,7 +356,7 @@
   :hints
   (("Goal"
     :clause-processor
-    (Smtlink-custom-config clause
+    (Smtlink clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)
@@ -654,7 +593,7 @@
     :in-theory (disable delta-rewrite-2-lemma1)
     :do-not-induct t
     :clause-processor
-    (Smtlink-custom-config clause
+    (Smtlink clause
 			 '( (:expand ((:functions ((m integerp)
 						   (gamma rationalp)
 						   (mu rationalp)
@@ -748,7 +687,7 @@
 		       0)))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink-custom-config clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -816,7 +755,7 @@
 		       0)))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink-custom-config clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -970,7 +909,7 @@
 		       (expt (gamma) (- 2 (* 2 n))))))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink-custom-config clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -1029,7 +968,7 @@
 	      (* 2 n)))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink-custom-config clause
+	   (Smtlink clause
 				'( (:expand ((:functions ((m integerp)
 							  (gamma rationalp)
 							  (mu rationalp)
@@ -1328,7 +1267,7 @@
 	   (< (+ (* c c A) (* c B)) 0))
   :hints (("Goal"
 	   :clause-processor
-	   (Smtlink-custom-config clause
+	   (Smtlink clause
 				'( (:expand ((:function ())
 					     (:expansion-level 1)))
 				  (:python-file "except-for-delta-smaller-than-0-lemma1")
@@ -1385,7 +1324,7 @@
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1 dc) 0))
   :hints (("Goal''"
 	   :clause-processor
-  	   (Smtlink-custom-config clause
+  	   (Smtlink clause
   				'( (:expand ((:function ())
   					     (:expansion-level 1)))
   				  (:python-file "phi-2n+1-smaller-than-0-base")
@@ -1399,7 +1338,7 @@
 	   (< (phi-2n-1 (- i 1) phi0 v0 dv g1 dc) 0))
   :hints (("Goal''"
 	   :clause-processor
-  	   (Smtlink-custom-config clause
+  	   (Smtlink clause
   				'( (:expand ((:function ())
   					     (:expansion-level 1)))
   				  (:python-file "phi-2n+1-smaller-than-0-base-new")
