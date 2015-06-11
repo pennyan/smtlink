@@ -1,3 +1,9 @@
+;; Copyright (C) 2015, University of British Columbia
+;; Written (originally) by Yan Peng (13th March, 2014)
+;;
+;; License: A 3-clause BSD license.
+;; See the LICENSE file distributed with this software
+
 ;;
 ;; This file is adapted from :doc define-trusted-clause-processor
 ;; The dependent files, instead of being in raw Lisp, are in ACL2.

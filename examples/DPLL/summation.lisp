@@ -1,3 +1,10 @@
+;; Copyright (C) 2015, University of British Columbia
+;; Written (originally) by Yan Peng (13th March, 2014)
+;;
+;; License: A 3-clause BSD license.
+;; See the LICENSE file distributed with this software
+
+
 ;; Summation lemmas suggested by Mark
 
 (in-package "ACL2")

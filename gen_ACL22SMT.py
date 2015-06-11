@@ -1,3 +1,11 @@
+# Copyright (C) 2015, University of British Columbia
+# Written (originally) by Yan Peng (13th March, 2014)
+
+# License: A 3-clause BSD license.
+# See the LICENSE file distributed with this software
+
+
+
 # This python script generates a LISP file called ACL22SMT.lisp.
 # ACL22SMT.lisp contains a function called ACL22SMT that produces
 # the ACL2_to_Z3.py string.

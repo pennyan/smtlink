@@ -1,3 +1,10 @@
+;; Copyright (C) 2015, University of British Columbia
+;; Written (originally) by Yan Peng (13th March, 2014)
+;;
+;; License: A 3-clause BSD license.
+;; See the LICENSE file distributed with this software
+
+
 ;; SMT-extract extracts the declarations, hypotheses and conclusion from a SMT formula in ACL2.
 ;; A typical SMT formula is in below format:
 ;; (implies (and <decl-list>

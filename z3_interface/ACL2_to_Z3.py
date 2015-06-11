@@ -1,3 +1,9 @@
+# Copyright (C) 2015, University of British Columbia
+# Written (originally) by Yan Peng (13th March, 2014)
+#
+# License: A 3-clause BSD license.
+# See the LICENSE file distributed with this software
+
 from z3 import Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Array, Select, Store, ToInt, Q, If
 
 def sort(x):

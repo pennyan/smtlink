@@ -1,3 +1,10 @@
+;; Copyright (C) 2015, University of British Columbia
+;; Written (originally) by Yan Peng (13th March, 2014)
+;;
+;; License: A 3-clause BSD license.
+;; See the LICENSE file distributed with this software
+
+
 ;; There are two files for the proof of recurrence model of the
 ;; DPLL: global.lisp, DPLL_functions.lisp and DPLL_theorems.lisp.
 ;; global.lisp

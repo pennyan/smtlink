@@ -1,3 +1,9 @@
+;; Copyright (C) 2015, University of British Columbia
+;; Written (originally) by Yan Peng (13th March, 2014)
+;;
+;; License: A 3-clause BSD license.
+;; See the LICENSE file distributed with this software
+
 (in-package "ACL2")
 (include-book "std/util/define" :dir :system)
 (include-book "misc/eval" :dir :system) ; Define must-succeed and must-fail macros.
