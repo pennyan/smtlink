@@ -2,7 +2,9 @@
 # settings of Smtlink.
 #
 # Usage:
-#   python gen_config.py -p <dir-to-py-exe>
+#   python gen_config.py -i <inputfile>
+#                        -o <outputfile>
+#                        -p <dir-to-py-exe>
 #                        -z <dir-to-py-files>
 #                        -e <dir-to-expand-files>
 #
@@ -34,7 +36,7 @@
 import io
 import sys
 import getopt
-
+import re
 
 # (defconst *default-smtlink-config*
 #   (make-smtlink-config :dir-interface nil
@@ -44,9 +46,57 @@ import getopt
 #                        :smt-cmd nil
 #                        :dir-expanded nil))
 
+def is_marker(mk):
+    if (mk == ";; Insert-code-for-default-smtlink-config\n"):
+        return True
+    else:
+        return False
 
-def main (argv):
-    return
+def gen_code():
+    return "Hello world"
+
+def gen(inf, outf, py_exe, py_file, ex_file):
+    wt = open(outf, 'w')
+    wline = []
+
+    with open(inf, 'r') as rf:
+        rlines = rf.readlines()
+    for rline in rlines:
+        if (is_marker(rline)):
+            wline.append(gen_code(py_exe, py_file, ex_file))
+        else:
+            wline.append(rline)
+
+    wt.writelines(wlines)
+    wt.close()
+
+def main(argv):
+    inf = r'config-template.lisp'
+    outf = r'config.lisp'
+    py_exe = r'python'
+    py_file = r'py_files'
+    ex_file = r'nil'
+    try:
+        opts, args = getopt.getopt(argv, "")
+    except getopt.GetoptError:
+        print "gen_config.py -i <input-file> -o <output-file> -p <python-executable> -z <generated-python-files> -e <generated-expanded-files>"
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-i':
+            inf = arg
+        elif opt == '-o':
+            outf = arg
+        elif opt == '-p':
+            py_exe = arg
+        elif opt == '-z':
+            py_file = arg
+        elif opt == '-e':
+            ex_file = arg
+        else:
+            print "unrecognizable option: %s" % (opt)
+    gen(inf, outf, py_exe, py_file, ex_file)
+    print "Finished generating %s file from %s file..." % (outf, inf)
+
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main(sys.argv[2:])

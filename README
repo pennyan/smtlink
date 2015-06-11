@@ -30,7 +30,8 @@ The default SMT solver integrated is Z3.
 
 //2. Run Script gen_config.py to generate the config.lisp file:
 //
-//     python gen_config.py config-template.lisp config.lisp
+//     python gen_config.py -i config-template.lisp
+//                          -o config.lisp
 //                          -p <dir-to-py-exe>
 //                          -z <dir-to-py-files>
 //                          -e <dir-to-expand-files>
