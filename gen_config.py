@@ -20,11 +20,12 @@
 #   1. <dir-to-py-exe> :       The absolute path to where the
 #                              Python executable is.
 #                              If not set, it gets nil and
-#                              Smtlink will report an error.
+#                              the program will report an error.
 #
 #   2. <dir-to-py-files> :     The path to where the generated
 #                              Python files will be stored.
-#                              If not set, Python files will be
+#                              If not set, it will get nil.
+#                              Python files will be
 #                              generated at /tmp and gets deleted
 #                              every time Smtlink finishes the proof.
 #                              If set, generated files won't be
@@ -56,11 +57,21 @@ def gen_code(py_exe, py_file, ex_file):
 
     code.append("(defconst *default-smtlink-config*\n")
     code.append("  (make-smtlink-config :dir-interface nil\n")
-    code.append("                       :dir-files \"" + py_file + "\"\n")
+    if (py_file == "nil"):
+        code.append("                       :dir-files " + py_file + "\n")
+    else:
+        code.append("                       :dir-files \"" + py_file + "\"\n")
     code.append("                       :SMT-module \"ACL2_to_Z3\"\n")
     code.append("                       :SMT-class \"ACL22SMT\"\n")
-    code.append("                       :smt-cmd \"" + py_exe + "\"\n")
-    code.append("                       :dir-expanded \"" + ex_file + "\"))\n")
+    if (py_exe == "nil"):
+        print "Error: Python executable is not set yet ..."
+        exit(1)
+    else:
+        code.append("                       :smt-cmd \"" + py_exe + "\"\n")
+    if (ex_file == "nil"):
+        code.append("                       :dir-expanded " + ex_file + "))\n")
+    else:
+        code.append("                       :dir-expanded \"" + ex_file + "\"))\n")
 
     return code
 
@@ -82,12 +93,12 @@ def gen(inf, outf, py_exe, py_file, ex_file):
 def main(argv):
     inf = r'config-template.lisp'
     outf = r'config.lisp'
-    py_exe = r'python'
+    py_exe = r'nil'
     py_file = r'py_files'
     ex_file = r'nil'
     try:
         opts, args = getopt.getopt(argv, "i:o:p:z:e:")
-        print argv
+        #print argv
     except getopt.GetoptError:
         print "gen_config.py -i <input-file> -o <output-file> -p <python-executable> -z <generated-python-files> -e <generated-expanded-files>"
         sys.exit(2)
