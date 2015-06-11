@@ -183,3 +183,7 @@
              state)))
   )
 
+;; Under construction ...
+;; I want to come up with more examples to show Smtlink's capabilities.
+;; For example, what counter-examples it can provide,
+;; what other features or difficult theorems it can handle.
