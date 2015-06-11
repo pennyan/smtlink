@@ -25,7 +25,7 @@
 #   2. <dir-to-py-files> :     The path to where the generated
 #                              Python files will be stored.
 #                              If not set, Python files will be
-#                              generated at ~/tmp and gets deleted
+#                              generated at /tmp and gets deleted
 #                              every time Smtlink finishes the proof.
 #                              If set, generated files won't be
 #                              deleted.
@@ -45,34 +45,36 @@ import sys
 import getopt
 import re
 
-# (defconst *default-smtlink-config*
-#   (make-smtlink-config :dir-interface nil
-#                        :dir-files "~/tmp"
-#                        :SMT-module "ACL2_to_Z3"
-#                        :SMT-class "ACL22SMT"
-#                        :smt-cmd nil
-#                        :dir-expanded nil))
-
 def is_marker(mk):
     if (mk == ";; Insert-code-for-default-smtlink-config\n"):
         return True
     else:
         return False
 
-def gen_code():
-    return "Hello world"
+def gen_code(py_exe, py_file, ex_file):
+    code = []
+
+    code.append("(defconst *default-smtlink-config*\n")
+    code.append("  (make-smtlink-config :dir-interface nil\n")
+    code.append("                       :dir-files \"" + py_file + "\"\n")
+    code.append("                       :SMT-module \"ACL2_to_Z3\"\n")
+    code.append("                       :SMT-class \"ACL22SMT\"\n")
+    code.append("                       :smt-cmd \"" + py_exe + "\"\n")
+    code.append("                       :dir-expanded \"" + ex_file + "\"))\n")
+
+    return code
 
 def gen(inf, outf, py_exe, py_file, ex_file):
     wt = open(outf, 'w')
-    wline = []
+    wlines = []
 
     with open(inf, 'r') as rf:
         rlines = rf.readlines()
     for rline in rlines:
         if (is_marker(rline)):
-            wline.append(gen_code(py_exe, py_file, ex_file))
+            wlines += gen_code(py_exe, py_file, ex_file)
         else:
-            wline.append(rline)
+            wlines.append(rline)
 
     wt.writelines(wlines)
     wt.close()
@@ -84,7 +86,8 @@ def main(argv):
     py_file = r'py_files'
     ex_file = r'nil'
     try:
-        opts, args = getopt.getopt(argv, "")
+        opts, args = getopt.getopt(argv, "i:o:p:z:e:")
+        print argv
     except getopt.GetoptError:
         print "gen_config.py -i <input-file> -o <output-file> -p <python-executable> -z <generated-python-files> -e <generated-expanded-files>"
         sys.exit(2)
@@ -99,11 +102,10 @@ def main(argv):
             py_file = arg
         elif opt == '-e':
             ex_file = arg
-        else:
-            print "unrecognizable option: %s" % (opt)
+    
     gen(inf, outf, py_exe, py_file, ex_file)
     print "Finished generating %s file from %s file..." % (outf, inf)
 
 
 if __name__ == "__main__":
-    main(sys.argv[2:])
+    main(sys.argv[1:])

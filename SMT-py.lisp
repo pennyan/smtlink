@@ -351,7 +351,7 @@ new hypothesis in lambda expression"
 ;; mk-expander-fname
 (defun mk-expander-fname (fname smt-config)
   (cond ((equal (smtlink-config->dir-expanded smt-config) nil) nil)
-        ((stringp fname) (mk-fname fname smt-config ".log" t))
+        ((stringp (smtlink-config->dir-expanded smt-config)) (mk-fname fname smt-config ".log" t))
         (t (er hard? 'top-level "Error(SMT-py): expansion log directory should either by a string or nil."))))
 
 ;; my-prove
