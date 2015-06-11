@@ -10,7 +10,7 @@
 (in-package "ACL2")
 
 (include-book "arithmetic/top" :dir :system)
-(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/Smtlink")
+(add-include-book-dir :cp "../")
 (include-book "top" :dir :cp)
 (tshell-ensure)
 
@@ -162,7 +162,7 @@
      (declare (xargs :guard t))
      (change-smtlink-config *default-smtlink-config*
         :dir-interface
-        "/ubc/cs/home/y/yanpeng/project/Smtlink/z3_interface"
+        "../z3_interface"
 			  :SMT-module
 			  "RewriteExpt"
 			  :SMT-class

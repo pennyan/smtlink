@@ -7,7 +7,7 @@
 
 (in-package "ACL2")
 (include-book "arithmetic-5/top" :dir :system)
-(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/Smtlink")
+(add-include-book-dir :cp "../")
 (include-book "top" :dir :cp)
 (tshell-ensure)
 

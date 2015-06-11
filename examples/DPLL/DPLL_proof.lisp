@@ -7,7 +7,6 @@
 (in-package "ACL2")
 (include-book "global")
 
-;;(add-include-book-dir :book "/ubc/cs/research/isd/users/software/ACL2/acl2-7.0/books")
 (deftheory before-arith (current-theory :here))
 (include-book "arithmetic/top-with-meta" :dir :system)
 (deftheory after-arith (current-theory :here))
@@ -15,7 +14,7 @@
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(add-include-book-dir :cp "/ubc/cs/home/y/yanpeng/project/Smtlink")
+(add-include-book-dir :cp "../../")
 (include-book "top" :dir :cp)
 (tshell-ensure)
 
