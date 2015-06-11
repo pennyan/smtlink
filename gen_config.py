@@ -26,7 +26,7 @@
 #                              Python files will be stored.
 #                              If not set, it will get nil.
 #                              Python files will be
-#                              generated at /tmp and gets deleted
+#                              generated at /tmp/py_file and gets deleted
 #                              every time Smtlink finishes the proof.
 #                              If set, generated files won't be
 #                              deleted.
