@@ -36,7 +36,7 @@
 #                              will be stored.
 #                              If not set, it gets nil and
 #                              no log files will be generated.
-#                              This feature is used while debugging
+#                              This directory is used while debugging
 #                              Smtlink. Typical users of Smtlink
 #                              won't need to use it.
 
@@ -91,14 +91,14 @@ def gen(inf, outf, py_exe, py_file, ex_file):
     wt.close()
 
 def main(argv):
-    inf = r'config-template.lisp'
-    outf = r'config.lisp'
-    py_exe = r'nil'
-    py_file = r'py_files'
-    ex_file = r'nil'
+    inf = "config-template.lisp"
+    outf = "config.lisp"
+    py_exe = "nil"
+    py_file = "nil"
+    ex_file = "nil"
     try:
         opts, args = getopt.getopt(argv, "i:o:p:z:e:")
-        #print argv
+        print opts, args
     except getopt.GetoptError:
         print "gen_config.py -i <input-file> -o <output-file> -p <python-executable> -z <generated-python-files> -e <generated-expanded-files>"
         sys.exit(2)

@@ -292,7 +292,9 @@ new hypothesis in lambda expression"
 ;; if fname is not nil, it will use that user provided name
 (defun mk-fname (fname smt-config suffix flag)
   (let ((dir (if (equal flag nil)
-                 (smtlink-config->dir-files smt-config)
+                 (if (equal (smtlink-config->dir-files smt-config) nil)
+                     "/tmp/py_file"
+                   (smtlink-config->dir-files smt-config))
                (smtlink-config->dir-expanded smt-config))))
   (cond ((equal fname nil)
          (let ((cmd (concatenate 'string "mkdir -p " dir " && "

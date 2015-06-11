@@ -19,7 +19,7 @@
 
 (defconst *default-smtlink-config*
   (make-smtlink-config :dir-interface nil
-                       :dir-files "py_file"
+                       :dir-files nil
                        :SMT-module "ACL2_to_Z3"
                        :SMT-class "ACL22SMT"
                        :smt-cmd "python"
