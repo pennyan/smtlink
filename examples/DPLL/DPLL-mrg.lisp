@@ -1,10 +1,3 @@
-;; Copyright (C) 2015, University of British Columbia
-;; Written (originally) by Mark Greenstreet (13th March, 2014)
-;; Adapted from DPLL_proof.lisp and global.lisp
-;;
-;; License: A 3-clause BSD license.
-;; See the LICENSE file distributed with this software
-
 (in-package "ACL2")
 (include-book "std/util/define" :dir :system)
 (include-book "misc/eval" :dir :system) ; Define must-succeed and must-fail macros.
@@ -12,12 +5,12 @@
 (include-book "ihs/ihs-init" :dir :system) ; for disable-theory and enable-theory
 
 (deftheory before-arith (current-theory :here))
-(include-book "arithmetic/top-with-meta" :dir :system)
+(include-book "arithmetic-5/top" :dir :system)
 (deftheory after-arith (current-theory :here))
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(include-book "../../top" :ttags :all)
+(include-book "../smtlink/SMT-connect" :ttags :all)
 (logic)
 :set-state-ok t
 :set-ignore-ok t
@@ -27,7 +20,7 @@
  (progn
    (defun my-smtlink-expt-config ()
      (declare (xargs :guard t))
-     (make-smtlink-config :dir-interface "../..//z3_interface"
+     (make-smtlink-config :dir-interface "../smtlink/z3_interface"
 			  :dir-files    "z3\_files"
 			  :SMT-module   "RewriteExpt"
 			  :SMT-class    "to_smt_w_expt"
@@ -187,34 +180,53 @@
   (if (endp h-list) t
       (and (h-ok (car h-list) g1 v0) (h-list-ok (cdr h-list) g1 v0))))
 
-(define B-term-expt (Kt h)
-  :guard (and (integerp h) (hyp-fn (list :Kt Kt)))
-  :returns (x rationalp :hyp :guard)
-  (expt (gamma Kt) (- h)))
 
 (encapsulate ()
-  (local (in-theory (enable equ-c mu))) ; needed todischarge guard conjecture for B-term-rest
+  (local (defthm lemma-1  ; needed for guard conjecture
+    (implies (and (rationalp Kt) (< *Kt-min* Kt) (< Kt *Kt-max*))
+             (and (rationalp (gamma Kt)) (< 0 (gamma Kt))))))
+
+  (define B-term-expt (Kt h)
+    :guard (and (integerp h) (hyp-fn (list :Kt Kt)))
+    :returns (x rationalp :hyp :guard)
+    (expt (gamma Kt) (- h))))
+
+(encapsulate ()
+  (local (in-theory (enable equ-c mu))) ; needed to discharge guard conjecture for B-term-rest
   (define B-term-rest (h v0 dv g1)
     :guard (and (integerp h) (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (h-ok h g1 v0))
     :returns (x rationalp :hyp :guard)
     (- (* (mu) (/ (+ 1 (* *alpha* (+ v0 dv))) (+ 1 (* *beta* (+ (* h g1) (equ-c v0)))))) 1)))
 
-(define B-term (h v0 dv g1 Kt)
-  :guard (and (integerp h) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (h-ok h g1 v0))
-  :returns (x rationalp :hyp :guard)
-  (* (B-term-expt Kt h) (B-term-rest h v0 dv g1)))
+(encapsulate ()
+  ; here is an exercise in guiding ACL2 step-by-step to get a proof.
+  ; The proofs for B-term worked fine when I had mistakenly included arithmetic/top-with-meta
+  ; instead of arithmetic-5/top.  When I changed what book to include, I needed to add the
+  ; two lemmas here to get the proof of rationalp-of-B-term to go through.
+  (local (defthm lemma-1
+    (implies (and (integerp h) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (h-ok h g1 v0))
+	     (and (rationalp (B-term-expt Kt h)) (rationalp (B-term-rest h v0 dv g1))))))
+
+  (local (defthm lemma-2
+    (implies (and (integerp h) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (h-ok h g1 v0))
+		  (rationalp (* (B-term-expt Kt h) (B-term-rest h v0 dv g1))))
+    :hints(("Goal"
+      :in-theory (disable lemma-1)
+      :use((:instance lemma-1 (v0 v0) (g1 g1) (dv dv) (Kt Kt)))))))
+  
+  (define B-term (h v0 dv g1 Kt)
+    :guard (and (integerp h) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (h-ok h g1 v0))
+    :returns (x rationalp :hyp :guard)
+    (* (B-term-expt Kt h) (B-term-rest h v0 dv g1))))
+
 
 (encapsulate()
-  (local (defthm lemma-1  ; needed for the guard conjecture of B_sum.
-    (implies (and (< 0 (+ 1 v0 (* g1 h_lo)))
-    	       (integerp h_lo) (integerp h_hi)
-	       (rationalp v0)
-	       (< 0 v0)
-	       (rationalp g1)
-	       (< 1 (* 65536 g1))
-	       (<= h_lo h_hi))
-	     (< 0 (+ 1 v0 (* g1 h_hi))))
-    :hints(("Goal" :nonlinearp t))))
+  (local (defthm lemma-1 ; needed for rationalp-of-B-sum
+    (implies (and (integerp h_lo) (integerp h_hi) (<= 0 h_lo) (<= h_lo (1+ h_hi))
+		(hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
+		(h-list-ok (list h_lo (- h_hi)) g1 v0)
+		(>= h_hi h_lo))
+	      (rationalp (B-term h_hi v0 dv g1 Kt)))))
 
   (define B_sum (h_lo h_hi v0 dv g1 Kt)
     :guard (and (integerp h_lo) (integerp h_hi) (<= 0 h_lo) (<= h_lo (1+ h_hi))
@@ -231,26 +243,48 @@
 
 
 (encapsulate ()
-  ; disable arithmetic5 or ACL2 gets lost when trying to prove rationalp-of-B-expt
-  (local (disable-theory (theory 'arithmetic-book-only)))
+  (local (defthm lemma-1
+    (implies (hyp-fn (list :Kt Kt))
+             (and (rationalp (gamma Kt)) (< 0 (gamma Kt))))))
 
-  (local (defthm B-expt-lemma  ; needed for rationalp-of-B-expt
-    (implies (and (rationalp x) (< 0 x) (integerp n))
-    	     (let ((y (expt x n))) (and (< 0 y) (rationalp y))))))
+  (local (defthm lemma-2
+    (implies (and (hyp-fn (list :Kt Kt)) (integerp n))
+    	     (rationalp (expt (gamma Kt) (- n 2))))
+    :hints(("Goal"
+      :in-theory (disable lemma-1)
+      :use ((:instance lemma-1 (Kt Kt)))))))
 
   (define B-expt (Kt n)
     :guard (and (integerp n) (hyp-fn (list :Kt Kt)))
     :returns (x rationalp :hyp :guard)
-    (expt (gamma Kt) (- n 2))
-    ///
-    (more-returns (x (< 0 x) :hyp :guard :name B-expt->-0))))
+    (expt (gamma Kt) (- n 2))))
 
-(define B (n v0 dv g1 Kt)
-  :guard (and (integerp n) (<= 2 n) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
-              (h-list-ok (list 1 (- 2 n)) g1 v0))
-  :returns (x rationalp :hyp :guard)
-  (* (B-expt Kt n)
-     (B_sum 1 (- n 2) v0 dv g1 Kt)))
+
+(encapsulate ()
+  (local (defthm lemma-1
+    (implies (and (integerp n) (hyp-fn (list :Kt Kt)))
+             (rationalp (B-expt Kt n)))))
+
+  (local (defthm lemma-2
+    (implies (and (integerp n) (<= 2 n) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
+                  (h-list-ok (list 1 (- 2 n)) g1 v0))
+             (rationalp (B_sum 1 (- n 2) v0 dv g1 Kt)))))
+
+  (local (defthm lemma-3
+    (implies (and (integerp n) (<= 2 n) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
+                  (h-list-ok (list 1 (- 2 n)) g1 v0))
+             (rationalp (* (B-expt Kt n) (B_sum 1 (- n 2) v0 dv g1 Kt))))
+    :hints(("Goal"
+      :in-theory (disable lemma-1 lemma-2)
+      :use ((:instance lemma-1 (n n) (Kt Kt))
+            (:instance lemma-2 (n n) (Kt Kt) (v0 v0) (dv dv) (g1 g1)))))))
+
+  (define B (n v0 dv g1 Kt)
+    :guard (and (integerp n) (<= 2 n) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
+		(h-list-ok (list 1 (- 2 n)) g1 v0))
+    :returns (x rationalp :hyp :guard)
+    (* (B-expt Kt n)
+       (B_sum 1 (- n 2) v0 dv g1 Kt))))
 
 (define smt-std-hint (clause-name)
   :guard (stringp clause-name)
@@ -360,6 +394,7 @@
 (encapsulate ()
   (local (disable-theory (theory 'arithmetic-book-only)))
   (defthm delta-rewrite-5
+    ; try replacing the hypotheses here with hyp-macro
     (implies (and (and (integerp n) (rationalp v0) (rationalp dv) (rationalp g1) (rationalp Kt))
 		  (<= 3 n) (< n (/ (* 2 g1)))
 		  (< 0 v0)
