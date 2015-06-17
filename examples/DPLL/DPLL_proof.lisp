@@ -1352,24 +1352,42 @@
   )
 
 (skip-proofs
- (defthm phi-2n+1-<-0-lemma
-  (implies (and (implies (basic-params n 3 v0 dv g1 phi0
-                                       (< (phi-2n-1 n phi0 v0 dv g1) 0))
-                         (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
-                (implies (basic-params-equal n 2 v0 dv g1 phi0)
-                         (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0)))
-           (implies (basic-params n 2 v0 dv g1 phi0)
-                    (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))))
- )
+(defthm phi-2n+1-<-0-lemma
+  (IMPLIES (AND (INTEGERP N)
+                (RATIONALP V0)
+                (RATIONALP DV)
+                (RATIONALP PHI0)
+                (<= 2 N)
+                (<= N 640)
+                (<= 1 (* 10/9 V0))
+                (<= V0 11/10)
+                (<= (- (* 8000 DV)) 1)
+                (<= (* 8000 DV) 1)
+                (<= 0 PHI0)
+                (< PHI0
+                   (+ -1
+                      (FDCO (+ -639 (* 3200 V0))
+                            V0 DV 1/3200))))
+           (< (+ (A (+ 1 N) PHI0 V0 DV 1/3200)
+                 (* (B-EXPT (+ 1 N))
+                    (B-SUM 1 (+ -1 N) V0 DV 1/3200)))
+              0))
+  :hints (("Goal"
+           :do-not '(simplify)
+           :in-theory (disable B-expt)
+           :induct (B-sum 1 N V0 DV 1/3200)
+           )
+          ("Subgoal *1/2'"
+           :use ((:instance phi-2n+1-<-0-base)
+                 (:instance phi-2n+1-<-0-inductive)))
+          ))
+)
 
 (defthm phi-2n+1-<-0
   (implies (basic-params n 2 v0 dv g1 phi0)
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
   :hints (("Goal"
-           :do-not '(simplify)
-           :use ((:instance phi-2n+1-<-0-lemma)
-                 (:instance phi-2n+1-<-0-base)
-                 (:instance phi-2n+1-<-0-inductive))
+           :use ((:instance phi-2n+1-<-0-lemma))
 	   ))
   )
 
