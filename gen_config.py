@@ -24,12 +24,13 @@
 #
 #   2. <dir-to-py-files> :     The path to where the generated
 #                              Python files will be stored.
-#                              If not set, it will get nil.
-#                              Python files will be
-#                              generated at /tmp/py_file and gets deleted
-#                              every time Smtlink finishes the proof.
-#                              If set, generated files won't be
-#                              deleted.
+#                              If not set, it will get nil
+#                              and Python files will be
+#                              generated at /tmp/py_file.
+#                              The files will get deleted
+#                              every time Smtlink finishes a proof.
+#                              Unsuccessful proof will stay
+#                              for users to check.
 #
 #   3. <dir-to-expand-files> : The path to where the generated
 #                              log files for function expansion

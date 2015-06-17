@@ -13,6 +13,7 @@
 (include-book "./SMT-interpreter")
 (include-book "./SMT-function")
 (include-book "./SMT-translator")
+(include-book "./SMT-names")
 (include-book "./ACL22SMT")
 (defttag :tshell)
 (value-triple (tshell-ensure))
@@ -290,7 +291,8 @@ new hypothesis in lambda expression"
 ;; mk-fname make a file name for the z3 file
 ;; if fname is nil, it will generate a python file with the name smtlink_XXXXX.py
 ;; if fname is not nil, it will use that user provided name
-(defun mk-fname (fname smt-config suffix flag)
+(defun mk-fname (fname-LISP smt-config suffix flag)
+  (let ((fname (string (lisp-to-python-names fname-LISP))))
   (let ((dir (if (equal flag nil)
                  (if (equal (smtlink-config->dir-files smt-config) nil)
                      "/tmp/py_file"
@@ -311,7 +313,7 @@ new hypothesis in lambda expression"
                      (er hard? 'top-level "Error(SMT-py): Generate file error.")))))
         ((stringp fname)
          (concatenate 'string dir "/" fname suffix))
-        (t (er hard? 'top-level "Error(SMT-py): fname should either be a string or nil.")))))
+        (t (er hard? 'top-level "Error(SMT-py): fname should either be a string or nil."))))))
 
 ;; create-uninterpreted-item
 (defun create-uninterpreted-item (item)
