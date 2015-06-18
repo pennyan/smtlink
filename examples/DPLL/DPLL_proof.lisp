@@ -1296,7 +1296,7 @@
 )
 
 ;; for induction step 
-;;(encapsulate ()
+(encapsulate ()
 
 (defthm phi-2n+1-<-0-inductive
   (implies (basic-params n 3 v0 dv g1 phi0 (< (phi-2n-1 n phi0 v0 dv g1) 0))
@@ -1305,6 +1305,18 @@
  	   :use ((:instance split-phi-2n+1)
 		 (:instance delta-<-0)
 		 (:instance except-for-delta-<-0)))))
+
+(defthm phi-2n+1-<-0-inductive-corollary
+  (implies (basic-params n 3 v0 dv g1 phi0
+                         (< (+ (A n phi0 v0 dv g1)
+                               (* (B-expt n)
+                                  (B-sum 1 (+ -1 -1 n) v0 dv g1)))
+                            0))
+           (< (+ (A (+ 1 n) phi0 v0 dv g1)
+                 (* (B-expt (+ 1 n))
+                    (B-sum 1 (+ -1 n) v0 dv g1))) 0))
+  :hints (("Goal"
+           :use ((:instance phi-2n+1-<-0-inductive)))))
 
 (defthm phi-2n+1-<-0-base-lemma
   (IMPLIES (AND (RATIONALP V0)
@@ -1351,24 +1363,181 @@
            :use ((:instance phi-2n+1-<-0-base-lemma))))
   )
 
-(skip-proofs
+(defthm phi-2n+1-<-0-lemma-stupid-lemma1
+  (IMPLIES
+ (AND
+     (IMPLIES
+          (AND (AND (INTEGERP N)
+                    (RATIONALP G1)
+                    (RATIONALP V0)
+                    (RATIONALP PHI0)
+                    (RATIONALP DV))
+               (EQUAL N 2)
+               (EQUAL G1 1/3200)
+               (<= 9/10 V0)
+               (<= V0 11/10)
+               (<= -1/8000 DV)
+               (<= DV 1/8000)
+               (<= 0 PHI0)
+               (< PHI0
+                  (+ -1
+                     (* (FIX (+ 1 (FIX (+ V0 DV))))
+                        (/ (+ 1
+                              (FIX (* (+ 1
+                                         (* (+ (FIX (* (+ 1 (FIX V0)) 1)) -1)
+                                            (/ G1))
+                                         -640)
+                                      G1))))))))
+          (< (PHI-2N-1 (+ 1 N) PHI0 V0 DV G1) 0))
+     (EQUAL N 2)
+     (NOT (OR (NOT (INTEGERP N)) (< N 1)))
+     (IMPLIES
+          (AND (AND (INTEGERP (+ -1 N))
+                    (RATIONALP G1)
+                    (RATIONALP V0)
+                    (RATIONALP DV)
+                    (RATIONALP PHI0))
+               (<= 2 (+ -1 N))
+               (<= (+ -1 N) 640)
+               (EQUAL G1 1/3200)
+               (<= 9/10 V0)
+               (<= V0 11/10)
+               (<= -1/8000 DV)
+               (<= DV 1/8000)
+               (<= 0 PHI0)
+               (< PHI0
+                  (+ -1
+                     (* (FIX (+ 1 (FIX (+ V0 DV))))
+                        (/ (+ 1
+                              (FIX (* (+ 1
+                                         (* (+ (FIX (* (+ 1 (FIX V0)) 1)) -1)
+                                            (/ G1))
+                                         -640)
+                                      G1))))))))
+          (< (+ (A (FIX N) PHI0 V0 DV 1/3200)
+                (* (B-EXPT (FIX N))
+                   (B-SUM 1 (+ -1 -1 N) V0 DV 1/3200)))
+             0))
+     (INTEGERP N)
+     (RATIONALP G1)
+     (RATIONALP V0)
+     (RATIONALP DV)
+     (RATIONALP PHI0)
+     (<= 2 N)
+     (<= N 640)
+     (EQUAL G1 1/3200)
+     (<= 9/10 V0)
+     (<= V0 11/10)
+     (<= -1/8000 DV)
+     (<= DV 1/8000)
+     (<= 0 PHI0)
+     (< PHI0
+        (+ -1
+           (* (FIX (+ 1 (FIX (+ V0 DV))))
+              (/ (+ 1
+                    (FIX (* (+ 1
+                               (* (+ (FIX (* (+ 1 (FIX V0)) 1)) -1)
+                                  (/ G1))
+                               -640)
+                            G1))))))))
+ (< (+ (A (+ 1 N) PHI0 V0 DV 1/3200)
+       (* (B-EXPT (+ 1 N))
+          (B-SUM 1 (+ -1 N) V0 DV 1/3200)))
+    0)))
+
+(defthm phi-2n+1-<-0-lemma-stupid-lemma2
+  (IMPLIES
+ (AND
+     (IMPLIES
+          (AND (AND (INTEGERP N)
+                    (RATIONALP G1)
+                    (RATIONALP V0)
+                    (RATIONALP DV)
+                    (RATIONALP PHI0))
+               (<= 3 N)
+               (<= N 640)
+               (EQUAL G1 1/3200)
+               (<= 9/10 V0)
+               (<= V0 11/10)
+               (<= -1/8000 DV)
+               (<= DV 1/8000)
+               (<= 0 PHI0)
+               (< PHI0
+                  (+ -1
+                     (* (FIX (+ 1 (FIX (+ V0 DV))))
+                        (/ (+ 1
+                              (FIX (* (+ 1
+                                         (* (+ (FIX (* (+ 1 (FIX V0)) 1)) -1)
+                                            (/ G1))
+                                         -640)
+                                      G1)))))))
+               (< (+ (A N PHI0 V0 DV G1)
+                     (* (B-EXPT N)
+                        (B-SUM 1 (+ -1 -1 N) V0 DV G1)))
+                  0))
+          (< (+ (A (+ 1 N) PHI0 V0 DV G1)
+                (* (B-EXPT (+ 1 N))
+                   (B-SUM 1 (+ -1 N) V0 DV G1)))
+             0))
+     (< 2 N)
+     (NOT (OR (NOT (INTEGERP N)) (< N 1)))
+     (IMPLIES
+          (AND (AND (INTEGERP (+ -1 N))
+                    (RATIONALP G1)
+                    (RATIONALP V0)
+                    (RATIONALP DV)
+                    (RATIONALP PHI0))
+               (<= 2 (+ -1 N))
+               (<= (+ -1 N) 640)
+               (EQUAL G1 1/3200)
+               (<= 9/10 V0)
+               (<= V0 11/10)
+               (<= -1/8000 DV)
+               (<= DV 1/8000)
+               (<= 0 PHI0)
+               (< PHI0
+                  (+ -1
+                     (* (FIX (+ 1 (FIX (+ V0 DV))))
+                        (/ (+ 1
+                              (FIX (* (+ 1
+                                         (* (+ (FIX (* (+ 1 (FIX V0)) 1)) -1)
+                                            (/ G1))
+                                         -640)
+                                      G1))))))))
+          (< (+ (A (FIX N) PHI0 V0 DV 1/3200)
+                (* (B-EXPT (FIX N))
+                   (B-SUM 1 (+ -1 -1 N) V0 DV 1/3200)))
+             0))
+     (INTEGERP N)
+     (RATIONALP G1)
+     (RATIONALP V0)
+     (RATIONALP DV)
+     (RATIONALP PHI0)
+     (<= 2 N)
+     (<= N 640)
+     (EQUAL G1 1/3200)
+     (<= 9/10 V0)
+     (<= V0 11/10)
+     (<= -1/8000 DV)
+     (<= DV 1/8000)
+     (<= 0 PHI0)
+     (< PHI0
+        (+ -1
+           (* (FIX (+ 1 (FIX (+ V0 DV))))
+              (/ (+ 1
+                    (FIX (* (+ 1
+                               (* (+ (FIX (* (+ 1 (FIX V0)) 1)) -1)
+                                  (/ G1))
+                               -640)
+                            G1))))))))
+ (< (+ (A (+ 1 N) PHI0 V0 DV 1/3200)
+       (* (B-EXPT (+ 1 N))
+          (B-SUM 1 (+ -1 N) V0 DV 1/3200)))
+    0)))
+
 (defthm phi-2n+1-<-0-lemma
-  (IMPLIES (AND (INTEGERP N)
-                (RATIONALP V0)
-                (RATIONALP DV)
-                (RATIONALP PHI0)
-                (<= 2 N)
-                (<= N 640)
-                (<= 1 (* 10/9 V0))
-                (<= V0 11/10)
-                (<= (- (* 8000 DV)) 1)
-                (<= (* 8000 DV) 1)
-                (<= 0 PHI0)
-                (< PHI0
-                   (+ -1
-                      (FDCO (+ -639 (* 3200 V0))
-                            V0 DV 1/3200))))
-           (< (+ (A (+ 1 N) PHI0 V0 DV 1/3200)
+  (IMPLIES (basic-params n 2 v0 dv g1 phi0)
+           (< (+ (A (+ 1 n) phi0 V0 DV 1/3200)
                  (* (B-EXPT (+ 1 N))
                     (B-SUM 1 (+ -1 N) V0 DV 1/3200)))
               0))
@@ -1377,18 +1546,21 @@
            :in-theory (disable B-expt)
            :induct (B-sum 1 N V0 DV 1/3200)
            )
-          ("Subgoal *1/2'"
+          ("Subgoal *1/2"
+           :cases ((< n 2) (equal n 2) (> n 2)))
+          ("Subgoal *1/2.2"
            :use ((:instance phi-2n+1-<-0-base)
-                 (:instance phi-2n+1-<-0-inductive)))
+                 (:instance phi-2n+1-<-0-lemma-stupid-lemma1)))
+          ("Subgoal *1/2.1"
+           :use ((:instance phi-2n+1-<-0-inductive-corollary)
+                 (:instance phi-2n+1-<-0-lemma-stupid-lemma2)))
           ))
-)
 
 (defthm phi-2n+1-<-0
   (implies (basic-params n 2 v0 dv g1 phi0)
 	   (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
   :hints (("Goal"
-           :use ((:instance phi-2n+1-<-0-lemma))
-	   ))
+           :use ((:instance phi-2n+1-<-0-lemma))))
   )
 
 (defthm phi-2n-1-<-0
@@ -1397,4 +1569,4 @@
   :hints (("Goal"
 	   :use ((:instance phi-2n+1-<-0
 			    (n (1- n)))))))
-;;)
+)
