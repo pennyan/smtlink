@@ -29,22 +29,20 @@
 ;; session.
 (defun SMT-interpreter (filename smt-config)
   "SMT-intepreter: get the result returned from calling SMT procedure"
-  (mv-let (finishedp exit-status lines)
+  (mv-let (exit-status lines)
           (SMT-run filename smt-config)
-	  (cond ((equal finishedp nil)
-		 (cw "Warning: the command was interrupted."))
+	  (cond 
 		((not (equal exit-status 0))
 		 (cw "Z3 failure: ~q0" lines))
 		(t (if (equal (car lines) "proved")
            (let ((cmd (concatenate 'string "rm -f " filename)))
-             (mv-let (finishedp-rm exit-status-rm lines-rm)
+             (mv-let (exit-status-rm lines-rm)
                      (time$ (tshell-call cmd
                                          :print t
                                          :save t)
                             :msg "; rm -f: `~s0`: ~st sec, ~sa bytes~%"
                             :args (list cmd))
-                     (if (and (equal finishedp-rm t)
-                              (equal exit-status-rm 0))
+                     (if (equal exit-status-rm 0)
                          t
                        (er hard? 'top-level "Error(SMT-interpreter): Remove file error.~% ~q0~%" lines-rm))))
          ;;(fire-session lines)

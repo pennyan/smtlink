@@ -10,7 +10,7 @@
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(include-book "../smtlink/SMT-connect" :ttags :all)
+(include-book "../../top" :ttags :all)
 (logic)
 :set-state-ok t
 :set-ignore-ok t
@@ -20,12 +20,12 @@
  (progn
    (defun my-smtlink-expt-config ()
      (declare (xargs :guard t))
-     (make-smtlink-config :dir-interface "../smtlink/z3_interface"
-			  :dir-files    "z3\_files"
+     (make-smtlink-config :dir-interface "../../z3_interface"
+			  :dir-files    "py\_files"
 			  :SMT-module   "RewriteExpt"
 			  :SMT-class    "to_smt_w_expt"
 			  :smt-cmd      "python"
-			  :dir-expanded "expanded"))
+			  :dir-expanded nil))
    (defattach smt-cnf my-smtlink-expt-config)))
 
 
@@ -802,6 +802,8 @@
 	  )))
 ) ;; delta < 0 thus is proved
 
+(defthm stop-here nil)
+
 ;; prove phi(2n+1) = gamma^2*A+gamma*B+delta
 (encapsulate ()
 
@@ -1037,6 +1039,24 @@
 		 (:instance split-phi-2n+1-lemma3-delta)))))
 
 )
+
+(defthm split-phi-2n+1
+  (implies (and (integerp n)
+                (<= 3 n) (< n (/ (* 2 g1)))
+                (hyp-macro g1 Kt v0 dv)
+                (h-ok h g1 v0))
+           (equal (phi-2n-1 (1+ n) phi0 v0 dv g1 Kt)
+                  (+ (* (gamma Kt) (gamma Kt) (A n phi0 v0 dv g1 Kt))
+                     (* (gamma Kt) (B n v0 dv g1 Kt)) (delta n v0 dv g1 Kt))))
+  :hints (("Goal"
+           :in-theory (enable delta equ-c fdco mu gamma m A B phi-2n-1)
+           :clause-processor
+           (my-clause-processor clause
+                                '( (:expand ((:function ())
+                                             (:expansion-level 1)))
+                                   (:python-file "split-phi-2n+1")
+                                   (:let ())
+                                   (:hypothesize ()))))))
 
 ;; prove gamma^2*A + gamma*B < 0
 (encapsulate ()

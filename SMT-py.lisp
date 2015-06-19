@@ -301,14 +301,13 @@ new hypothesis in lambda expression"
   (cond ((equal fname nil)
          (let ((cmd (concatenate 'string "mkdir -p " dir " && "
                                  "mktemp " dir "/smtlink" suffix ".XXXXX")))
-           (mv-let (finishedp exit-status lines)
+           (mv-let (exit-status lines)
                    (time$ (tshell-call cmd
                                        :print t
                                        :save t)
                           :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
                           :args (list cmd))
-                   (if (and (equal finishedp t)
-                            (equal exit-status 0))
+                   (if (equal exit-status 0)
                        (car lines)
                      (er hard? 'top-level "Error(SMT-py): Generate file error.")))))
         ((stringp fname)
