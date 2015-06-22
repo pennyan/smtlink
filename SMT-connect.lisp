@@ -20,7 +20,7 @@
 
 (defstub acl2-my-prove
   (term fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints smt-config custom-config state)
-  (mv t nil nil nil nil state))
+  (mv t nil nil nil nil nil state))
 
 (program)
 (defttag :Smtlink)
@@ -82,10 +82,10 @@
     (prog2$ (cw "Original clause(connect): ~x0" cl)
     (b* (((mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
 	  (Smtlink-arguments hint)))
-      (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem state)
+      (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem type-or-original state)
 	      (acl2-my-prove (disjoin cl) fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) custom-config state)
 	      (if res
-		  (let ((res-clause (append (append (append fn-type-theorem type-related-theorem) hypo-theorem)
+		  (let ((res-clause (append (append (append (append fn-type-theorem type-related-theorem) (list type-or-original)) hypo-theorem)
 					    (list (append expanded-cl cl))
 					    )))
 		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause)
