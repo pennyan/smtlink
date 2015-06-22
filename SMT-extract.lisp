@@ -40,14 +40,18 @@
                (equal (car decl-and-hypo-tree) 'if)
                (equal (cadddr decl-and-hypo-tree) ''nil)) ; a conjunction
           (b*
-	    ( ( (mv decl-list1 hypo-list1) (extract-decls-and-hypos (cadr decl-and-hypo-tree)) )
-	      ( (mv decl-list2 hypo-list2) (extract-decls-and-hypos (caddr decl-and-hypo-tree)) ) )
-	    (mv (append decl-list1 decl-list2) (append hypo-list1 hypo-list2)) ) )
+           ( ( (mv decl-list1 hypo-list1) (extract-decls-and-hypos (cadr decl-and-hypo-tree)) )
+             ( (mv decl-list2 hypo-list2) (extract-decls-and-hypos (caddr decl-and-hypo-tree)) ) )
+           (mv (append decl-list1 decl-list2) (append hypo-list1 hypo-list2)) ) )
         ( (and (equal (len decl-and-hypo-tree) 2)        ; a declaration
-	       (member (car decl-and-hypo-tree) (list 'booleanp 'integerp 'rationalp)))
-	  (mv (list decl-and-hypo-tree) nil) )
-	( t                                              ; another hypothesis
-	  (mv nil (list decl-and-hypo-tree)))))
+               (member (car decl-and-hypo-tree) (list 'booleanp 'integerp 'rationalp)))
+          (if (and (symbolp (cadr decl-and-hypo-tree)) (cadr decl-and-hypo-tree))
+              (mv (list decl-and-hypo-tree) nil)
+            ( mv
+              (er hard? 'top-level "Variable name ~q0 is not valid.~%" (cadr decl-and-hypo-tree))
+              nil)))
+        ( t                                              ; another hypothesis
+          (mv nil (list decl-and-hypo-tree)))))
 
 
 ;; SMT-extract
@@ -65,9 +69,5 @@
       ( concl (caddr term) ) )
     (mv decl-list hypo-list concl)))
 
-;; (defun SMT-extract (term)
-;;   (b* ( ((mv decl-list hypo-list concl) (SMT-extract-y term))
-;;         (- (cw "(mrg) SMT-extract:~%  term = ~x0~%  decl-list = ~x1~%  hypo-list = ~x2~%  concl = ~x3~%"
-;; 	        term decl-list hypo-list concl))
-;;         (- (cw "  (and-list-logic hypo-list) = ~x0~%" (and-list-logic hypo-list))) )
-;;       (mv decl-list hypo-list concl)))
+;; We now want a version of extractor that handles both disjuncts and conjuncts
+;; 
