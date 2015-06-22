@@ -365,9 +365,7 @@ new hypothesis in lambda expression"
      (type-or-original (list (and-list-logic decl-list) term))
      (decl-and-hypo (and-list-logic (append decl-list hypo-list)))
      (file-dir (mk-fname fname smt-config ".py" nil))
-     (expand-dir
-      (prog2$ (cw "~q0~%" file-dir)
-               (mk-expander-fname fname smt-config)))
+     (expand-dir (mk-expander-fname fname smt-config))
      (uninterpreted-func (uninterpreted-operator (uninterpreted-type-&-name uninterpreted)))
      ((mv hypo-translated state) (translate-hypo new-hypo state))
      ((mv let-expr-translated-with-type state) (translate-let let-expr state))
