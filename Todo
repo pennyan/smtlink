@@ -12,3 +12,12 @@ More involved todos:
  others.)
 1. Fulfill the XDOC for Smtlink, add a tutorial
 2. Simplify function expansion.
+
+
+=====================================================================
+Bugs:
+1. (15 / 6) should be translated into Q(15,6) instead of a reciprocal
+   becaues that will be 2.
+   This makes me feel worried because:
+       In Z3, a = Int('a'), prove(Implies(a >= 1, 4/(a*5) == 0)) => proved!!!!!
+       In ACL2, integer division are by default taken as rationals, so that's not a theorem in ACL2.

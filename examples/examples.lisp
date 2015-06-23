@@ -14,10 +14,10 @@
 ;; Section 2. A short tour
 ;; Example 1
 (defthm poly-ineq-example
-    (implies (and (rationalp x) (rationalp y)
-                  (<= (+ (* (/ 9 8) x x) (* y y)) 1)
-                      (<= (- (* x x) (* y y)) 1))
-	       (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
+  (implies (and (rationalp x) (rationalp y)
+                (<= (+ (* 9/8 x x) (* y y)) 1)
+                (<= (- (* x x) (* y y)) 1))
+           (<= y (* 3 (- x 17/8) (- x 17/8))))
     :hints(("Goal"
       :clause-processor
       (Smtlink clause nil state))))
