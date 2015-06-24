@@ -59,7 +59,7 @@ class ACL22SMT(object):
     def reciprocal(self, x):
         if(type(x) is int): return(Q(1,x))
         elif(type(x) is float): return 1.0/x
-        else: return Q(1,x)
+        else: return 1.0/x
 
     def negate(self, x): return -x
     def lt(self, x,y): return x<y

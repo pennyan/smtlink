@@ -62,7 +62,7 @@
     (list #\Space #\Space #\Space #\Space "def" #\Space "reciprocal" #\( "self" #\, #\Space "x" #\) #\:  #\Newline )
     (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "if" #\( "type" #\( "x" #\) #\Space "is" #\Space "int" #\) #\: #\Space "return" #\( "Q" #\( "1" #\, "x" #\) #\)  #\Newline )
     (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "elif" #\( "type" #\( "x" #\) #\Space "is" #\Space "float" #\) #\: #\Space "return" #\Space "1" #\. "0" "/" "x"  #\Newline )
-    (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "else" #\: #\Space "return" #\Space "Q" #\( "1" #\, "x" #\)  #\Newline )
+    (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "else" #\: #\Space "return" #\Space "1" #\. "0" "/" "x"  #\Newline )
     (list  #\Newline )
     (list #\Space #\Space #\Space #\Space "def" #\Space "negate" #\( "self" #\, #\Space "x" #\) #\: #\Space "return" #\Space "-" "x"  #\Newline )
     (list #\Space #\Space #\Space #\Space "def" #\Space "lt" #\( "self" #\, #\Space "x" #\, "y" #\) #\: #\Space "return" #\Space "x" "<" "y"  #\Newline )
