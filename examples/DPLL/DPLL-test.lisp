@@ -209,7 +209,7 @@
 (defthm phi-2n+1-<-0-base
   (implies (basic-params-equal n 2 v0 dv g1 phi0)
            (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
-  :hints (("Goal'"
+  :hints (("Goal''"
            :clause-processor
            (Smtlink clause nil state)))
   )

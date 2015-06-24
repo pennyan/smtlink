@@ -75,24 +75,44 @@
         (mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
         )
     )
-  
+
+  (defun transform-cl (expr state)
+    (cond ((and (equal (len expr) 3)
+                (equal (car expr) 'implies))
+           (mv expr state))
+          (t
+           ;; not arguments disappear after prettyify-clause-lst is called
+           (b* ((clause-lst (prettyify-clause-lst
+                             (clausify expr nil nil nil)
+                             nil
+                             (w state))))
+               (if (equal (len clause-lst) 1)
+                   (mv-let (erp clause state)
+                           (translate (car clause-lst) t nil t nil (w state) state)
+                           (mv clause state))
+                 (mv (er hard? 'top-level "smtlink: badly formed clause -- should be (implies decl-and-hypo-tree concl)") state))))))
+
+
   (defun Smtlink-raw (cl hint state custom-config)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
     (prog2$ (cw "Original clause(connect): ~x0" cl)
     (b* (((mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
-	  (Smtlink-arguments hint)))
-      (mv-let (res expanded-cl type-related-theorem hypo-theorem fn-type-theorem type-or-original state)
-	      (acl2-my-prove (disjoin cl) fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) custom-config state)
-	      (if res
-		  (let ((res-clause (append (append (append (append fn-type-theorem type-related-theorem) (list type-or-original)) hypo-theorem)
-					    (list (append expanded-cl cl))
-					    )))
-		    (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause)
-			    (mv nil res-clause state)))
-		  (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
+          (Smtlink-arguments hint))
+         ((mv clause state)
+          (transform-cl (disjoin cl) state))
+         ((mv res expanded-cl type-related-theorem hypo-theorem fn-type-theorem type-or-original state)
+          (prog2$ (cw "Transforming clause result: ~q0~%" clause)
+                  (acl2-my-prove clause fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) custom-config state))))
+        (if res
+            (let ((res-clause (append (append (append (append fn-type-theorem type-related-theorem) (list type-or-original)) hypo-theorem)
+                                      (list (append expanded-cl cl))
+                                      )))
+              (prog2$ (cw "Expanded clause(connect): ~q0 ~% Success!~%" res-clause)
+                      (mv nil res-clause state)))
+          (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                                  my-clause-processor and indicated hint.~|")
-			  (mv t (list cl) state)))))))
+                  (mv t (list cl) state))))))
 
   (defun Smtlink (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)

@@ -2,7 +2,7 @@
 (defun ACL22SMT () 
   (list
     (list #\# #\Space "Copyright" #\Space #\( "C" #\) #\Space "2015" #\, #\Space "University" #\Space "of" #\Space "British" #\Space "Columbia"  #\Newline )
-    (list #\# #\Space "Written" #\Space #\( "originally" #\) #\Space "by" #\Space "Yan" #\Space "Peng" #\Space #\( "13th" #\Space "March" #\, #\Space "2014" #\)  #\Newline )
+    (list #\# #\Space "Written" #\Space #\( "originally" #\) #\Space "by" #\Space "Mark" #\Space "Greenstreet" #\Space #\( "13th" #\Space "March" #\, #\Space "2014" #\)  #\Newline )
     (list #\#  #\Newline )
     (list #\# #\Space "License" #\: #\Space "A" #\Space "3" "-" "clause" #\Space "BSD" #\Space "license" #\.  #\Newline )
     (list #\# #\Space "See" #\Space "the" #\Space "LICENSE" #\Space "file" #\Space "distributed" #\Space "with" #\Space "this" #\Space "software"  #\Newline )
@@ -62,7 +62,7 @@
     (list #\Space #\Space #\Space #\Space "def" #\Space "reciprocal" #\( "self" #\, #\Space "x" #\) #\:  #\Newline )
     (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "if" #\( "type" #\( "x" #\) #\Space "is" #\Space "int" #\) #\: #\Space "return" #\( "Q" #\( "1" #\, "x" #\) #\)  #\Newline )
     (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "elif" #\( "type" #\( "x" #\) #\Space "is" #\Space "float" #\) #\: #\Space "return" #\Space "1" #\. "0" "/" "x"  #\Newline )
-    (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "else" #\: #\Space "return" #\Space "1" "/" "x"  #\Newline )
+    (list #\Space #\Space #\Space #\Space #\Space #\Space #\Space #\Space "else" #\: #\Space "return" #\Space "Q" #\( "1" #\, "x" #\)  #\Newline )
     (list  #\Newline )
     (list #\Space #\Space #\Space #\Space "def" #\Space "negate" #\( "self" #\, #\Space "x" #\) #\: #\Space "return" #\Space "-" "x"  #\Newline )
     (list #\Space #\Space #\Space #\Space "def" #\Space "lt" #\( "self" #\, #\Space "x" #\, "y" #\) #\: #\Space "return" #\Space "x" "<" "y"  #\Newline )

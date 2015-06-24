@@ -391,6 +391,5 @@
                                  let-type)
 					      new-hypo)))
 			      (let ((res (rewrite-formula res-expr1 reformed-let-expr)))
-				(let ((expr-return res)
-				      (orig-param (extract-orig-param res)))
-				  (mv rewritten-expr expr-return res-num orig-param res-fn-var-decl))))))))))
+				(let ((orig-param (extract-orig-param res)))
+				  (mv rewritten-expr res res-num orig-param res-fn-var-decl))))))))))
