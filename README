@@ -9,9 +9,9 @@ for integrating an external SMT solver into ACL2.
 
 The default SMT solver integrated is Z3.
 
-NOTE: Smtlink is now only working with ACL2-7.1. If you need a
-      version that works with ACL2-7.0 or below, please contact
-      the authors. (email: yanpeng@cs.ubc.ca)
+NOTE: Smtlink is now only working with ACL2-7.1. Check branch
+      Smtlink-7.0 for a version of Smtlink that supports ACL2-7.0
+      and ACL2-6.5
 
 -----------------------------------------------------------------
 
