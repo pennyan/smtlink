@@ -80,7 +80,8 @@ class ACL22SMT(object):
     def prove(self, hypotheses, conclusion=0):
         if(conclusion is 0): claim = hypotheses
         else: claim = Implies(hypotheses, conclusion)
-    
+
+        self.solver.push()
         self.solver.add(Not(claim))
         res = self.solver.check()
     
@@ -95,3 +96,7 @@ class ACL22SMT(object):
             return self.status(False)
         else:
             print "failed to prove"
+            r = self.status(False)
+
+        self.solver.pop()
+        return(r)

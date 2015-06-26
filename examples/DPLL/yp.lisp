@@ -233,23 +233,23 @@
               )
   (expt (gamma Kt) (- nco)))
 
-(encapsulate ()
-  (local (in-theory (enable equ-c mu))) ; needed to discharge guard conjecture for B-term-rest
-  ; I would prefer to use equ-nc here, but the z3 has a time-out when proving B-term-neg.
-  ; In particular:
-  ;     (* *beta* (+ (* g1 nco) (equ-c v0)))
-  ;   = (* beta* g1 (+ nco (equ-nc v0 g1)))
-  ;   = (* beta* g1 (m ((- nco) v0 g1)))
-  ; I hope that I could redefine m to avoid the need to negate nco.
-  ; I suspect this might be workable once Yan has revised smtlink to handle
-  ; clauses with multiple disjuncts.  Then, I could prove an ACL2 rewrite rule that
-  ; would convert the nice-to-write version and transform it into the expression
-  ; that Z3 can handle.  I'll revisit this later.
-  (define B-term-rest (nco v0 dv g1)
-    :guard (and (integerp nco) (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok nco g1 v0))
-    :returns (x rationalp :hyp :guard)
-    (1- (* (mu) (/ (+ 1 (* *alpha* (+ v0 dv)))
-                   (1+ (* *beta* (+ (* g1 nco) (equ-c v0)))))))))
+;; I would prefer to use equ-nc here, but the z3 has a time-out when proving B-term-neg.
+;; In particular:
+;;     (* *beta* (+ (* g1 nco) (equ-c v0)))
+;;   = (* beta* g1 (+ nco (equ-nc v0 g1)))
+;;   = (* beta* g1 (m ((- nco) v0 g1)))
+;; I hope that I could redefine m to avoid the need to negate nco.
+;; I suspect this might be workable once Yan has revised smtlink to handle
+;; clauses with multiple disjuncts.  Then, I could prove an ACL2 rewrite rule that
+;; would convert the nice-to-write version and transform it into the expression
+;; that Z3 can handle.  I'll revisit this later.
+(define B-term-rest (nco v0 dv g1)
+  :guard (and (integerp nco) (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok nco g1 v0))
+  :guard-hints (("Goal" :in-theory (enable equ-c mu)))
+  :returns (x rationalp :hyp :guard
+              :hints (("Goal" :in-theory (enable equ-c mu))))
+  (1- (* (mu) (/ (+ 1 (* *alpha* (+ v0 dv)))
+                 (1+ (* *beta* (+ (* g1 nco) (equ-c v0))))))))
 
 ;; It is a pity that one has to explicitly specify the hints for the returns
 ;; proof to go through.
@@ -263,7 +263,7 @@
               )
   (* (B-term-expt Kt nco) (B-term-rest nco v0 dv g1)))
 
-(defthm stop nil)
+;;(defthm stop nil)
 
 (encapsulate()
   (Local (defthm lemma-1 ; needed for rationalp-of-B-sum
