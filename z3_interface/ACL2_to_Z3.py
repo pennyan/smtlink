@@ -69,9 +69,9 @@ class ACL22SMT(object):
     def Qx(self, x, y): return Q(x,y)
 
     # type related functions
-    def integerp(self, x): return x.sort() == IntSort()
-    def rationalp(self, x): return x.sort() == RealSort()
-    def booleanp(self, x): return x.sort() == BoolSort()
+    def integerp(self, x): return sort(x) == IntSort()
+    def rationalp(self, x): return sort(x) == RealSort()
+    def booleanp(self, x): return sort(x) == BoolSort()
 
     def ifx(self, condx, thenx, elsex):
         return If(condx, thenx, elsex)

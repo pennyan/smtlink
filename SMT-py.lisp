@@ -378,11 +378,11 @@ new hypothesis in lambda expression"
                                           expand-dir state))
      (state (my-prove-write-file expanded-term-list file-dir smt-config uninterpreted-func custom-config state))
      (type-theorem (create-type-theorem decl-and-hypo let-expr-translated let-type let-hints state))
-      (hypo-theorem (create-hypo-theorem decl-and-hypo let-expr-translated hypo-translated orig-param hypo-hints state))
-      (fn-type-theorem (create-fn-type-theorem decl-and-hypo fn-var-decl))
-      (aug-theorem (augment-hypothesis expanded-term-list-2 let-expr-translated orig-param main-hints
-                                       (append fn-type-theorem (append hypo-theorem (append type-theorem)))
-                                       state)))
+     (hypo-theorem (create-hypo-theorem decl-and-hypo let-expr-translated hypo-translated orig-param hypo-hints state))
+     (fn-type-theorem (create-fn-type-theorem decl-and-hypo fn-var-decl))
+     (aug-theorem (augment-hypothesis expanded-term-list-2 let-expr-translated orig-param main-hints
+                                      (append fn-type-theorem (append hypo-theorem (append type-theorem)))
+                                      state)))
    (if (car (SMT-interpreter file-dir smt-config))
        (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem type-or-original state)
      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem type-or-original state))))

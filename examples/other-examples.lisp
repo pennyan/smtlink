@@ -29,14 +29,14 @@
   )
 
 ;; 2.2 User defined functions
-(defun udf-func (x y) (+ (* x x) (* y y)))
+(defun udf-func (a b) (+ (* a a) (* b b)))
 
-(defthm User-defined-functions
+(defthm User-defined-functions-2
   (implies (and (and (rationalp x)
                      (rationalp y))
                 (and (>= x 2)
                      (<= y -2)))
-           (>=  (udf-func x y) 4))
+           (>=  (udf-func (+ x 1) (- y 1)) 9))
   :hints (("Goal"
            :clause-processor
            (Smtlink clause
@@ -47,6 +47,7 @@
            ))
   )
 
+;; (defthm stop nil)
 
 ;; function expansion example
 (defun fac (n)
@@ -114,8 +115,8 @@
 
 (defthm fac-thm
   (implies (and (and (integerp n))
-                (and (<= n 2)))
-           (< (fac n) 10))
+                (and (<= n 1)))
+           (< (+ (fac n) (fac (+ n 1))) 10))
   :hints
   (("Goal"
     :clause-processor
