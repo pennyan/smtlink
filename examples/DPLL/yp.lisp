@@ -442,80 +442,82 @@
 		 1))))))
 
 (thm
-  (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok (- (1+ n)) g1 v0))
-	   (equal (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-		     (1+ (* *beta* (+ (* g1 (1- n)) (equ-c v0)))))
-		  (fdco (1- (m (- n) v0 g1)) v0 dv g1)))
-  :hints(("Goal" :in-theory (enable equ-c equ-nc fdco m))))
+ (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok (- (1+ n)) g1 v0))
+          (equal (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
+                    (1+ (* *beta* (+ (* g1 (1- n)) (equ-c v0)))))
+                 (fdco (1- (m (- n) v0 g1)) v0 dv g1)))
+ :hints(("Goal" :in-theory (enable equ-c equ-nc fdco m))))
 
 (thm
-  (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok (- (1+ n)) g1 v0))
-	   (equal (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
-	             (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c v0)))))
-		  (fdco (1+ (m n v0 g1)) v0 dv g1)))
-  :hints(("Goal" :in-theory (enable equ-c equ-nc fdco m))))
+ (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok (- (1+ n)) g1 v0))
+          (equal (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
+                    (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c v0)))))
+                 (fdco (1+ (m n v0 g1)) v0 dv g1)))
+ :hints(("Goal" :in-theory (enable equ-c equ-nc fdco m))))
+
 
 (encapsulate () ; define delta
   (local (defthm lemma-1
            (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (integerp n)
-		  (nco-list-ok (list (1- n) (1- (- n))) g1 v0))
-	     (and (rationalp (expt (gamma Kt) (* 2 n)))
-		  (rationalp (expt (gamma Kt) (- (* 2 n) 1)))
-		  (rationalp (expt (gamma Kt) (1- n)))
-		  (rationalp (expt (gamma Kt) (- 1 n)))
-		  (rationalp (fdco (m n v0 g1) v0 dv g1))
-		  (rationalp (fdco (m (- n 1) v0 g1) v0 dv g1))
-		  (rationalp (fdco (m (+ n 1) v0 g1) v0 dv g1))
-		  (rationalp (fdco (m (- 1 n) v0 g1) v0 dv g1))))
-    :hints(("Goal"
-      :in-theory (enable equ-c equ-nc gamma m mu)
-      :use(
-	(:instance gamma-bounds (Kt Kt))
-	(:instance rationalp-of-gamma (Kt Kt)))))))
-
+                         (nco-list-ok (list (1- n) (1- (- n))) g1 v0))
+                    (and (rationalp (expt (gamma Kt) (* 2 n)))
+                         (rationalp (expt (gamma Kt) (- (* 2 n) 1)))
+                         (rationalp (expt (gamma Kt) (1- n)))
+                         (rationalp (expt (gamma Kt) (- 1 n)))
+                         (rationalp (fdco (m n v0 g1) v0 dv g1))
+                         (rationalp (fdco (m (- n 1) v0 g1) v0 dv g1))
+                         (rationalp (fdco (m (+ n 1) v0 g1) v0 dv g1))
+                         (rationalp (fdco (m (- 1 n) v0 g1) v0 dv g1))))
+           :hints(("Goal"
+                   :in-theory (enable equ-c equ-nc gamma m mu)
+                   :use(
+                        (:instance gamma-bounds (Kt Kt))
+                        (:instance rationalp-of-gamma (Kt Kt)))))))
+  
   (local (defthm lemma-2
-    (implies (rational-listp (list e_2n e_2n-1 e_n-1 e_1-n f0 f+1 f-1 f--1))
-	     (rationalp (+ (* e_2n (- f-1 f0))
-			   (* e_2n-1 (- f0 f+1))
-			   (* e_n-1 (+ (* e_1-n (1- f--1))
-			   (* e_n-1 (1- f+1)))))))))
-
+           (implies (rational-listp (list e_2n e_2n-1 e_n-1 e_1-n f0 f+1 f-1 f--1))
+                    (rationalp (+ (* e_2n (- f-1 f0))
+                                  (* e_2n-1 (- f0 f+1))
+                                  (* e_n-1 (+ (* e_1-n (1- f--1))
+                                              (* e_n-1 (1- f+1)))))))))
+  
   (define delta (n v0 dv g1 Kt)
     :guard (and (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (integerp n)
-		(nco-list-ok (list (1- n) (1- (- n))) g1 v0))
+                (nco-list-ok (list (1- n) (1- (- n))) g1 v0))
     :guard-hints(("Goal" :in-theory (enable equ-c equ-nc m)))
     :returns (d rationalp :hyp :guard
-      :hints(("Goal"
-	:in-theory (disable lemma-1 lemma-2)
-	:use(
-	  (:instance lemma-1 (g1 g1) (Kt Kt) (v0 v0) (dv dv))
-	  (:instance lemma-2
-	    (e_2n   (expt (gamma Kt) (* 2 n)))
-	    (e_2n-1 (expt (gamma Kt) (- (* 2 n) 1)))
-	    (e_n-1  (expt (gamma Kt) (- n 1)))
-	    (e_1-n  (expt (gamma Kt) (- 1 n)))
-	    (f0     (fdco (m n v0 g1) v0 dv g1))
-	    (f+1    (fdco (m (- n 1) v0 g1) v0 dv g1))
-	    (f-1    (fdco (m (+ n 1) v0 g1) v0 dv g1))
-	    (f--1   (fdco (m (- 1 n) v0 g1) v0 dv g1)))))))
+                :hints(("Goal"
+                        :in-theory (disable lemma-1 lemma-2)
+                        :use(
+                             (:instance lemma-1 (g1 g1) (Kt Kt) (v0 v0) (dv dv))
+                             (:instance lemma-2
+                                        (e_2n   (expt (gamma Kt) (* 2 n)))
+                                        (e_2n-1 (expt (gamma Kt) (- (* 2 n) 1)))
+                                        (e_n-1  (expt (gamma Kt) (- n 1)))
+                                        (e_1-n  (expt (gamma Kt) (- 1 n)))
+                                        (f0     (fdco (m n v0 g1) v0 dv g1))
+                                        (f+1    (fdco (m (- n 1) v0 g1) v0 dv g1))
+                                        (f-1    (fdco (m (+ n 1) v0 g1) v0 dv g1))
+                                        (f--1   (fdco (m (- 1 n) v0 g1) v0 dv g1)))
+                             ))))
     (+ (* (expt (gamma Kt) (* 2 n))
-	  (- (fdco (m (+ n 1) v0 g1) v0 dv g1)
-	     (fdco (m n v0 g1) v0 dv g1)))
+          (- (fdco (m (+ n 1) v0 g1) v0 dv g1)
+             (fdco (m n v0 g1) v0 dv g1)))
        (* (expt (gamma Kt) (- (* 2 n) 1))
-	  (- (fdco (m n v0 g1) v0 dv g1)
-	     (fdco (m (- n 1) v0 g1) v0 dv g1)))
+          (- (fdco (m n v0 g1) v0 dv g1)
+             (fdco (m (- n 1) v0 g1) v0 dv g1)))
        (* (expt (gamma Kt) (1- n))
-	  (+ (* (expt (gamma Kt) (1+ (- n)))
-		(1- (fdco (m (- 1 n) v0 g1) v0 dv g1)))
-	     (* (expt (gamma Kt) (1- n))
+          (+ (* (expt (gamma Kt) (1+ (- n)))
+                (1- (fdco (m (- 1 n) v0 g1) v0 dv g1)))
+             (* (expt (gamma Kt) (1- n))
 		(1- (fdco (m (- n 1) v0 g1) v0 dv g1))))))))
 
 (thm
-  (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1))
-		(nco-list-ok (list (1- n) (1- (- n))) g1 v0))
-	   (equal (delta-orig n v0 dv g1 Kt)
-		  (delta n v0 dv g1 Kt)))
-  :hints(("Goal" :in-theory (enable delta equ-c equ-nc fdco m))))
+ (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1))
+               (nco-list-ok (list (1- n) (1- (- n))) g1 v0))
+          (equal (delta-orig n v0 dv g1 Kt)
+                 (delta n v0 dv g1 Kt)))
+ :hints(("Goal" :in-theory (enable delta equ-c equ-nc fdco m))))
 
 (defthm delta-f-diff-rewrite
   (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 *beta* g1))) (rationalp g1)
@@ -529,10 +531,9 @@
            :clause-processor
            (smtlink-custom-config clause (smt-std-hint "delta_f_diff_rewrite") ))))
 
-(defthm stuck-here nil)
-
 (defthm delta-f-diff-bound
-  (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 *beta* g1))) (rationalp g1)
+  (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 *beta* g1)))
+                (rationalp g1)
                 (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
 	   (and (< 0
 		   (* *beta* g1 (+ 1 (* *alpha* (+ v0 dv)))
@@ -542,22 +543,33 @@
 		      (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  1 N))))
 		      (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  0 N)))))
 	           (* 4 *beta* g1))))
-  :hints(("Goal'"
-          :in-theory (enable delta equ-c equ-nc fdco gamma m mu)
+  :hints(("Subgoal 4"
           :clause-processor
-          (smtlink-custom-config clause (smt-std-hint "delta_f_diff_found") )
-           )
+          (smtlink-custom-config clause (smt-std-hint "delta_f_diff_found_4") ))
+         ("Subgoal 3"
+          :clause-processor
+          (smtlink-custom-config clause (smt-std-hint "delta_f_diff_found_3") )
+          )
+         ("Subgoal 2"
+          :clause-processor
+          (smtlink-custom-config clause (smt-std-hint "delta_f_diff_found_2")))
+         ("Subgoal 1"
+          :clause-processor
+          (smtlink-custom-config clause (smt-std-hint "delta_f_diff_found_1")))
          ))
 
 (defthm delta-f-rewrite
   (implies (and (integerp nco) (< (/ (* -2 *beta* g1)) nco) (< nco (/ (* 2 *beta* g1)))
+                (rationalp g1)
                 (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
 	   (equal (1- (fdco (m nco v0 g1) v0 dv g1))
 	          (/ (+ (* *alpha* dv) (* *beta* g1 nco))
 		     (1+ (* *beta* g1 (m nco v0 g1))))))
-  :hints(("Goal" :in-theory (enable delta equ-c equ-nc fdco gamma m mu)
-           :clause-processor
-           (smtlink-custom-config clause (smt-std-hint "delta_f_rewrite") ))))
+  :hints(("Goal'''"
+          :in-theory (enable delta equ-c equ-nc fdco gamma m mu)
+          :clause-processor
+          (smtlink-custom-config clause (smt-std-hint "delta_f_rewrite") )
+          )))
 
 (defthm stop-here nil)
 
