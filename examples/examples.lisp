@@ -20,7 +20,7 @@
            (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
     :hints(("Goal"
       :clause-processor
-      (Smtlink clause nil state))))
+      (Smtlink clause nil))))
 
 ;; Example 2
 (defthm poly-of-expt-example
@@ -37,4 +37,4 @@
                                     (:hypothesize ((< expt_z_n expt_z_m)
                                                    (< 0 expt_z_m)
                                                    (< 0 expt_z_n))))
-                                  state))))
+                                  ))))

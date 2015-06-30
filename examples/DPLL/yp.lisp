@@ -10,10 +10,7 @@
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(include-book "../../top" :ttags :all)
-(logic)
-:set-state-ok t
-:set-ignore-ok t
+(include-book "../../top")
 (tshell-ensure)
 
 (local
@@ -80,17 +77,17 @@
   :returns (g atom)
   :enabled t
   (if (endp stuff) t
-      (let ((name (caar stuff)) (var (cdar stuff)) (tail (cdr stuff)))
-           (and (cond ((equal name :g1) (and (rationalp var) (< *g1-min* var) (< var *g1-max*)))
-	              ((equal name :Kt) (and (rationalp var) (< *Kt-min* var) (< var *Kt-max*)))
-	              ((equal name :v0) (and (rationalp var) (< 0 var)))
-	              ((equal name :dv)
-		       (b* ( (g1 (hyp-var :g1 stuff0))
-		             (dv-bound (/ (* *alpha* g1) (* 4 *beta* )))
-		             (dv var) )
-			   (and (rationalp dv) (< (- dv-bound) dv) (< dv dv-bound))))
-		      (t (b* ((- (er hard? 'hyp-fn "hyp-fn: unknown key -- ~x0~%" name))) t)))
-                (hyp-fn-help tail stuff0)))))
+    (let ((name (caar stuff)) (var (cdar stuff)) (tail (cdr stuff)))
+      (and (cond ((equal name :g1) (and (rationalp var) (< *g1-min* var) (< var *g1-max*)))
+                 ((equal name :Kt) (and (rationalp var) (< *Kt-min* var) (< var *Kt-max*)))
+                 ((equal name :v0) (and (rationalp var) (< 0 var)))
+                 ((equal name :dv)
+                  (b* ( (g1 (hyp-var :g1 stuff0))
+                        (dv-bound (/ (* *alpha* g1) (* 4 *beta* )))
+                        (dv var) )
+                      (and (rationalp dv) (< (- dv-bound) dv) (< dv dv-bound))))
+                 (t (b* ((- (er hard? 'hyp-fn "hyp-fn: unknown key -- ~x0~%" name))) t)))
+           (hyp-fn-help tail stuff0)))))
 
 (define hyp-fn (stuff)
   :guard t
@@ -243,11 +240,11 @@
 ; that Z3 can handle.  I'll revisit this later.
 (define B-term-rest (nco v0 dv g1)
   :guard (and (integerp nco) (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok nco g1 v0))
-  :guard-hints(("Goal" :in-theory (enable equ-nc m mu)))
+  :guard-hints(("Goal" :in-theory (enable equ-c mu)))
   :returns (x rationalp :hyp :guard
-    :hints(("Goal" :in-theory (enable equ-nc m mu))))
+    :hints(("Goal" :in-theory (enable equ-c mu))))
   (1- (* (mu) (/ (1+ (* *alpha* (+ v0 dv)))
-		 (1+ (* *beta* g1 (m (- nco) v0 g1)))))))
+		 (1+ (* *beta* (+ (* g1 nco) (equ-c v0))))))))
 
 
 (define B-term (nco v0 dv g1 Kt)
@@ -265,11 +262,12 @@
   (local (defthm lemma-1 ; needed for rationalp-of-B_sum
     (implies (and (integerp nco_lo) (integerp nco_hi) (<= 0 nco_lo) (<= nco_lo nco_hi)
     	          (hyp-fn (list :v0 v0 :g1 g1)))
-             (< g1 (+ 1 v0 (* g1 nco_hi))))))
+             (< g1 (+ 1 v0 (* g1 nco_hi)))))) ; probably need some *alpha* and *beta* factors here
 
   (define B_sum (nco_lo nco_hi v0 dv g1 Kt)
     :guard (and (integerp nco_lo) (integerp nco_hi)
                 (<= 0 nco_lo) (<= nco_lo (1+ nco_hi))
+                ;;(hyp-macro g1 Kt v0 dv)
                 (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
                 (nco-list-ok (list nco_lo nco_hi (- nco_hi)) g1 v0)
                 )
@@ -286,11 +284,16 @@
   :guard (and (integerp n) (hyp-fn (list :Kt Kt)))
   :returns (x rationalp
               :hyp :guard
-              :hints (("Goal"
-                       :use ((:instance rationalp-of-gamma))))
-              )
+              :hints (("Goal" :use ((:instance rationalp-of-gamma)))))
   (expt (gamma Kt) (- n 2)))
 
+
+(define B-expt (Kt n)
+  :guard (and (integerp n) (hyp-fn (list :Kt Kt)))
+  :returns (x rationalp
+              :hyp :guard
+              :hints (("Goal" :use ((:instance rationalp-of-gamma)))))
+  (expt (gamma Kt) (- n 2)))
 
 (define B (nco v0 dv g1 Kt)
   :guard (and (integerp nco) (<= 2 nco) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
@@ -314,6 +317,7 @@
 			     (dv0 rationalp)
 			     (delta rationalp)
 			     (delta-3 rationalp)
+			     (equ-c rationalp)
 			     (equ-nc rationalp)
 			     (fdco rationalp)
 			     (gamma rationalp)
@@ -321,107 +325,77 @@
 			     (mu rationalp)
 			     (phi-2n-1 rationalp)))
 	       (:expansion-level 1)))
-     (:hypothesize ((equal (* g1 (+ (* v0 (/ g1)) h)) (+ v0 (* g1 h)))))
      (:uninterpreted-functions ((expt rationalp rationalp rationalp)))
      (:python-file ,clause-name)))
 
-(encapsulate () ; defthm B-term-neg
-  (local (in-theory (enable B-term m equ-nc gamma dv0)))
-  (defthm B-term-neg
-    (implies (and (integerp h) (<= 1 h) (< h (/ (* 2 g1)))
-                  (hyp-macro g1 Kt v0 dv))
-             (< (+ (B-term h v0 dv g1 Kt) (B-term (- h) v0 dv g1 Kt)) 0))
-    :hints (
-            ("Goal"
-             :in-theory (e/d (B-term B-term-expt B-term-rest mu equ-c gamma dv0))
-             :clause-processor
-             (smtlink-custom-config clause (smt-std-hint "B-term-neg") state))
-            )
+(defthm B-term-neg
+  (implies (and (integerp h) (<= 1 h) (< h (/ (* 2 g1))) (rationalp g1)
+                (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
+           (< (+ (B-term h v0 dv g1 Kt) (B-term (- h) v0 dv g1 Kt)) 0))
+  :hints (
+          ("Goal''"
+           :in-theory (enable B-term B-term-expt B-term-rest mu equ-c gamma dv0)
+           :clause-processor (smtlink-custom-config clause (smt-std-hint "B-term-neg") )
+           )
+          )
     :rule-classes :linear)
-  )
 
 ; B_sum-neg: show that the sum of a bunch of B-term pairs is negative.
-;   This is a trivial induction proof that the sum of a bunch of negative values is negatoive.
+;   This is a trivial induction proof that the sum of a bunch of negative values is negative.
 ;   We need B-term-neg to know that the terms in the sum are individually negative.
 ; B-term-neg gets a 'non-rec' warning.  I suspect that's why I need to disable it and
 ;   then specify a particular instance in the proof for B_sum-neg below.
 ;   On the other hand, I wonder if we could get a "computed hint" or similar to recognize
 ;   when the smtlink clause processor is applicable, and use it automatically.
-;   In that case, we might not need to explicitly state and prove B-term-neg.
+;   In that case, we might not need to explicitly  and prove B-term-neg.
 (defthm B_sum-neg
   (implies (and (integerp n-minus-2) (<= 1 n-minus-2) (< n-minus-2 (/ (* 2 g1)))
-  		(hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
+                (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
 	   (< (B_sum 1 n-minus-2 v0 dv g1 Kt) 0))
   :hints (("Goal" :in-theory (e/d (B_sum) (B-term)))))
 
 (defthm B-neg
-  (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 g1)))
-  		(hyp-macro g1 Kt v0 dv))
-           (< (B n v0 dv g1 Kt) 0))
-  :hints (("Goal" :in-theory (enable B gamma B-expt)
-    :clause-processor
-    (smtlink-custom-config clause
-      '( (:expand ((:functions ((B rationalp) (B-expt rationalp) (gamma rationalp)))
-		   (:expansion-level 1)))
-         (:uninterpreted-functions (
-	   (expt rationalp integerp rationalp)
-	   (B_sum integerp integerp rationalp rationalp rationalp rationalp  rationalp)))
-         (:python-file "B-neg") ;;mktemp
-	 (:hypothesize ((< (B_sum 1 (+ -2 n) v0 dv g1 kt) 0)))
-	 (:use ((:hypo ((B_sum-neg)))))) state))))
-
+  (implies (and (integerp n) (<= 3 n) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
+                (< n (/ (* 2 g1)))) ; probably need a factor of *beta* here
+	   (< (B n v0 dv g1 Kt) 0))
+  :hints (
+    ("Goal''"
+      :in-theory (enable B gamma B-expt)
+      :clause-processor
+      (smtlink-custom-config clause
+                             '( (:expand ((:functions ((B rationalp) (B-expt rationalp) (gamma rationalp)))
+                                          (:expansion-level 1)))
+                                (:uninterpreted-functions (
+                                                           (expt rationalp integerp rationalp)
+                                                           (B_sum integerp integerp rationalp rationalp rationalp rationalp  rationalp)))
+                                (:python-file "B-neg")
+                                (:hypothesize ((< (B_sum 1 (+ -2 n) v0 dv g1 Kt) 0))))
+                             )
+      )
+    ("Subgoal 2"
+     :in-theory (enable hyp-fn)
+     :use ((:instance B_sum-neg (n-minus-2 (+ -2 n)) (v0 v0) (dv dv) (g1 g1) (Kt Kt))))
+    ))
 
 (encapsulate () ; define A
- (local (in-theory (enable m equ-c equ-nc)))
+ (local (in-theory (enable gamma m equ-c equ-nc)))
+
  (local (defthm lemma-1
-   (implies (and (integerp nnco) (rationalp phi0) (rationalp v0) (rationalp dv)
-		 (rationalp g1) (rationalp Kt)
-		 (< 0 V0)
-		 (< (* -1/4 G1) DV)
-		 (< DV (* 1/4 G1))
-		 (< 1/65536 G1)
-		 (< G1 1/8)
-		 (< 1/2 KT)
-		 (< KT 9/10)
-		 (< (* G1 NNCO) 1))
-	    (and (RATIONALP (EXPT (GAMMA KT) (+ -1 (* 2 NNCO))))
-		 (RATIONALP (EXPT (GAMMA KT) (+ -2 (* 2 NNCO))))
-		 (RATIONALP (EXPT (GAMMA KT) (+ -3 (* 2 NNCO))))
-		 (RATIONALP (FDCO (+ (- NNCO) (* (/ G1) V0)) V0 DV G1))
-		 (RATIONALP (FDCO (1+ (m nnco v0 g1)) V0 DV G1))
-		 ))
-   :hints(("Goal" :in-theory (enable gamma)))))
+   (implies (rational-listp (list e1 e2 e3 f0 f1 phi0))
+	    (rationalp (+ (- e2) (- e3) (* phi0 (- e1)) (* e2 f0) (* e3 f1))))))
 
  (local (defthm lemma-2
-   (implies (and (rationalp e1) ; (EXPT (GAMMA KT) (+ -1 (* 2 NNCO)))
-		 (rationalp e2) ; (EXPT (GAMMA KT) (+ -2 (* 2 NNCO)))
-		 (rationalp e3) ; (EXPT (GAMMA KT) (+ -3 (* 2 NNCO)))
-		 (rationalp f0) ; (FDCO (m nnco v0 g1) V0 DV G1)
-		 (rationalp f1) ; (FDCO (+ 1 (- NNCO) (* (/ G1) V0)) V0 DV G1)
-		 (rationalp phi0))
-	     (rationalp (+ (- e2) (- e3) (* phi0 (- e1)) (* e2 f0) (* e3 f1))))))
-
- (local (defthm lemma-3
-   (implies (and (integerp nnco) (rationalp phi0) (rationalp v0) (rationalp dv)
-		 (rationalp g1) (rationalp Kt)
-		 (< 0 V0)
-		 (< (* -1/4 G1) DV)
-		 (< DV (* 1/4 G1))
-		 (< 1/65536 G1)
-		 (< G1 1/8)
-		 (< 1/2 KT)
-		 (< KT 9/10)
-		 (< (* G1 NNCO) 1))
+   (implies (and (integerp nnco) (rationalp phi0)
+                 (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (< (* g1 nnco) 1))
 	    (rationalp (+ (* (expt (gamma Kt) (- (* 2 nnco) 1)) phi0)
 			  (* (expt (gamma Kt) (- (* 2 nnco) 2))
 			     (- (fdco (m nnco v0 g1) v0 dv g1) 1))
 			  (* (expt (gamma Kt) (- (* 2 nnco) 3))
 			     (- (fdco (1+ (m nnco v0 g1)) v0 dv g1) 1)))))
    :hints(("Goal"
-     :in-theory (disable lemma-1 lemma-2)
+     :in-theory (disable lemma-1)
      :use(
-       (:instance lemma-1 (nnco nnco) (phi0 phi0) (v0 v0) (dv dv) (g1 g1) (Kt Kt))
-       (:instance lemma-2
+       (:instance lemma-1
 	   (e1 (EXPT (GAMMA KT) (+ -1 (* 2 NNCO))))
 	   (e2 (EXPT (GAMMA KT) (+ -2 (* 2 NNCO))))
 	   (e3 (EXPT (GAMMA KT) (+ -3 (* 2 NNCO))))
@@ -429,30 +403,26 @@
 	   (f1 (FDCO (+ 1 (- NNCO) (* (/ G1) V0)) V0 DV G1))))))))
 
  (define A (nnco phi0 v0 dv g1 Kt)
-   :guard (and (integerp nnco) (rationalp phi0) (rationalp v0) (rationalp dv)
-	       (rationalp g1) (rationalp Kt)
-	       (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
-	       (< (* g1 nnco) 1)
-	       (nco-ok (- nnco) g1 v0) (nco-ok (1+ (- nnco)) g1 v0))
+   :guard (and (integerp nnco) (rationalp phi0)
+               (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (< (* g1 nnco) 1))
    :returns (aa rationalp :hyp :guard
      :hints(("Goal"
-       :in-theory (disable equ-c equ-nc fdco gamma m mu lemma-1 lemma-2 lemma-3)
-      :use(
-	(:instance lemma-3 (nnco nnco) (phi0 phi0) (v0 v0) (dv dv) (g1 g1) (Kt Kt))))))
+       :in-theory (disable equ-c equ-nc fdco gamma m mu lemma-1 lemma-2)
+       :use(
+	 (:instance lemma-2 (nnco nnco) (phi0 phi0) (v0 v0) (dv dv) (g1 g1) (Kt Kt))))))
    (+ (* (expt (gamma Kt) (- (* 2 nnco) 1)) phi0)
       (* (expt (gamma Kt) (- (* 2 nnco) 2))
 	 (- (fdco (m nnco v0 g1) v0 dv g1) 1))
       (* (expt (gamma Kt) (- (* 2 nnco) 3))
 	 (- (fdco (1+ (m nnco v0 g1)) v0 dv g1) 1)))))
 
-(defthm stop-here nil)
+(define phi-2n-1 (nnco phi0 v0 dv g1 Kt)
+  :guard (and (integerp nnco) (rationalp phi0) (<= 2 nnco) (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt))
+              (nco-list-ok (list 1 (- 2 nnco)) g1 v0) (< (* g1 nnco) 1))
+  :returns (x rationalp :hyp :guard)
+  (+ (A nnco phi0 v0 dv g1 Kt) (B nnco v0 dv g1 Kt)))
 
-(defun phi-2n-1 (n phi0 v0 dv g1 Kt)
-  :guard (and (integerp nn) (rationalp phi0) (rationalp v0) (ratinalp dv)
-  (+ (A n phi0 v0 dv g1 Kt) (B n v0 dv g1 Kt)))
-
-
-(defun delta (n v0 dv g1 Kt)
+(defun delta-orig (n v0 dv g1 Kt)
   (+ (- (* (expt (gamma Kt) (* 2 n))
 	   (- (fdco (1- (m n v0 g1)) v0 dv g1) 1))
 	(* (expt (gamma Kt) (* 2 n)) 
@@ -471,6 +441,134 @@
 		    (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c v0)))))
 		 1))))))
 
+(thm
+  (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok (- (1+ n)) g1 v0))
+	   (equal (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
+		     (1+ (* *beta* (+ (* g1 (1- n)) (equ-c v0)))))
+		  (fdco (1- (m (- n) v0 g1)) v0 dv g1)))
+  :hints(("Goal" :in-theory (enable equ-c equ-nc fdco m))))
+
+(thm
+  (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1)) (nco-ok (- (1+ n)) g1 v0))
+	   (equal (/ (* (mu) (1+ (* *alpha* (+ v0 dv))))
+	             (1+ (* *beta* (+ (* g1 (- 1 n)) (equ-c v0)))))
+		  (fdco (1+ (m n v0 g1)) v0 dv g1)))
+  :hints(("Goal" :in-theory (enable equ-c equ-nc fdco m))))
+
+(encapsulate () ; define delta
+  (local (defthm lemma-1
+           (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (integerp n)
+		  (nco-list-ok (list (1- n) (1- (- n))) g1 v0))
+	     (and (rationalp (expt (gamma Kt) (* 2 n)))
+		  (rationalp (expt (gamma Kt) (- (* 2 n) 1)))
+		  (rationalp (expt (gamma Kt) (1- n)))
+		  (rationalp (expt (gamma Kt) (- 1 n)))
+		  (rationalp (fdco (m n v0 g1) v0 dv g1))
+		  (rationalp (fdco (m (- n 1) v0 g1) v0 dv g1))
+		  (rationalp (fdco (m (+ n 1) v0 g1) v0 dv g1))
+		  (rationalp (fdco (m (- 1 n) v0 g1) v0 dv g1))))
+    :hints(("Goal"
+      :in-theory (enable equ-c equ-nc gamma m mu)
+      :use(
+	(:instance gamma-bounds (Kt Kt))
+	(:instance rationalp-of-gamma (Kt Kt)))))))
+
+  (local (defthm lemma-2
+    (implies (rational-listp (list e_2n e_2n-1 e_n-1 e_1-n f0 f+1 f-1 f--1))
+	     (rationalp (+ (* e_2n (- f-1 f0))
+			   (* e_2n-1 (- f0 f+1))
+			   (* e_n-1 (+ (* e_1-n (1- f--1))
+			   (* e_n-1 (1- f+1)))))))))
+
+  (define delta (n v0 dv g1 Kt)
+    :guard (and (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)) (integerp n)
+		(nco-list-ok (list (1- n) (1- (- n))) g1 v0))
+    :guard-hints(("Goal" :in-theory (enable equ-c equ-nc m)))
+    :returns (d rationalp :hyp :guard
+      :hints(("Goal"
+	:in-theory (disable lemma-1 lemma-2)
+	:use(
+	  (:instance lemma-1 (g1 g1) (Kt Kt) (v0 v0) (dv dv))
+	  (:instance lemma-2
+	    (e_2n   (expt (gamma Kt) (* 2 n)))
+	    (e_2n-1 (expt (gamma Kt) (- (* 2 n) 1)))
+	    (e_n-1  (expt (gamma Kt) (- n 1)))
+	    (e_1-n  (expt (gamma Kt) (- 1 n)))
+	    (f0     (fdco (m n v0 g1) v0 dv g1))
+	    (f+1    (fdco (m (- n 1) v0 g1) v0 dv g1))
+	    (f-1    (fdco (m (+ n 1) v0 g1) v0 dv g1))
+	    (f--1   (fdco (m (- 1 n) v0 g1) v0 dv g1)))))))
+    (+ (* (expt (gamma Kt) (* 2 n))
+	  (- (fdco (m (+ n 1) v0 g1) v0 dv g1)
+	     (fdco (m n v0 g1) v0 dv g1)))
+       (* (expt (gamma Kt) (- (* 2 n) 1))
+	  (- (fdco (m n v0 g1) v0 dv g1)
+	     (fdco (m (- n 1) v0 g1) v0 dv g1)))
+       (* (expt (gamma Kt) (1- n))
+	  (+ (* (expt (gamma Kt) (1+ (- n)))
+		(1- (fdco (m (- 1 n) v0 g1) v0 dv g1)))
+	     (* (expt (gamma Kt) (1- n))
+		(1- (fdco (m (- n 1) v0 g1) v0 dv g1))))))))
+
+(thm
+  (implies (and (hyp-fn (list :v0 v0 :dv dv :g1 g1))
+		(nco-list-ok (list (1- n) (1- (- n))) g1 v0))
+	   (equal (delta-orig n v0 dv g1 Kt)
+		  (delta n v0 dv g1 Kt)))
+  :hints(("Goal" :in-theory (enable delta equ-c equ-nc fdco m))))
+
+(defthm delta-f-diff-rewrite
+  (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 *beta* g1))) (rationalp g1)
+                (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
+	   (equal (- (fdco (m n v0 g1) v0 dv g1) (fdco (1+ (m n v0 g1)) v0 dv g1))
+	          (* *beta* g1 (+ 1 (* *alpha* (+ v0 dv)))
+		     (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  1 N))))
+		     (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  0 N)))))))
+  :hints(("Goal''"
+          :in-theory (enable delta equ-c equ-nc fdco gamma m mu)
+           :clause-processor
+           (smtlink-custom-config clause (smt-std-hint "delta_f_diff_rewrite") ))))
+
+(defthm stuck-here nil)
+
+(defthm delta-f-diff-bound
+  (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 *beta* g1))) (rationalp g1)
+                (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
+	   (and (< 0
+		   (* *beta* g1 (+ 1 (* *alpha* (+ v0 dv)))
+		      (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  1 N))))
+		      (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  0 N))))))
+	        (< (* *beta* g1 (+ 1 (* *alpha* (+ v0 dv)))
+		      (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  1 N))))
+		      (/ (+ 1 (* *alpha* v0) (* *beta* g1 (-  0 N)))))
+	           (* 4 *beta* g1))))
+  :hints(("Goal'"
+          :in-theory (enable delta equ-c equ-nc fdco gamma m mu)
+          :clause-processor
+          (smtlink-custom-config clause (smt-std-hint "delta_f_diff_found") )
+           )
+         ))
+
+(defthm delta-f-rewrite
+  (implies (and (integerp nco) (< (/ (* -2 *beta* g1)) nco) (< nco (/ (* 2 *beta* g1)))
+                (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
+	   (equal (1- (fdco (m nco v0 g1) v0 dv g1))
+	          (/ (+ (* *alpha* dv) (* *beta* g1 nco))
+		     (1+ (* *beta* g1 (m nco v0 g1))))))
+  :hints(("Goal" :in-theory (enable delta equ-c equ-nc fdco gamma m mu)
+           :clause-processor
+           (smtlink-custom-config clause (smt-std-hint "delta_f_rewrite") ))))
+
+(defthm stop-here nil)
+
+(defthm delta-<-0
+  (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 *beta* g1)))
+                (hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
+           (< (delta n v0 dv g1 Kt) 0))
+  :hints (("Goal"
+           :in-theory (enable delta equ-c fdco mu gamma m)
+           :clause-processor
+           (smtlink-custom-config clause (smt-std-hint "delta_smaller_than_0") ))))
 
 (defun delta-3 (n v0 dv g1 Kt)
   (* (expt (gamma Kt) (+ -1 n -1 n))
@@ -496,7 +594,7 @@
              (equal (delta n v0 dv g1 Kt) (delta-3 n v0 dv g1 Kt)))
     :hints (("Goal" :in-theory (enable delta delta-3 equ-c fdco mu gamma m A phi-2n-1)
 		    :clause-processor
-		      (smtlink-custom-config clause (smt-std-hint "delta-rewrite-5") state)))))
+		      (smtlink-custom-config clause (smt-std-hint "delta-rewrite-5") )))))
 
 
 ;(defun delta-3-inside (n v0 dv g1)
@@ -889,7 +987,7 @@
   :hints(("Goal"
     :in-theory (enable delta)
     :clause-processor
-    (smtlink-custom-config clause (smt-std-hint "delta-lt-0-lemma-1") state))))
+    (smtlink-custom-config clause (smt-std-hint "delta-lt-0-lemma-1") ))))
       
 (defthm delta-<-0
   (implies (and (integerp n) (<= 3 n) (< n (/ (* 2 g1)))
@@ -898,7 +996,7 @@
   :hints (("Goal"
            :in-theory (enable delta equ-c fdco mu gamma m)
            :clause-processor
-           (smtlink-custom-config clause (smt-std-hint "delta_smaller_than_0") state)))
+           (smtlink-custom-config clause (smt-std-hint "delta_smaller_than_0") )))
      )
 
 ;;) ;; delta < 0 thus is proved

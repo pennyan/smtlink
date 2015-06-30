@@ -211,5 +211,5 @@
            (< (phi-2n-1 (1+ n) phi0 v0 dv g1) 0))
   :hints (("Goal''"
            :clause-processor
-           (Smtlink clause nil state)))
+           (Smtlink clause nil )))
   )

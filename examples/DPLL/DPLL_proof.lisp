@@ -142,7 +142,7 @@
 			   (:use ((:let ())
 				  (:hypo (()))
 				  (:main ()))))
-			 state)
+			 )
     ))
   )
 )
@@ -373,7 +373,7 @@
 				     rationalp)
 				   ))
 			    (:hypothesize ()))
-			 state)
+			 )
     )))
 )
 
@@ -626,7 +626,7 @@
 					   (delta-rewrite-3-lemma2)
 					   (delta-rewrite-3-lemma3)))
 				   (:main ()))))
-			 state))))
+			 ))))
 )
 
 (local
@@ -710,7 +710,7 @@
 					   rationalp)
 					 ))
 				  (:hypothesize ((> expt_gamma_2n_minus_2 0))))
-				state))))
+				))))
 )
 
 (local
@@ -778,7 +778,7 @@
 					   rationalp)
 					 ))
 				  (:hypothesize ((> expt_gamma_2_minus_2n 0))))
-				state))))
+				))))
 )
 
 (local
@@ -936,7 +936,7 @@
 				   	 (:hypo ((delta-<-0-lemma3-lemma4)))
 				   	 (:main ())))
 				  )
-				state)
+				)
 	   :in-theory (disable delta-<-0-lemma3-lemma1
 	   		       delta-<-0-lemma3-lemma3-stupidlemma
 	   		       delta-<-0-lemma3-lemma2
@@ -992,7 +992,7 @@
 					 )
 				  (:hypothesize ((equal expt_gamma_1 1/5)
 						 (equal expt_gamma_2 1/25))))
-				state)
+				)
 	   :in-theory (disable delta-<-0-lemma3-lemma1
 	   		       delta-<-0-lemma3-lemma3-stupidlemma
 	   		       delta-<-0-lemma3-lemma2
@@ -1277,7 +1277,7 @@
 				  (:python-file "except-for-delta-smaller-than-0-lemma1")
 				  (:let ())
 				  (:hypothesize ()))
-				state)))
+				)))
   :rule-classes :linear)
 )
 
@@ -1353,7 +1353,7 @@
   				  (:python-file "phi-2n+1-smaller-than-0-base")
   				  (:let ())
   				  (:hypothesize ()))
-          state)))
+          )))
   )
 
 (defthm phi-2n+1-<-0-base

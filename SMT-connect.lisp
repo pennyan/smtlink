@@ -15,6 +15,7 @@
 ;;
 (in-package "ACL2")
 (include-book "tools/bstar" :dir :system)
+(include-book "std/typed-lists/cons-listp" :dir :system)
 (set-state-ok t)
 (set-ignore-ok t)
 
@@ -27,6 +28,7 @@
 
 (include-book "SMT-py")
 (include-book "config")
+(include-book "helper")
 (value-triple (tshell-ensure))
 
 (progn
@@ -67,32 +69,20 @@
                                   (cadr (assoc ':use hint)))))
          (main-hints (cadr (assoc ':main
                                   (cadr (assoc ':use hint))))))
-        ;; do sanity check
-        ;; (cond ((and (endp fn-lst) (not (endp uninterpreted)))
-        ;;        (prog2$ (cw "Error(connect): only uninterpreted function is provided. No return type provided.~%")
-        ;;                (mv nil nil nil nil nil nil nil nil nil)))
-        ;;       (t (mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)))
         (mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
         )
     )
 
-  (defun transform-cl (expr state)
-    (cond ((and (equal (len expr) 3)
-                (equal (car expr) 'implies))
-           (mv expr state))
-          (t
-           ;; not arguments disappear after prettyify-clause-lst is called
-           (b* ((clause-lst (prettyify-clause-lst
-                             (clausify expr nil nil nil)
-                             nil
-                             (w state))))
-               (if (equal (len clause-lst) 1)
-                   (mv-let (erp clause state)
-                           (translate (car clause-lst) t nil t nil (w state) state)
-                           (mv clause state))
-                 (mv (er hard? 'top-level "smtlink: badly formed clause -- should be (implies decl-and-hypo-tree concl)") state))))))
-
-
+  (defun implies-form (cl state)
+    (cond ((and (equal (len cl) 3)
+                (equal (car cl) 'implies))
+           (mv cl state)) ; an implication
+          ((cons-listp cl)
+           (b* (((mv erp clause state) (translate (prettyify-clause cl nil (w state)) t nil t nil (w state) state)))
+               (mv clause state))) ; a disjunction
+          (t (mv (er hard? 'top-level "smtlink: sorry, not sure how to handle this: ~%~q0~%" cl) state)) ; not sure what that is
+          ))
+  
   (defun Smtlink-raw (cl hint state custom-config)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
@@ -100,10 +90,9 @@
     (b* (((mv fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints)
           (Smtlink-arguments hint))
          ((mv clause state)
-          (transform-cl (disjoin cl) state))
+          (implies-form cl state))
          ((mv res expanded-cl type-related-theorem hypo-theorem fn-type-theorem type-or-original state)
-          (prog2$ (cw "Transforming clause result: ~q0~%" clause)
-                  (acl2-my-prove clause fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) custom-config state))))
+          (acl2-my-prove clause fn-lst fn-level uninterpreted fname let-expr new-hypo let-hints hypo-hints main-hints (if custom-config (smt-cnf) (default-smtlink-config)) custom-config state)))
         (if res
             (let ((res-clause (append (append (append (append fn-type-theorem type-related-theorem) (list type-or-original)) hypo-theorem)
                                       (list (append expanded-cl cl))
@@ -114,25 +103,31 @@
                                  my-clause-processor and indicated hint.~|")
                   (mv t (list cl) state))))))
 
-  (defun Smtlink (cl hint state)
+  (defun Smtlink-fn (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
         (Smtlink-raw cl hint state nil))
 
-  (defun Smtlink-custom-config (cl hint state)
+  (defmacro Smtlink (cl hint)
+    `(Smtlink-fn ,cl ,hint state))
+
+  (defun Smtlink-custom-config-fn (cl hint state)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
         (Smtlink-raw cl hint state t))
+
+  (defmacro Smtlink-custom-config (cl hint)
+    `(Smtlink-custom-config-fn ,cl ,hint state))
 
   (push-untouchable acl2-my-prove t)
   )
 
 (define-trusted-clause-processor
-  Smtlink
+  Smtlink-fn
   nil
   :ttag Smtlink)
 
 (define-trusted-clause-processor
-  Smtlink-custom-config
+  Smtlink-custom-config-fn
   nil
   :ttag Smtlink-custom-config)

@@ -57,9 +57,9 @@
 ;; my-prove-SMT-formula
 (defun my-prove-SMT-formula (term uninterpreted)
   "my-prove-SMT-formula: check if term is a valid SMT formula"
-  (b* ( ( (mv decl-list hypothesis concl)
+  (b* ( ( (mv decl-list hypo concl)
           (SMT-extract term) ))
-      (SMT-formula decl-list (and-list-logic hypothesis) concl uninterpreted)))
+      (SMT-formula decl-list hypo concl uninterpreted)))
 
 ;; create-uninterpreted-formula
 (defun create-uninterpreted-formula (uninterpreted)
@@ -363,7 +363,8 @@ new hypothesis in lambda expression"
   (b*
    ( ((mv decl-list hypo-list concl) (SMT-extract term))
      (type-or-original (list (and-list-logic decl-list) term))
-     (decl-and-hypo (and-list-logic (append decl-list hypo-list)))
+     (decl-and-hypo (and-list-logic (append decl-list (list hypo-list))))
+     (- (cw "testtesttest: ~q0~%" decl-and-hypo))
      (file-dir (mk-fname fname smt-config ".py" nil))
      (expand-dir (mk-expander-fname fname smt-config))
      (uninterpreted-func (uninterpreted-operator (uninterpreted-type-&-name uninterpreted)))

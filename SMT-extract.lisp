@@ -14,6 +14,7 @@
 (in-package "ACL2")
 (include-book "./helper")
 (include-book "tools/bstar" :dir :system) 
+(program)
 
 ;; get-orig-param
 (defun get-orig-param (decl-list)
@@ -21,86 +22,80 @@
   (if (endp decl-list) nil
       (cons (cadar decl-list) (get-orig-param (cdr decl-list)))))
 
-(mutual-recursion
-;; extract-decls-and-hypos-disjuncts
-(defun extract-decls-and-hypos-disjuncts (expr)
-  (cond ( (and (equal (len expr) 4)
-               (equal (car expr) 'if)
-               (equal (caddr expr) ''nil)) ; a disjunction
-          (b*
-           ( ( (mv decl-list1 hypo-list1) (extract-decls-and-hypos-disjuncts (cadr expr)) )
-             ( (mv decl-list2 hypo-list2) (extract-decls-and-hypos-disjuncts (caddr expr)) ) )
-           (mv (append decl-list1 decl-list2) (append hypo-list1 hypo-list2)) ) )
-        ( (and (equal (len expr) 2)        ; a declaration
-               (member (car expr) (list 'booleanp 'integerp 'rationalp)))
-          (if (and (symbolp (cadr expr)) (cadr expr))
-              (mv (list expr) nil)
-            ( mv
-              (er hard? 'top-level "Variable name ~q0 is not valid.~%" (cadr expr))
-              nil)))
-        ((and (equal (car expr) 'not)  ; a negated type declaration
-              (member (caadr expr)
-                      (list 'booleanp 'integerp 'rationalp 'if 'or)))
-         (extract-decls-and-hypos-neg-conjuncts (cadr expr)))
-        ( t                                              ; another hypothesis
-          (mv nil (list expr)))))
+(defun extract-is-decl (expr)
+  (if (and (equal (len expr) 2)        ; a declaration
+           (member (car expr) (list 'booleanp 'integerp 'rationalp))
+           (and (symbolp (cadr expr)) (cadr expr)))
+      t
+    nil))
 
-;; extract-decls-and-hypos-neg-conjuncts
-(defun extract-decls-and-hypos-neg-conjuncts (expr)
-  "extract declarations and other hypotheses from the antecedent of a clause"
-  ; Notes:
-  ;  1.  This code has worst-case complexity that is quadratic in the size of expr
-  ;    because of the 'append' operations below.  We could make the complexity linear by writing
-  ;    a helper function and passing the list of what we've seen so far along while traversing the
-  ;    tree.  My guess is that expr will be relatively small; so, it's better to use
-  ;    the simple, and "obviously correct" code.  Of course, if smtlink works *really* well, it
-  ;    will eventually be used on *huge* problems, and we might want to use the more efficient
-  ;    approach.  On the other hand, the SMT algorithms aren't exactly low-complexity.
-  ;  2.  Hard-coding the list of reocgnized types is bad style.  I should figure out a way
-  ;    to generalize this.  It probably makes sense to do that when we merge the association
-  ;    lists for operators from SMT-formula.lisp and SMT-translate.lisp.
-  (cond ( (and (equal (len expr) 4)
-               (equal (car expr) 'if)
-               (equal (cadddr expr) ''nil)) ; a conjunction
-          (b*
-           ( ( (mv decl-list1 hypo-list1) (extract-decls-and-hypos-neg-conjuncts (cadr expr)) )
-             ( (mv decl-list2 hypo-list2) (extract-decls-and-hypos-neg-conjuncts (caddr expr)) ) )
-           (mv (append decl-list1 decl-list2) (append hypo-list1 hypo-list2)) ) )
-        ( (and (equal (len expr) 2)        ; a declaration
-               (member (car expr) (list 'booleanp 'integerp 'rationalp)))
-          (if (and (symbolp (cadr expr)) (cadr expr))
-              (mv (list expr) nil)
-            ( mv
-              (er hard? 'top-level "Variable name ~q0 is not valid.~%" (cadr expr))
-              nil)))
-        ((and (equal (car expr) 'not)  ; a negated type declaration
-              (member (caadr expr)
-                      (list 'booleanp 'integerp 'rationalp 'if 'or)))
-         (extract-decls-and-hypos-disjuncts (cadr expr)))
-        ( t                                              ; another hypothesis
-          (mv nil (list expr)))))
+
+(mutual-recursion
+(defun extract-disjunct (term)
+  ;; looking for (typep var) where var *not* satisfying typep make term trivially true
+  (cond ( (and (equal (car term) 'if) (equal (caddr term) ''t))
+          (b* (((mv decl1 term1) (extract-disjunct (cadr term)))
+               ((mv decl2 term2) (extract-disjunct (cadddr term))))
+              (mv (append decl1 decl2)
+                  (cond ((or (equal term1 ''t) (equal term2 ''t)) ''t)
+                        ((equal term1 ''nil) term2)
+                        ((equal term2 ''nil) term1)
+                        (t `(if ,term1 't ,term2))))))
+        ( (equal (car term) 'not)
+          (b* (((mv decl0 term0) (extract-conjunct (cadr term))))
+              (mv decl0
+                  (cond ((equal term0 ''nil) ''t)
+                        ((equal term0 ''t)   ''nil)
+                        (t `(not ,term0))))))
+        ( (equal (car term) 'implies)
+          (b* (((mv decl1 term1) (extract-conjunct (cadr term)))
+               ((mv decl2 term2) (extract-disjunct (caddr term))))
+              (mv (append decl1 decl2)
+                  (cond ((or (equal term1 ''nil) (equal term2 ''t)) ''t)
+                        ((equal term1 ''t) term2)
+                        ((equal term2 ''nil) `(not ,term1))
+                        (t `(implies ,term1 ,term2))))))
+        ( t (mv nil term))))
+
+(defun extract-conjunct (term)
+  ;; looking for (typep var) where var *not* satisfying typep make term trivially false
+  (cond ( (and (equal (car term) 'if) (equal (cadddr term) ''nil))
+          (b* (((mv decl1 term1) (extract-conjunct (cadr term)))
+               ((mv decl2 term2) (extract-conjunct (caddr term))))
+              (mv (append decl1 decl2)
+                  (cond ((or (equal term1 ''nil) (equal term2 ''nil)) ''nil)
+                        ((equal term1 ''t) term2)
+                        ((equal term2 ''t) term1)
+                        (t `(if ,term1 ,term2 'nil))))))
+        ( (equal (car term) 'not)
+          (b* (((mv decl0 term0) (extract-disjunct (cadr term))))
+              (mv decl0
+                  (cond ((equal term0 ''nil) ''t)
+                        ((equal term0 ''t)   ''nil)
+                        (t `(not ,term0))))))
+        ( (extract-is-decl term)
+          (mv (list term) ''t))
+        ( t (mv nil term))))
 )
 
-;; (defun validate-conclusion (concl)
-;;   "Making sure the conclusion doesn't contain type predicates."
-;;   )
-
-(defun SMT-extract-helper (expr)
-  (cond ((and (equal (len expr) 3)
-              (equal (car expr) 'implies))
-         (mv (cadr expr) (caddr expr)))
-        (t (mv (er hard? 'top-level "smtlink: badly formed clause -- should be (implies decl-and-hypo-tree concl)") nil))))
+;; Notes:
+;;   How do we identify the "conclusion" from a list of hypotheses?
+;;     note-note: Mark's RewriteExpt uses the hypothesis list to figure out
+;;       which transformations can be applied.
+;;     note-note-yan: Yan's returned clauses also depend on knowing the
+;;       corresonding hypothesis.
+;;     1:  Maybe we can just use the last disjunct as the conclusion?
+;;     2:  Maybe we measure the size of each expression tree and assume that
+;;           the largest is the conclusion?
+;;     3:  Maybe we could add a function (defun conclusion (x) x), and
+;;           recognized (conclusion concl) as indicating the conclusion?
+;;     4:  Maybe Yan will have a better idea.
 
 ;; SMT-extract
 (defun SMT-extract (term)
-  "extract decl-list, hypo-list and concl from a ACL2 term"
-  ;  term should be of the form (implies expr concl)
-  ;    or of the form (h1 h2 h3 ... h_n-1 concl)
-  ;    We first check to see that term has this form.
-  ;    We then extract decl-list and hypo-list from expr.
   (b*
-   ( ( (mv antecedant conclusion) (SMT-extract-helper term))
-     ( (mv decl-list hypo-list) (extract-decls-and-hypos-neg-conjuncts antecedant))
-     ( concl  conclusion))
-   (mv decl-list hypo-list concl)))
+   (((mv decl-list hypo-and-concl) (extract-disjunct term)))
+   (prog2$ (cw "decl-list:~q0~%hypo-and-concl:~q1~%" decl-list hypo-and-concl)
+           (mv decl-list (cadr hypo-and-concl) (caddr hypo-and-concl)))))
+
 

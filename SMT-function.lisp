@@ -11,6 +11,7 @@
 (include-book "./SMT-extract")
 (set-state-ok t)
 (set-ignore-ok t)
+(program)
 
 ;; create-name
 (defun create-name (num)
@@ -261,7 +262,7 @@
 (defun augment-formula (expr let-type new-hypo)
   "augment-formula: for creating a new expression with hypothesis augmented with new-hypo, assuming new-hypo only adds to the hypo-list"
   (b* ( ((mv decl-list hypo-list concl) (SMT-extract expr)) )
-      (list 'implies (and-list-logic (append decl-list let-type hypo-list new-hypo))
+      (list 'implies (and-list-logic (append decl-list let-type (list hypo-list) new-hypo))
             concl))
   )
 
@@ -378,18 +379,16 @@
 (defun expand-fn (expr fn-lst-with-type fn-level let-expr let-type new-hypo state)
   "expand-fn: takes an expr and a list of functions, unroll the expression. fn-lst is a list of possible functions for unrolling."
   (let ((fn-lst (split-fn-from-type fn-lst-with-type)))
-  (let ((reformed-let-expr (reform-let let-expr)))
-    (let ((fn-level-lst (initial-level fn-lst fn-level)))
-      (mv-let (res-expr1 res-num1)
-	      (expand-fn-help (rewrite-formula expr reformed-let-expr)
-			      fn-lst fn-level-lst fn-lst nil 0 state)
-	      (mv-let (res-expr res-fn-var-decl res-num)
-		      (replace-rec-fn res-expr1 fn-lst-with-type nil res-num1)
-		      (let ((rewritten-expr
-			     (augment-formula (rewrite-formula res-expr reformed-let-expr)
-					      (create-let-decl (assoc-get-value reformed-let-expr)
-                                 let-type)
-					      new-hypo)))
-			      (let ((res (rewrite-formula res-expr1 reformed-let-expr)))
-				(let ((orig-param (extract-orig-param res)))
-				  (mv rewritten-expr res res-num orig-param res-fn-var-decl))))))))))
+    (let ((reformed-let-expr (reform-let let-expr)))
+      (let ((fn-level-lst (initial-level fn-lst fn-level)))
+        (mv-let (res-expr1 res-num1)
+                (expand-fn-help (rewrite-formula expr reformed-let-expr) fn-lst fn-level-lst fn-lst nil 0 state)
+                (mv-let (res-expr res-fn-var-decl res-num)
+                        (replace-rec-fn res-expr1 fn-lst-with-type nil res-num1)
+                        (let ((rewritten-expr
+                               (augment-formula (rewrite-formula res-expr reformed-let-expr)
+                                                (create-let-decl (assoc-get-value reformed-let-expr) let-type)
+                                                new-hypo)))
+                          (let ((res (rewrite-formula res-expr1 reformed-let-expr)))
+                            (let ((orig-param (extract-orig-param res)))
+                              (mv rewritten-expr res res-num orig-param res-fn-var-decl))))))))))

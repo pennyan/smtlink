@@ -24,7 +24,7 @@
            (>= (+ (* x x) (* y y)) 4))
   :hints (("Goal"
            :clause-processor
-           (Smtlink clause '() state)
+           (Smtlink clause '() )
            ))
   )
 
@@ -43,7 +43,7 @@
                     '((:expand ((:functions ((udf-func rationalp)))
                                 (:expansion-levels 1)))
                       )
-                    state)
+                    )
            ))
   )
 
@@ -124,7 +124,7 @@
              '((:expand ((:functions ((fac integerp)))
                          (:expansion-level 4)))
                (:use ((:main (test-lemma)))))
-             state)))
+             )))
   )
 
 ;; 2.3 User supplied substitutions and hypothesis
@@ -150,7 +150,7 @@
 			      (> expt_gamma_m 0)
 			      (> expt_gamma_n 0)))
 	       )
-	     state))))
+	     ))))
 
 
 ;; 2.4 Nested hints
@@ -181,7 +181,7 @@
     :clause-processor
     (Smtlink-custom-config clause
              '((:uninterpreted-functions ((expt rationalp integerp rationalp))))
-             state)))
+             )))
   )
 
 ;; Under construction ...

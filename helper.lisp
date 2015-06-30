@@ -85,7 +85,7 @@
 
 ;; and-list-logic
 (defun and-list-logic (lst)
-  (cond ((endp lst) t)    
+  (cond ((endp lst) t)
         ((endp (cdr lst)) (car lst))
 	(t `(if ,(car lst) ,(and-list-logic (cdr lst)) 'nil))))
 
