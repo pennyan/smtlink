@@ -22,9 +22,10 @@
                         (not not 1)
                         (lambda lambda 2)
                         (implies implies 2)
-                        (integerp integerp 1)
-                        (rationalp rationalp 1)
-                        (booleanp booleanp 1))
+                        ;;(integerp integerp 1)
+                        ;;(rationalp rationalp 1)
+                        ;;(booleanp booleanp 1))
+                        )
                       uninterpreted)
          ))
 

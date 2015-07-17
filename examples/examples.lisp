@@ -38,3 +38,11 @@
                                                    (< 0 expt_z_m)
                                                    (< 0 expt_z_n))))
                                   ))))
+
+;; Buggy example
+(defthm non-theorem
+  (implies (and (rationalp x)
+                (rationalp y)
+                (integerp (/ x y)))
+           (not (equal y 0)))
+       :hints(("Goal" :clause-processor (Smtlink clause nil))))

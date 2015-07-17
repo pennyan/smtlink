@@ -25,9 +25,11 @@
                         (not "_SMT_.notx" 1)
                         (lambda "lambda" 2)
                         (implies "_SMT_.implies" 2)
-                        (integerp "_SMT_.integerp" 1)
-                        (rationalp "_SMT_.rationalp" 1)
-                        (booleanp "_SMT_.booleanp" 1))
+                        ;; There are soundness issues with these functions
+                        ;;(integerp "_SMT_.integerp" 1)
+                        ;;(rationalp "_SMT_.rationalp" 1)
+                        ;;(booleanp "_SMT_.booleanp" 1)
+                        )
                       uninterpreted)
          ))
 
