@@ -9,10 +9,6 @@ for integrating an external SMT solver into ACL2.
 
 The default SMT solver integrated is Z3.
 
-NOTE: Smtlink is now only working with ACL2-7.1. Check branch
-      Smtlink-7.0 for a version of Smtlink that supports ACL2-7.0
-      and ACL2-6.5
-
 -----------------------------------------------------------------
 
                      REQUIREMENTS
@@ -51,6 +47,9 @@ NOTE: Smtlink is now only working with ACL2-7.1. Check branch
 
 2. Follow :doc cert.pl to certify the books using command
    "cert.pl top.lisp".
+   Or use:
+     make ACL2=<dir-to-ACL2-executable/script> PYTHON=<dir-to-python>
+          SAVE_PY_TO=<dir-to-save-python-scripts> or nil
 ----------------------------------------------------------------
 
                      USAGE

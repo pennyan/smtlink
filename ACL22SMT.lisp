@@ -73,7 +73,7 @@
     (list  #\Newline )
     (list #\Space #\Space #\Space #\Space #\# #\Space "type" #\Space "related" #\Space "functions"  #\Newline )
     (list #\Space #\Space #\Space #\Space "def" #\Space "integerp" #\( "self" #\, #\Space "x" #\) #\: #\Space "return" #\Space "sort" #\( "x" #\) #\Space "=" "=" #\Space "IntSort" #\( #\)  #\Newline )
-    (list #\Space #\Space #\Space #\Space "def" #\Space "rationalp" #\( "self" #\, #\Space "x" #\) #\: #\Space "return" #\Space "Or" #\( "sort" #\( "x" #\) #\Space "=" "=" #\Space "RealSort" #\( #\) #\, #\Space "sort" #\( "x" #\) #\Space "=" "=" #\Space "IntSort" #\( #\) #\)  #\Newline )
+    (list #\Space #\Space #\Space #\Space "def" #\Space "rationalp" #\( "self" #\, #\Space "x" #\) #\: #\Space "return" #\Space "sort" #\( "x" #\) #\Space "=" "=" #\Space "RealSort" #\( #\)  #\Newline )
     (list #\Space #\Space #\Space #\Space "def" #\Space "booleanp" #\( "self" #\, #\Space "x" #\) #\: #\Space "return" #\Space "sort" #\( "x" #\) #\Space "=" "=" #\Space "BoolSort" #\( #\)  #\Newline )
     (list  #\Newline )
     (list #\Space #\Space #\Space #\Space "def" #\Space "ifx" #\( "self" #\, #\Space "condx" #\, #\Space "thenx" #\, #\Space "elsex" #\) #\:  #\Newline )
