@@ -15,9 +15,8 @@
 (deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
 
 ;; for the clause processor to work
-(add-include-book-dir :cp "../../")
-(include-book "top" :dir :cp)
-(tshell-ensure)
+(include-book "../../top")
+(value-triple (tshell-ensure))
 
 ;; functions
 ;; n can be a rational value when c starts from non-integer value

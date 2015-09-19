@@ -10,9 +10,8 @@
 (in-package "ACL2")
 
 (include-book "arithmetic/top" :dir :system)
-(add-include-book-dir :cp "../")
-(include-book "top" :dir :cp)
-(tshell-ensure)
+(include-book "../top")
+(value-triple (tshell-ensure))
 
 
 ;; 2.1 A simple example
