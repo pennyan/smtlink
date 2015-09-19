@@ -6,8 +6,9 @@
 *.lx64fsl
 Makefile-tmp
 
-*/py_files
-*/expanded
+z3_files
+py_files
+expanded
 
 *.pyc
 *.log
