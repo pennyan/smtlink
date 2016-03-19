@@ -100,3 +100,30 @@ class ACL22SMT(object):
 
         self.solver.pop()
         return(r)
+
+    def proof_success(self):
+        print "proved"
+
+    def proof_counterExample(self):
+        print "counterexample"
+        m = self.solver.model()
+        print m
+
+    def proof_fail(self):
+        print "failed to prove"
+
+    # usage prove(claim) or prove(hypotheses, conclusion)
+    def prove(self, hypotheses, conclusion=0):
+        if(conclusion is 0): claim = hypotheses
+        else: claim = Implies(hypotheses, conclusion)
+
+        self.solver.push()
+        self.solver.add(Not(claim))
+        res = self.solver.check()
+
+        if res == unsat: self.proof_success()
+        elif res == sat: self.proof_counterExample()
+        else: self.proof_fail()
+
+        self.solver.pop()
+        return(self.status(res == unsat))

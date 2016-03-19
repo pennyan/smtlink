@@ -20,12 +20,11 @@
  (progn
    (defun my-smtlink-expt-config ()
      (declare (xargs :guard t))
-     (make-smtlink-config :dir-interface "../smtlink/z3_interface"
+     (make-smtlink-config :dir-interface "../../z3_interface"
 			  :dir-files    "z3\_files"
 			  :SMT-module   "RewriteExpt"
 			  :SMT-class    "to_smt_w_expt"
-			  :smt-cmd      "python"
-			  :dir-expanded "expanded"))
+			  :smt-cmd      "python"))
    (defattach smt-cnf my-smtlink-expt-config)))
 
 
@@ -373,6 +372,8 @@
   		(hyp-fn (list :v0 v0 :dv dv :g1 g1 :Kt Kt)))
 	   (< (B_sum 1 n-minus-2 v0 dv g1 Kt) 0))
   :hints (("Goal" :in-theory (e/d (B_sum) (B-term)))))
+
+(defthm stop nil)
 
 (defthm B-neg
   (implies (and (integerp n) (<= 3 n) (hyp-macro g1 Kt v0 dv)
