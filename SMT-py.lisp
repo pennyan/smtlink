@@ -231,9 +231,9 @@ new hypothesis in lambda expression"
 (defun create-hypo-theorem-helper-no-hints (decl-hypo-list let-expr hypo-expr orig-param)
   (if (endp hypo-expr)
       nil
-      (cons (list (list 'not decl-hypo-list)
-		  (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) (car hypo-expr))
-			(append (assoc-get-value let-expr) orig-param)))
+    (cons (list (list 'not decl-hypo-list)
+                (cons (list 'lambda (append (assoc-get-key let-expr) orig-param) (car hypo-expr))
+                      (append (assoc-get-value let-expr) orig-param)))
 	    (create-hypo-theorem-helper-no-hints decl-hypo-list let-expr (cdr hypo-expr) orig-param))))
 
 (defun create-hypo-theorem-helper-with-hints (decl-hypo-list let-expr hypo-expr orig-param hypo-hints state)
@@ -383,8 +383,9 @@ new hypothesis in lambda expression"
      (fn-type-theorem (create-fn-type-theorem decl-and-hypo fn-var-decl))
      (aug-theorem (augment-hypothesis expanded-term-list-2 let-expr-translated orig-param main-hints
                                       (append fn-type-theorem (append hypo-theorem (append type-theorem)))
-                                      state)))
-   (if (car (SMT-interpreter file-dir smt-config))
+                                      state))
+     ((mv result state) (SMT-interpreter file-dir smt-config state)))
+   (if result
        (mv t aug-theorem type-theorem hypo-theorem fn-type-theorem type-or-original state)
      (mv nil aug-theorem type-theorem hypo-theorem fn-type-theorem type-or-original state))))
 

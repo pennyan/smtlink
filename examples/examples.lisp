@@ -33,7 +33,7 @@
            :clause-processor
            (Smtlink-custom-config clause
                                   '((:expand ((:functions ((||x^2+y^2||^2 rationalp)))
-                                              (:expansion-levels 1)))
+                                              (:expansion-level 1)))
                                     (:let ((expt_z_m (expt z m) rationalp)
                                            (expt_z_n (expt z n) rationalp)))
                                     (:hypothesize ((< expt_z_n expt_z_m)

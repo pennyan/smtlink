@@ -40,7 +40,7 @@
            :clause-processor
            (Smtlink clause
                     '((:expand ((:functions ((udf-func rationalp)))
-                                (:expansion-levels 1)))
+                                (:expansion-level 1)))
                       )
                     )
            ))

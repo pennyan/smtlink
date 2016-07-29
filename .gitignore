@@ -1,6 +1,7 @@
 # ignoring intermediate files and tmp files
 
 tryouts/*
+Carl/*
 
 *.cert
 *.port

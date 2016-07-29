@@ -167,66 +167,67 @@
 	  (cons '\, (make-lambda-list (cdr lambda-list))))))
 
 (skip-proofs
-(mutual-recursion
+ (mutual-recursion
 
-;; translate-expression-long
-(defun translate-expression-long (expression uninterpreted)
-  "translate-expression-long: translate a SMT expression's parameters in ACL2 into Z3 expression"
-  (if (endp (cdr expression))
-      (translate-expression (car expression) uninterpreted)
-    (cons (translate-expression (car expression) uninterpreted)
-	  (cons '\,
-		(translate-expression-long
-		 (cdr expression) uninterpreted)))))
+  ;; translate-expression-long
+  (defun translate-expression-long (expression uninterpreted)
+    "translate-expression-long: translate a SMT expression's parameters in ACL2 into Z3 expression"
+    (if (endp (cdr expression))
+        (translate-expression (car expression) uninterpreted)
+      (cons (translate-expression (car expression) uninterpreted)
+            (cons '\,
+                  (translate-expression-long
+                   (cdr expression) uninterpreted)))))
 
-;; stuff.let(['x', 2.0], ['y', v('a')*v('b') + v('c')], ['z', ...]).inn(2*v('x') - v('y'))
-;; translate-expression
-;  mrg -- I added a case for quoted symbols to support using define in lieu of defun.
-;    Note that (symbolp nil) is t.  Yan should check to see if she can think of anyway
-;    that this change might introduce an error into the translation.
-(defun translate-expression (expression uninterpreted)
-  "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
-  (if (and (not (equal expression nil))
-	   (consp expression)
-	   (not (equal expression ''1)))
-      (cond ((and (consp (car expression))
-		  (is-SMT-operator (caar expression) uninterpreted)
-		  ;; special treatment for let expression
-		  (equal (caar expression) 'lambda))
-	     (list '\(
-		   (translate-operator (caar expression) uninterpreted)
-		   #\Space
-		   (if (endp (cadr (car expression)))
-		       #\Space
-		       (make-lambda-list (cadr (car expression))))
-		   '\:
-		   (translate-expression (caddr (car expression)) uninterpreted)
-		   '\) '\(
-		   (if (endp (cdr expression))
-		       #\Space
-		       (translate-expression-long (cdr expression) uninterpreted))
-		   '\)))
-	    ;; ((and (is-SMT-operator (car expression))
-	    ;; 	  (equal (car expression) 'list))
-	    ;;  (list (translate-operator (car expression))
-	    ;; 	   '\( '\[
-	    ;; 	   (translate-expression-long (cdr expression))
-	    ;; 	   '\] '\)))
-	    ((is-SMT-operator (car expression) uninterpreted)
-	     (list (translate-operator (car expression) uninterpreted)
-		   '\(
-		   (translate-expression-long (cdr expression) uninterpreted)
-		   '\)))
-	    ((and (equal (car expression) 'quote) (symbolp (cadr expression))) ; mrg: added 21 May 2015
-	     (list "_SMT_.atom" '\( '\" (translate-expression (cadr expression) uninterpreted) '\" '\) ))
-	    (t (list "_SMT_.unknown" '\( (translate-expression-long (cdr expression) uninterpreted) '\))))
-    (cond ((is-SMT-number expression)
-	   (translate-number expression))
-	  ((equal expression 'nil) "False") ;; what if when 'nil is a list?
-	  ((equal expression 't) "True")
-	  ((is-SMT-variable expression)
-	   (translate-variable expression))
-	  (t (er hard? 'top-level "Error(translator): Invalid number or variable: ~q0" expression)))))))
+  ;; stuff.let(['x', 2.0], ['y', v('a')*v('b') + v('c')], ['z', ...]).inn(2*v('x') - v('y'))
+  ;; translate-expression
+                                        ;  mrg -- I added a case for quoted symbols to support using define in lieu of defun.
+                                        ;    Note that (symbolp nil) is t.  Yan should check to see if she can think of anyway
+                                        ;    that this change might introduce an error into the translation.
+  (defun translate-expression (expression uninterpreted)
+    "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
+    (if (and (not (equal expression nil))
+             (not (equal expression ''t)) ;; I wondered how I can have a ''t ...
+             (consp expression)
+             (not (equal expression ''1)))
+        (cond ((and (consp (car expression))
+                    (is-SMT-operator (caar expression) uninterpreted)
+                    ;; special treatment for let expression
+                    (equal (caar expression) 'lambda))
+               (list '\(
+                     (translate-operator (caar expression) uninterpreted)
+                     #\Space
+                     (if (endp (cadr (car expression)))
+                         #\Space
+                       (make-lambda-list (cadr (car expression))))
+                     '\:
+                     (translate-expression (caddr (car expression)) uninterpreted)
+                     '\) '\(
+                     (if (endp (cdr expression))
+                         #\Space
+                       (translate-expression-long (cdr expression) uninterpreted))
+                     '\)))
+              ;; ((and (is-SMT-operator (car expression))
+              ;; 	  (equal (car expression) 'list))
+              ;;  (list (translate-operator (car expression))
+              ;; 	   '\( '\[
+              ;; 	   (translate-expression-long (cdr expression))
+              ;; 	   '\] '\)))
+              ((is-SMT-operator (car expression) uninterpreted)
+               (list (translate-operator (car expression) uninterpreted)
+                     '\(
+                     (translate-expression-long (cdr expression) uninterpreted)
+                     '\)))
+              ((and (equal (car expression) 'quote) (symbolp (cadr expression))) ; mrg: added 21 May 2015
+               (list "_SMT_.atom" '\( '\" (translate-expression (cadr expression) uninterpreted) '\" '\) ))
+              (t (list "_SMT_.unknown" '\( (translate-expression-long (cdr expression) uninterpreted) '\))))
+      (cond ((is-SMT-number expression)
+             (translate-number expression))
+            ((equal expression 'nil) "False") ;; what if when 'nil is a list?
+            ((or (equal expression 't) (equal expression ''t)) "True") ;; I wondered how I can have a ''t ...
+            ((is-SMT-variable expression)
+             (translate-variable expression))
+            (t (er hard? 'top-level "Error(translator): Invalid number or variable: ~q0" expression)))))))
 
 ;; ----------------------- translate-hypothesis --------------------------:
 
