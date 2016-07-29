@@ -24,7 +24,9 @@
 ;; Need to tell user informations on how to leave the
 ;; session.
 ;;
-;; Changes included to bind counter example to global variable "cex" - Carl
+;; Changes included to bind counter example to global variable "SMT-cex" - Carl
+;; Yan changed the name to "SMT-cex" so that it's more obvious this is handed
+;; back from a SMT solver.
 (defun SMT-interpreter (filename smt-config state)
   "SMT-intepreter: get the result returned from calling SMT procedure"
   (b* (((mv exit-status lines) (SMT-run filename smt-config)))
