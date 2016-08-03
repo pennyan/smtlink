@@ -45,9 +45,11 @@ The default SMT solver integrated is Z3.
 
      Check gen_config.py for defaults.
 
-2. Follow :doc cert.pl to certify the books using command
+3. Follow :doc cert.pl to certify the books using command
    "cert.pl top.lisp".
-   Or use:
+
+
+Or use:
      make ACL2=<dir-to-ACL2-executable/script> PYTHON=<dir-to-python>
           SAVE_PY_TO=<dir-to-save-python-scripts> or nil
 ----------------------------------------------------------------
