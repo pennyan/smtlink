@@ -1,8 +1,8 @@
 ;; Copyright (C) 2015, University of British Columbia
-;; Written (originally) by Yan Peng (13th March, 2014)
+;; Written by Yan Peng (August 2nd 2016)
 ;;
 ;; License: A 3-clause BSD license.
 ;; See the LICENSE file distributed with this software
+;;
 
-(include-book "../portcullis")
-;; cert-flags: ? t
+(ld "package.lsp")

@@ -4,5 +4,5 @@
 ;; License: A 3-clause BSD license.
 ;; See the LICENSE file distributed with this software
 
-(include-book "../portcullis")
-;; cert-flags: ? t
+(include-book "portcullis")
+;; cert-flags: ? t :ttags :all
