@@ -35,13 +35,11 @@ The default SMT solver integrated is Z3.
                           -o config.lisp
                           -p <dir-to-python-executable>
                           -z nil
-                          -e nil
      (Usage :
       python gen_config.py -i config-template.lisp
-                          -o config.lisp
-                          -p <dir-to-python-executable>
-                          -z <dir-to-python-files>
-                          -e <dir-to-expand-files>)
+                           -o config.lisp
+                           -p <dir-to-python-executable>
+                           -z <dir-to-python-files>
 
      Check gen_config.py for defaults.
 

@@ -9,7 +9,6 @@
 (include-book "std/util/bstar" :dir :system)
 
 
-;; (defun SMT-goal-generator (cl hints)
-;;   nil)
-
-
+(defun SMT-goal-generator (cl hints)
+  (declare (ignore cl hints))
+  nil)

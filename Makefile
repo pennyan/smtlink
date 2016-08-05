@@ -19,8 +19,7 @@ all:
 	$(PYTHON) gen_config.py -i config-template.lisp \
                           -o config.lisp \
                           -p $(PYTHON) \
-                          -z $(SAVE_PY_TO) \
-                          -e nil
+                          -z $(SAVE_PY_TO)
 	$(BUILD_DIR)/cert.pl -j $(JOBS) -a $(ACL2) top
 
 

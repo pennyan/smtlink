@@ -13,7 +13,6 @@
 #                        -o <outputfile>
 #                        -p <dir-to-py-exe>
 #                        -z <dir-to-py-files>
-#                        -e <dir-to-expand-files>
 #
 # This file can only access default settings for
 #
@@ -31,15 +30,6 @@
 #                              every time Smtlink finishes a proof.
 #                              Unsuccessful proof will stay
 #                              for users to check.
-#
-#   3. <dir-to-expand-files> : The path to where the generated
-#                              log files for function expansion
-#                              will be stored.
-#                              If not set, it gets nil and
-#                              no log files will be generated.
-#                              This directory is used while debugging
-#                              Smtlink. Typical users of Smtlink
-#                              won't need to use it.
 
 
 import io
@@ -48,35 +38,29 @@ import getopt
 import re
 
 def is_marker(mk):
-    if (mk == "(defconst *default-smtlink-config* (make-smtlink-config :dir-interface nil :dir-files nil :SMT-module nil :SMT-class nil :smt-cmd nil :dir-expanded nil))\n"):
+    if (mk == "(defconst *default-smtlink-config* (make-smtlink-config :dir-interface "" :dir-files "" :SMT-module "" :SMT-class "" :smt-cmd "" :file-format ""))\n"):
         return True
     else:
         return False
 
-def gen_code(py_exe, py_file, ex_file):
+def gen_code(py_exe, py_file):
     code = []
 
     code.append("(defconst *default-smtlink-config*\n")
-    code.append("  (make-smtlink-config :dir-interface nil\n")
-    if (py_file == "nil"):
-        code.append("                       :dir-files " + py_file + "\n")
-    else:
-        code.append("                       :dir-files \"" + py_file + "\"\n")
+    code.append("  (make-smtlink-config :interface-dir nil\n")
+    code.append("                       :dir-files \"" + py_file + "\"\n")
     code.append("                       :SMT-module \"ACL2_to_Z3\"\n")
     code.append("                       :SMT-class \"ACL22SMT\"\n")
-    if (py_exe == "nil"):
+    if (py_exe == ""):
         print "Error: Python executable is not set yet ..."
         exit(1)
     else:
         code.append("                       :smt-cmd \"" + py_exe + "\"\n")
-    if (ex_file == "nil"):
-        code.append("                       :dir-expanded " + ex_file + "))\n")
-    else:
-        code.append("                       :dir-expanded \"" + ex_file + "\"))\n")
+    code.append("                       :file-format \".py\"))\n")
 
     return code
 
-def gen(inf, outf, py_exe, py_file, ex_file):
+def gen(inf, outf, py_exe, py_file):
     wt = open(outf, 'w')
     wlines = []
 
@@ -84,7 +68,7 @@ def gen(inf, outf, py_exe, py_file, ex_file):
         rlines = rf.readlines()
     for rline in rlines:
         if (is_marker(rline)):
-            wlines += gen_code(py_exe, py_file, ex_file)
+            wlines += gen_code(py_exe, py_file)
         else:
             wlines.append(rline)
 
@@ -94,14 +78,13 @@ def gen(inf, outf, py_exe, py_file, ex_file):
 def main(argv):
     inf = "config-template.lisp"
     outf = "config.lisp"
-    py_exe = "nil"
-    py_file = "nil"
-    ex_file = "nil"
+    py_exe = ""
+    py_file = ""
     try:
-        opts, args = getopt.getopt(argv, "i:o:p:z:e:")
+        opts, args = getopt.getopt(argv, "i:o:p:z:")
         print opts, args
     except getopt.GetoptError:
-        print "gen_config.py -i <input-file> -o <output-file> -p <python-executable> -z <generated-python-files> -e <generated-expanded-files>"
+        print "gen_config.py -i <input-file> -o <output-file> -p <python-executable> -z <generated-python-files>"
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-i':
@@ -112,10 +95,8 @@ def main(argv):
             py_exe = arg
         elif opt == '-z':
             py_file = arg
-        elif opt == '-e':
-            ex_file = arg
-    
-    gen(inf, outf, py_exe, py_file, ex_file)
+
+    gen(inf, outf, py_exe, py_file)
     print "Finished generating %s file from %s file..." % (outf, inf)
 
 

@@ -122,4 +122,11 @@ then the default one will be used. Otherwise, the user should be able to do:
 
 for changing the smtlink hint.
 
+The SMT-trusted-cp should also consult this hint!
+
+
+==================================================================================
+3. Remove the implies form constraint
+
+I think this should be done!
 

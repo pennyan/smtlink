@@ -6,7 +6,31 @@
 ;;
 
 (in-package "SMT")
+(include-book "../verified/SMT-hint-interface")
+(include-book "../verified/SMT-config")
 
-(defun SMT-prove (cl hint)
-  (declare (ignore cl hint))
-  t)
+(defun mk-fname (directory fname-LISP suffix)
+  (let ((dir (if (equal directory "") "/tmp/py_file" directory)))
+    (cond ((equal fname-LISP "")
+           (let ((cmd (concatenate 'string "mkdir -p " dir " && "
+                                   "mktemp " dir "/smtlink" suffix ".XXXXX")))
+             (mv-let (exit-status lines)
+               (time$ (tshell-call cmd
+                                   :print t
+                                   :save t)
+                      :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
+                      :args (list cmd))
+               (if (equal exit-status 0)
+                   (car lines)
+                 (er hard? 'top-level "Error(SMT-py): Generate file error.")))))
+          ((stringp fname-LISP)
+           (concatenate 'string dir "/" (string (lisp-to-python-names fname-LISP)) suffix))
+          (t (er hard? 'top-level "Error(SMT-py): fname should either be a string or \"\"")))))
+
+;; (defun SMT-prove (term)
+;;   (b* ((fname (smtlink-hint->python-file (smt-hint)))
+;;        (uninterpreted (smtlink-hint->uninterpreted (smt-hint)))
+;;        (directory (smtlink-config->SMT-files-dir (smt-cnf)))
+;;        (file-format (smtlink-config->file-format (smt-cnf)))
+;;        (smt-file (mk-fname directory fname file-format)))
+;;     ()))
