@@ -1,0 +1,125 @@
+I keep a list of random ideas we came up as we refactor Smtlink.
+
+
+==================================================================================
+1. Hints to subgoals produced by clause processor:
+
+----------------------------------------------------------------------------------
+FIRST IDEA
+
+I've taken a more close look at how ACL2 implemented hints. It seems that
+I might be able to take use of their hint parser. This might allow you to use :use
+hints in a more general way. But I believe we still have to implement the logic 
+for combining hints into our verified clause processor and verify it.
+
+
+Let's say we represent the conjunction of hints for hypotheses as:
+
+H = H1 \and H2 \and ... \and H_n
+
+the conjunction of all auxiliary hypotheses as:
+
+A = A1 \and A2 \and ... \and A_n
+
+the hint for the main G-prim -> G as:
+
+H_main
+
+
+Then I think we can form the verified clause processor as:
+
+A -> G
+H_main \and A \and G-prim -> G
+(\not H) \or A \or G
+H_main
+(\not H)
+
+I find it interesting that before we use a verified clause processor, I never have
+to return H_main and (\not H) as a subgoal. But now I need to so that this clause
+processor can be verified.
+
+----------------------------------------------------------------------------------
+SECOND IDEA (Thanks to Jared and Mark)
+
+Here's another idea. We can probably fully use the ACL2 hints if we do
+something similar to what we did with SMT-please. I think we have at
+one point discussed something using this idea.
+
+Let's say H_main is something like:
+
+(("Goal" :use ((:instance ...))))
+
+H is a merged version of all hints:
+
+(("Goal" :use ((:instance H1_hint) (:instance H2_hint) ...)))
+
+Then the verified clause processor will be:
+
+(SMT-please (A -> G) SMT-hint)
+(main-hint-please (A \and G-prim -> G)   H_main)
+(hint-please (A \or G)    H)
+
+Now the hint-wrapper looks for three things and generate a computed-hint-replacement
+for each of them accordingly.
+
+For example, when it sees SMT-please, it will generate a hint with clause-processor
+with our SMT solver. When it sees main-hint-please, it will generate a hint with
+the corresponding :use hint. Likewise for hint-please.
+
+
+==================================================================================
+2. New Smtlink interface
+
+----------------------------------------------------------------------------------
+FIRST IDEA
+
+Use defprod as basic data structure for storing the information. Then define a
+function attachment for passing it into the clause processor. Just like what we
+did with the configuration.
+
+The interface will roughly look like:
+
+(smtlink-hint :expansions '((function :name 'foo
+                                      :type (hints-pair :thm 'rationalp :hints '((...)))
+                                      :level 1)
+                            (function ...))
+              :uninterpreted '((uninterpreted :name 'expt
+                                              :input-types '(rationalp integerp)
+                                              :output-type (hints-pair :thm 'integerp :hints '(()))))
+              :hypotheses '((hints-pair :thm (< (foo x) (expt x y z)) :hints '(()))
+                            (...))
+              :int-to-rat t/nil
+              :python-file "file-name")
+
+Here "smtlink-hint", "function", "hints-pair" and "uninterpreted" are product types.
+
+Let's say we define a default smtlink hint and store it in *default-smtlink-hint*:
+
+(defconst *default-smtlink-hint*
+  (make-smtlink-hint :expansions ...
+                     :uninterpreted ...
+                     :hypotheses ...
+                     :int-to-rat ...
+                     :python-file ...))
+
+Define a function stub called smt-hint then attach the default hint onto the stub:
+
+(defstub smt-hint () => *)
+
+(defun default-smtlink-hint ()
+  (change-smtlink-hint *default-smtlink-hint*))
+
+(defattach smt-hint default-smtlink-hint)
+
+When using Smtlink, if the user doesn't attach a different hint onto smt-hint,
+then the default one will be used. Otherwise, the user should be able to do:
+
+;; changing the hint to disable interger to rational conversion
+(defun my-smtlink-hint ()
+  (change-smtlink-hint (smt-hint) :int-to-rat nil))
+
+(defattach smt-hint my-smtlink-hint)
+
+for changing the smtlink hint.
+
+
