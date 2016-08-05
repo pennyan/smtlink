@@ -52,6 +52,9 @@
       str::search
 
       std::defaggregate
+
+      fty::defprod
+      fty::deflist
       )
     )
    ;; Things to remove

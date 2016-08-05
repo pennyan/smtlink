@@ -9,6 +9,8 @@
 
 (include-book "verified/SMT-verified-cp")
 (include-book "verified/SMT-hint-wrapper")
+(include-book "verified/Smtlink")
+(include-book "verified/SMT-goal-generator")
 
 (include-book "trusted/SMT-trusted-cp")
 
