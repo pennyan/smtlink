@@ -37,7 +37,10 @@
       pseudo-term-list-listp
       iff-implies-equal-not
       split-keyword-alist
+      dumb-negate-lit
 
+      must-succeed
+      
       prefixp
 
       str::cat
