@@ -66,6 +66,21 @@ For example, when it sees SMT-please, it will generate a hint with clause-proces
 with our SMT solver. When it sees main-hint-please, it will generate a hint with
 the corresponding :use hint. Likewise for hint-please.
 
+----------------------------------------------------------------------------------
+THIRD IDEA
+
+(equal (Smtlink-subgoals '(G)
+                         '(((A1 . A1-hint) (A2 . A2-hint))
+                           (G-prim . main-hint)
+                           SMT-hint))
+       '(((not A1) (not A2) (not (hint-please 'SMT-hint)) G-prim)
+         ((not (hint-please 'main-hint)) (not A1) (not A2) (not G-prim) G)
+         (A1 (not (hint-please 'A1-hint)) G)
+         (A2 (not (hint-please 'A2-hint)) G)))
+
+I need a simpler way of defining Smtlink-subgoals so that ACL2 can induct
+on clause. ?
+
 
 ==================================================================================
 2. New Smtlink interface

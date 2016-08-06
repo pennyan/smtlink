@@ -108,14 +108,14 @@
 ;; Test Smtlink-subgoals
 (must-succeed
  (defthm test-case-1
-   (equal (Smtlink-subgoals '((not H0) C0)
+   (equal (Smtlink-subgoals '(G)
                             '(((A1 . A1-hint) (A2 . A2-hint))
                               (G-prim . main-hint)
                               SMT-hint))
           '(((not A1) (not A2) (not (hint-please 'SMT-hint)) G-prim)
-            ((not (hint-please 'main-hint)) (not A1) (not A2) (not G-prim) (IF (NOT H0) 'T C0))
-            (A1 (not (hint-please 'A1-hint)) (IF (NOT H0) 'T C0))
-            (A2 (not (hint-please 'A2-hint)) (IF (NOT H0) 'T C0))))))
+            ((not (hint-please 'main-hint)) (not A1) (not A2) (not G-prim) G)
+            (A1 (not (hint-please 'A1-hint)) G)
+            (A2 (not (hint-please 'A2-hint)) G)))))
 
 (defevaluator ev-Smtlink-subgoals ev-lst-Smtlink-subgoals
   ((not x) (if x y z) (hint-please x)))
