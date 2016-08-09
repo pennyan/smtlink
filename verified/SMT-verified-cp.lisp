@@ -25,26 +25,19 @@
 (include-book "std/util/bstar" :dir :system)
 (include-book "misc/eval" :dir :system)
 
-;; Define identity function
-(defun hint-please (x)
-  (declare (ignore x)
+(defun hint-please (cl hint)
+  (declare (ignore hint)
            (xargs :guard t))
-  t)
+  cl)
 
 (defthm hint-please-forward
-; Probably not needed when tau-system is active.
-  (implies (not (hint-please x))
-           nil)
+  (implies (hint-please cl hint)
+           cl)
   :rule-classes :forward-chaining)
 
 (in-theory (disable (:d hint-please)
                     (:e hint-please)
                     (:t hint-please)))
-
-(defun dumb-negate-lit-lst (lst)
-  (cond ((endp lst) nil)
-        (t (cons (dumb-negate-lit (car lst))
-                 (dumb-negate-lit-lst (cdr lst))))))
 
 ;;
 ;; Explanation for clause decomposition
@@ -57,48 +50,50 @@
 ;; G-prim : The expanded original clause
 ;; G : The original clause
 
-;; (defun Smtlink-subgoals (cl clause)
-;;   (b* ((A (car clause))
-;;        (G-prim (cadr clause))
-;;        (hints (caddr clause))
-;;        (G (disjoin cl))
+(defun and-logic (a b)
+  `(if ,a ,b nil))
 
-;;        (cl0 `((not ,A) (not (SMT-please ',hints)) ,G-prim))
-;;        ;; (cl0 `((SMT-please '(implies ,A ,G-prim) ',hints)))
-;;        (cl1 `((not ,A) (not ,G-prim) ,G))
-;;        (cl2 `(,A ,G)))
-;;     `(,cl0 ,cl1 ,cl2)))
+(defun and-list-logic (lst)
+  (cond ((endp lst) t)
+        ((endp (cdr lst)) (car lst))
+        (t (and-logic (car lst) (and-list-logic (cdr lst))))))
 
-(defun construct-aux-clauses (A-list not-hint-list G)
+(defun or-logic (a b)
+  `(if ,a t ,b))
+
+(defun or-list-logic (lst)
+  (cond ((endp lst) nil)
+        ((endp (cdr lst)) (car lst))
+        (t (or-logic (car lst) (or-list-logic (cdr lst))))))
+
+(defun construct-aux-clauses (A-list hint-list G)
   (if (endp A-list)
       nil
     (b* ((first-A (car A-list))
-         (first-not-hint (car not-hint-list)))
-      (cons `(,first-A ,first-not-hint ,G)
-            (construct-aux-clauses (cdr A-list) (cdr not-hint-list) G)))))
-
-(defun map-hint-please (hint-list)
-  (if (endp hint-list)
-      nil
-    (cons `(hint-please ',(car hint-list))
-          (map-hint-please (cdr hint-list)))))
+         (first-hint (car hint-list)))
+      (cons `((hint-please ,(or-logic first-A G) ',first-hint))
+            (construct-aux-clauses (cdr A-list) (cdr hint-list) G)))))
 
 (defun construct-smtlink-subgoals (A-and-hints G-prim-and-hints hints G)
   (b* ((G-prim (car G-prim-and-hints))
-       (main-hint `(hint-please ',(cdr G-prim-and-hints)))
+       (main-hint (cdr G-prim-and-hints))
        (A-list (strip-cars A-and-hints))
-       (not-A-list (dumb-negate-lit-lst A-list))
-       (not-hint-list (dumb-negate-lit-lst (map-hint-please (strip-cdrs A-and-hints))))
-       (cl0 `(,@not-A-list (not (hint-please ',hints)) ,G-prim))
-       (cl1 `((not ,main-hint) ,@not-A-list (not ,G-prim) ,G))
-       (aux-clauses (construct-aux-clauses A-list not-hint-list G)))
-    (cons cl0 (cons cl1 aux-clauses))))
+       (A-and-list (and-list-logic A-list))
+       (hint-list (strip-cdrs A-and-hints))
+       (cl0 `((hint-please (implies ,A-and-list ,G-prim) ',hints)))
+       (cl1 `((hint-please (implies ,(and-list-logic (append A-list (list G-prim))) ,G) ',main-hint)))
+       (aux-clauses (construct-aux-clauses A-list hint-list G)))
+    `(,cl0 ,cl1 ,@aux-clauses)))
 
 (defun Smtlink-subgoals (cl clause)
-  (b* (;; auxiliary hypotheses and their hints
+  (b* (;; auxiliary hypotheses and their hints in alist
        (A-and-hints (car clause))
+       ((if (not (alistp A-and-hints)))
+        (er hard? 'top-level "The first element of clause has to be an alist"))
        ;; G' and the main hint
        (G-prim-and-hints (cadr clause))
+       ((if (not (consp G-prim-and-hints)))
+        (er hard? 'top-level "The second element of clause has to be a consp"))
        ;; SMT hints
        (hints (caddr clause))
        ;; original clause
@@ -112,15 +107,15 @@
                             '(((A1 . A1-hint) (A2 . A2-hint))
                               (G-prim . main-hint)
                               SMT-hint))
-          '(((not A1) (not A2) (not (hint-please 'SMT-hint)) G-prim)
-            ((not (hint-please 'main-hint)) (not A1) (not A2) (not G-prim) G)
-            (A1 (not (hint-please 'A1-hint)) G)
-            (A2 (not (hint-please 'A2-hint)) G)))))
+          '(((hint-please (implies (IF A1 A2 NIL) G-PRIM) 'SMT-hint))
+            ((hint-please (implies (IF A1 (IF A2 G-PRIM NIL) NIL) G) 'main-hint))
+            ((hint-please (IF A1 T G) 'A1-hint))
+            ((hint-please (If A2 T G) 'A2-hint))))))
 
 (defevaluator ev-Smtlink-subgoals ev-lst-Smtlink-subgoals
-  ((not x) (if x y z) (hint-please x)))
+  ((not x) (if x y z) (implies x y) (hint-please cl hint) ))
 
-(stop-here)
+;; (stop-here)
 
 ;; (set-gag-mode nil)
 
@@ -128,52 +123,7 @@
   (implies (and (pseudo-term-listp cl)
                 (alistp b)
                 (ev-Smtlink-subgoals
-                 (conjoin-clauses (Smtlink-subgoals cl clauses))
+                 (conjoin-clauses (Smtlink-subgoals cl clause))
                  b))
            (ev-Smtlink-subgoals (disjoin cl) b))
   :rule-classes :clause-processor)
-
-
-
-;; ------------------------------------------------------------------------------------------------------
-;;    This is the debugging line
-
-
-;; Why, ACL2, why can't you prove this!!
-(IMPLIES
- (AND
-  (PSEUDO-TERM-LISTP CL)
-  (ALISTP B)
-  (NOT
-    (EQUAL (DISJOIN (APPEND (DUMB-NEGATE-LIT-LST (STRIP-CARS (CAR CLAUSES)))
-                            (LIST (LIST 'NOT
-                                        (LIST 'HINT-PLEASE
-                                              (LIST 'QUOTE (CADDR CLAUSES))))
-                                  (CAR (CADR CLAUSES)))))
-           ''NIL))
-  (NOT
-   (CONSP
-    (DISJOIN-LST
-      (CONSTRUCT-AUX-CLAUSES
-           (STRIP-CARS (CAR CLAUSES))
-           (DUMB-NEGATE-LIT-LST (MAP-HINT-PLEASE (STRIP-CDRS (CAR CLAUSES))))
-           (DISJOIN CL)))))
-  (EQUAL (DISJOIN (APPEND (DUMB-NEGATE-LIT-LST (STRIP-CARS (CAR CLAUSES)))
-                          (LIST (LIST 'NOT (CAR (CADR CLAUSES)))
-                                (DISJOIN CL))))
-         ''T)
-  (NOT
-    (EQUAL (DISJOIN (APPEND (DUMB-NEGATE-LIT-LST (STRIP-CARS (CAR CLAUSES)))
-                            (LIST (LIST 'NOT
-                                        (LIST 'HINT-PLEASE
-                                              (LIST 'QUOTE (CADDR CLAUSES))))
-                                  (CAR (CADR CLAUSES)))))
-           ''T))
-  (EV-SMTLINK-SUBGOALS
-       (DISJOIN (APPEND (DUMB-NEGATE-LIT-LST (STRIP-CARS (CAR CLAUSES)))
-                        (LIST (LIST 'NOT
-                                    (LIST 'HINT-PLEASE
-                                          (LIST 'QUOTE (CADDR CLAUSES))))
-                              (CAR (CADR CLAUSES)))))
-       B))
- (EV-SMTLINK-SUBGOALS (DISJOIN CL) B))

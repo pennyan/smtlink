@@ -81,6 +81,39 @@ THIRD IDEA
 I need a simpler way of defining Smtlink-subgoals so that ACL2 can induct
 on clause. ?
 
+---------------------------------------------------------------------------------
+FOURTH IDEA (Thanks to Mark)
+
+Continuing with the earlier example, let's write:
+  (A1 or G)  ;; with hint H1
+  (A2 or G)  ;; with hint H2
+  ...
+  (An or G)  ;; with hint Hn
+as
+  (and (A1 or G) (and (A2 or G) (and ...  (An or G)...)))
+Define the function
+  (please-hints clause hint etc)
+to be logically equivalent to
+  (and clause etc)
+Now, write the conjunction above as
+  (please-hints A1 H1 (please-hints A2 H2 (please-hints ... An Hn t)))
+Here's what this is supposed to do in ACL2:
+
+Using a computed-hint or verified clause processor, or both, we replace
+the clause
+  (please-hints A1 H1 (please-hints A2 H2 (please-hints ... An Hn t)))
+with two clauses
+  (please-hint A1 H1)
+  (please-hints A2 H2 (please-hints ... An Hn t))
+A computed hint picks up (please-hint A1 H1) attaches the appropriate
+hints, and I'll assume this leads to discharging A1.  The subgoal for
+  (please-hints A2 H2 (please-hints ... An Hn t))
+is still pending.  We handle this as for A1 to get two clauses
+  (please-hint A2 H2)
+  (please-hints A3 H3 (please-hints ... An Hn t))
+Continuing this way, each clause is processed with the hints specified
+for that assumption.
+
 
 ==================================================================================
 2. New Smtlink interface
