@@ -15,4 +15,4 @@
 
 (defmacro Smtlink (clause)
   `(Smtlink-subgoals ,clause
-                     (Smtlink-goal-generator ,clause (smt-hint))))
+                     (Smt-goal-generator ,clause (smt-hint))))

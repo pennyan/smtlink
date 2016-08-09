@@ -19,7 +19,7 @@
            (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
     :hints(("Goal"
             :clause-processor
-            (Smtlink clause nil))))
+            (SMT::Smtlink clause))))
 
 ;; ;; Example 2
 ;; (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))

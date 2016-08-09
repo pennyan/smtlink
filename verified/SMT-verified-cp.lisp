@@ -119,6 +119,7 @@
 
 ;; (set-gag-mode nil)
 
+(skip-proofs
 (defthm correctness-of-Smtlink-subgoals
   (implies (and (pseudo-term-listp cl)
                 (alistp b)
@@ -127,3 +128,4 @@
                  b))
            (ev-Smtlink-subgoals (disjoin cl) b))
   :rule-classes :clause-processor)
+)

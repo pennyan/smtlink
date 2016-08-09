@@ -74,4 +74,4 @@
 ;; -------------------------------------------------------------------------
 ;;        Define a set of utilities for conveniency
 
-(defmacro def-smt-hint (name &key auto-expand))
+;; (defmacro def-smt-hint (name &key auto-expand))

@@ -19,7 +19,7 @@
   (cond ((endp cl) nil)
         (t (let ((lit (car cl)))
              (case-match lit
-               (('not ('SMT-please ('quote kwd-alist)))
+               ((('hint-please & ('quote kwd-alist)))
                 kwd-alist)
                (& (extract-hint-wrapper (cdr cl))))))))
 
@@ -33,16 +33,20 @@
               (post ; then there was already an :expand hint; splice one in
                (assert$ (eq (car post) :expand)
                         `(:computed-hint-replacement
-                          ('(,@pre ,@post))
-                          :expand ,(cons `(SMT-please ',kwd-alist)
-                                         (cadr post)))))
+                          t
+                          ,@pre
+                          :expand ,(cons `(hint-please ',kwd-alist)
+                                         (cadr post))
+                          ,@post)))
               (t ; simply extend kwd-alist
                (prog2$ (cw "~q0" `(:computed-hint-replacement
-                                   ('(,@kwd-alist))
-                                   :expand (SMT-please ',kwd-alist)))
+                                   t
+                                   :expand (hint-please ',kwd-alist)
+                                   ,@kwd-alist))
                        `(:computed-hint-replacement
-                         ('(,@kwd-alist))
-                         :expand (SMT-please ',kwd-alist)))))))
+                         t
+                         :expand (hint-please ',kwd-alist)
+                         ,@kwd-alist))))))
           (t nil))))
 
 (logic)

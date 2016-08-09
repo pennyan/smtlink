@@ -27,6 +27,8 @@
       tshell-ensure
       tshell-call
       set-raw-mode-on
+      defxdoc
+      defsection
 
       conjoin-clauses
       conjoin
