@@ -24,6 +24,11 @@
 (in-package "SMT")
 (include-book "std/util/bstar" :dir :system)
 (include-book "misc/eval" :dir :system)
+(include-book "clause-processors/join-thms" :dir :system)
+
+;; -----------------------------------------------------------------
+;;       Define the identity function.
+;;
 
 (defun hint-please (cl hint)
   (declare (ignore hint)
@@ -39,6 +44,11 @@
                     (:e hint-please)
                     (:t hint-please)))
 
+;; -----------------------------------------------------------------
+;;       Define Smtlink subgoals.
+;;
+
+
 ;;
 ;; Explanation for clause decomposition
 ;;
@@ -51,18 +61,18 @@
 ;; G : The original clause
 
 (defun and-logic (a b)
-  `(if ,a ,b nil))
+  `(if ,a ,b 'nil))
 
 (defun and-list-logic (lst)
-  (cond ((endp lst) t)
+  (cond ((endp lst) ''t)
         ((endp (cdr lst)) (car lst))
         (t (and-logic (car lst) (and-list-logic (cdr lst))))))
 
 (defun or-logic (a b)
-  `(if ,a t ,b))
+  `(if ,a 't ,b))
 
 (defun or-list-logic (lst)
-  (cond ((endp lst) nil)
+  (cond ((endp lst) ''t)
         ((endp (cdr lst)) (car lst))
         (t (or-logic (car lst) (or-list-logic (cdr lst))))))
 
@@ -74,52 +84,76 @@
       (cons `((hint-please ,(or-logic first-A G) ',first-hint))
             (construct-aux-clauses (cdr A-list) (cdr hint-list) G)))))
 
-(defun construct-smtlink-subgoals (A-and-hints G-prim-and-hints hints G)
-  (b* ((G-prim (car G-prim-and-hints))
-       (main-hint (cdr G-prim-and-hints))
-       (A-list (strip-cars A-and-hints))
-       (A-and-list (and-list-logic A-list))
-       (hint-list (strip-cdrs A-and-hints))
-       (cl0 `((hint-please (implies ,A-and-list ,G-prim) ',hints)))
-       (cl1 `((hint-please (implies ,(and-list-logic (append A-list (list G-prim))) ,G) ',main-hint)))
-       (aux-clauses (construct-aux-clauses A-list hint-list G)))
+(defun construct-smtlink-subgoals (As G-prim hints G)
+  (b* ((A-and-list (and-list-logic As))
+       (hint-list (car hints))
+       (main-hint (cadr hints))
+       (SMT-hint (caddr hints))
+       (cl0 `((hint-please (implies ,A-and-list ,G-prim) ',SMT-hint)))
+       (cl1 `((hint-please (implies ,(and-logic G-prim (and-list-logic As)) ,G) ',main-hint)))
+       (aux-clauses (construct-aux-clauses As hint-list G)))
     `(,cl0 ,cl1 ,@aux-clauses)))
 
+(defun get-smtlink-subterms (clause)
+  (b* ((As (caar clause))
+       (G-prim (cadar clause))
+       (hints (cadr clause)))
+    (mv As G-prim hints)))
+
+;;
+;; Shape of clause:
+;;
+;; (;; clauses: list of As, G-prim
+;;  ((A1 A2 ... An)
+;;   G-prim)
+;;  ;; hints: list of A-hints, main-hints
+;;  ((A1-hint A2-hint ... An-hint)
+;;   main-hint
+;;   SMT-hint))
+;;
 (defun Smtlink-subgoals (cl clause)
-  (b* (;; auxiliary hypotheses and their hints in alist
-       (A-and-hints (car clause))
-       ((if (not (alistp A-and-hints)))
-        (er hard? 'top-level "The first element of clause has to be an alist"))
-       ;; G' and the main hint
-       (G-prim-and-hints (cadr clause))
-       ((if (not (consp G-prim-and-hints)))
-        (er hard? 'top-level "The second element of clause has to be a consp"))
-       ;; SMT hints
-       (hints (caddr clause))
-       ;; original clause
-       (G (disjoin cl)))
-    (construct-smtlink-subgoals A-and-hints G-prim-and-hints hints G)))
+  (mv-let (As G-prim hints) (get-smtlink-subterms clause)
+    (construct-smtlink-subgoals As G-prim hints (disjoin cl))))
+
+
 
 ;; Test Smtlink-subgoals
 (must-succeed
  (defthm test-case-1
    (equal (Smtlink-subgoals '(G)
-                            '(((A1 . A1-hint) (A2 . A2-hint))
-                              (G-prim . main-hint)
-                              SMT-hint))
-          '(((hint-please (implies (IF A1 A2 NIL) G-PRIM) 'SMT-hint))
-            ((hint-please (implies (IF A1 (IF A2 G-PRIM NIL) NIL) G) 'main-hint))
-            ((hint-please (IF A1 T G) 'A1-hint))
-            ((hint-please (If A2 T G) 'A2-hint))))))
+                            '(((A1 A2)
+                               G-prim)
+                              ((A1-hint A2-hint)
+                               main-hint
+                               SMT-hint)))
+          '(((hint-please (implies (IF A1 A2 'NIL) G-PRIM) 'SMT-hint))
+            ((hint-please (implies (IF G-prim (IF A1 A2 'NIL) 'NIL) G) 'main-hint))
+            ((hint-please (IF A1 'T G) 'A1-hint))
+            ((hint-please (If A2 'T G) 'A2-hint))))))
+;; Test clause processor
+(defmacro test-smtlink-cp (subgoals)
+  `(thm (implies (and ,@(conjoin-clauses subgoals)) G)))
+
+
+
+;; ------------------------------------------------------------
+;;         Prove correctness of clause processor
+;;
 
 (defevaluator ev-Smtlink-subgoals ev-lst-Smtlink-subgoals
   ((not x) (if x y z) (implies x y) (hint-please cl hint) ))
 
-;; (stop-here)
+(def-join-thms ev-Smtlink-subgoals)
 
-;; (set-gag-mode nil)
+(defthm correctness-of-Smtlink-subgoals-lemma
+  (implies
+   (and (pseudo-term-listp cl)
+        (alistp b)
+        (not (ev-smtlink-subgoals (and-list-logic As) b))
+        (ev-smtlink-subgoals
+         (conjoin-clauses (construct-aux-clauses As A-hints (disjoin cl))) b))
+   (ev-smtlink-subgoals (disjoin cl) b)))
 
-(skip-proofs
 (defthm correctness-of-Smtlink-subgoals
   (implies (and (pseudo-term-listp cl)
                 (alistp b)
@@ -128,4 +162,3 @@
                  b))
            (ev-Smtlink-subgoals (disjoin cl) b))
   :rule-classes :clause-processor)
-)

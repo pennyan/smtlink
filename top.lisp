@@ -11,6 +11,7 @@
 (include-book "verified/SMT-hint-wrapper")
 (include-book "verified/Smtlink")
 (include-book "verified/SMT-goal-generator")
+(include-book "verified/SMT-hint-interface")
 
 (include-book "trusted/SMT-trusted-cp")
 
@@ -19,7 +20,7 @@
 
 ;; (include-book "xdoc/save" :dir :system)  ;; load xdoc::save
 
-;; (defxdoc acl2::top           ;; create a "top" topic
+;; (defsection acl2::top           ;; create a "top" topic
 ;;   :short "Tutorial and documentation for the ACL2 book, Smtlink."
 ;;   :long "<h3>Introduction</h3>
 ;;          <p><b>Smtlink</b> is a tool for integrating external SMT solvers into ACL2.

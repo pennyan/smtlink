@@ -29,6 +29,8 @@
       set-raw-mode-on
       defxdoc
       defsection
+      def-join-thms
+      termify-clause-set
 
       conjoin-clauses
       conjoin
@@ -42,7 +44,7 @@
       dumb-negate-lit
 
       must-succeed
-      
+
       prefixp
 
       str::cat

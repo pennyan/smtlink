@@ -7,8 +7,9 @@
 
 (in-package "ACL2")
 (include-book "../top")
+(in-package "SMT")
 
-(add-default-hints '((SMT-hint-wrapper-hint clause)))
+(add-default-hints '((SMT::SMT-hint-wrapper-hint clause)))
 
 ;; Section 2. A short tour
 ;; Example 1

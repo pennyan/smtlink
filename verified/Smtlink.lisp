@@ -8,9 +8,6 @@
 (in-package "SMT")
 (include-book "std/util/bstar" :dir :system)
 
-;;(include-book "SMT-verified-cp")
-;;(include-book "SMT-goal-generator")
-
 ;; --------------------------------------------------------
 
 (defmacro Smtlink (clause)

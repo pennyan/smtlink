@@ -16,16 +16,16 @@
 (program)
 
 (defun extract-hint-wrapper (cl)
-  (cond ((endp cl) nil)
+  (cond ((endp cl) (mv nil nil))
         (t (let ((lit (car cl)))
              (case-match lit
-               ((('hint-please & ('quote kwd-alist)))
-                kwd-alist)
+               ((('hint-please term ('quote kwd-alist)))
+                (mv term kwd-alist))
                (& (extract-hint-wrapper (cdr cl))))))))
 
 (defun SMT-hint-wrapper-hint (cl)
   (b* ((- (cw "cl entering hint-wrapper: ~q0" cl))
-       (kwd-alist (extract-hint-wrapper cl)))
+       ((mv kwd-alist term) (extract-hint-wrapper cl)))
     (cond (kwd-alist
            (mv-let (pre post)
              (split-keyword-alist :expand kwd-alist)
@@ -35,17 +35,17 @@
                         `(:computed-hint-replacement
                           t
                           ,@pre
-                          :expand ,(cons `(hint-please ',kwd-alist)
+                          :expand ,(cons `(hint-please ,term ',kwd-alist)
                                          (cadr post))
                           ,@post)))
               (t ; simply extend kwd-alist
                (prog2$ (cw "~q0" `(:computed-hint-replacement
                                    t
-                                   :expand (hint-please ',kwd-alist)
+                                   :expand (hint-please ,term ',kwd-alist)
                                    ,@kwd-alist))
                        `(:computed-hint-replacement
                          t
-                         :expand (hint-please ',kwd-alist)
+                         :expand (hint-please ,term ',kwd-alist)
                          ,@kwd-alist))))))
           (t nil))))
 

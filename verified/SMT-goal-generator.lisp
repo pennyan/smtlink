@@ -20,21 +20,20 @@
   (define expand (term hints)
     :ignore-ok t
     :irrelevant-formals-ok t
-    nil)
+    term)
 
   (define generate-aux (fn-lst hp-lst)
     :ignore-ok t
     :irrelevant-formals-ok t
-    nil)
+    (mv nil nil))
 
   (define SMT-goal-generator (cl hints)
     :guard (smtlink-hint-p hints)
     (b* ((main-hint (smtlink-hint->hints hints))
          (fn-lst (smtlink-hint->functions hints))
          (hp-lst (smtlink-hint->hypotheses hints))
-         (G-prim (expand cl fn-lst))
-         (aux-&-hint-alist (generate-aux hp-lst fn-lst))
-         (G-prim-and-main-hint `(,G-prim . ,main-hint))
+         (G-prim (expand (disjoin cl) fn-lst))
+         ((mv aux-list aux-hint-list) (generate-aux hp-lst fn-lst))
          (SMT-hint `(:clause-processor (SMT-trusted-cp clause))))
-      `(,aux-&-hint-alist ,G-prim-and-main-hint ,SMT-hint)))
+      `((,aux-list ,G-prim) (,aux-hint-list ,main-hint ,SMT-hint))))
   )
