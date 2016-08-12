@@ -7,6 +7,7 @@
 
 (in-package "SMT")
 (include-book "../verified/SMT-hint-interface")
+
 ;; (include-book "../verified/SMT-config")
 
 ;; (defun mk-fname (directory fname-LISP suffix)
@@ -27,10 +28,11 @@
 ;;            (concatenate 'string dir "/" (string (lisp-to-python-names fname-LISP)) suffix))
 ;;           (t (er hard? 'top-level "Error(SMT-py): fname should either be a string or \"\"")))))
 
-;; (defun SMT-prove (term)
-;;   (b* ((fname (smtlink-hint->python-file (smt-hint)))
-;;        (uninterpreted (smtlink-hint->uninterpreted (smt-hint)))
-;;        (directory (smtlink-config->SMT-files-dir (smt-cnf)))
-;;        (file-format (smtlink-config->file-format (smt-cnf)))
-;;        (smt-file (mk-fname directory fname file-format)))
-;;     ()))
+(defun SMT-prove (term)
+  (declare (ignore term))
+  ;; (b* ((fname (smtlink-hint->python-file (smt-hint)))
+  ;;      (uninterpreted (smtlink-hint->uninterpreted (smt-hint)))
+  ;;      (directory (smtlink-config->SMT-files-dir (smt-cnf)))
+  ;;      (file-format (smtlink-config->file-format (smt-cnf)))
+  ;;      (smt-file (mk-fname directory fname file-format))))
+  t)

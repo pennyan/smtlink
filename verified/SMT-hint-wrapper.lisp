@@ -17,16 +17,18 @@
 
 (defun extract-hint-wrapper (cl)
   (cond ((endp cl) (mv nil nil))
-        (t (let ((lit (car cl)))
+        (t (b* ((lit (car cl)))
              (case-match lit
-               ((('hint-please term ('quote kwd-alist)))
+               (('hint-please term ('quote kwd-alist))
                 (mv term kwd-alist))
                (& (extract-hint-wrapper (cdr cl))))))))
 
 (defun SMT-hint-wrapper-hint (cl)
   (b* ((- (cw "cl entering hint-wrapper: ~q0" cl))
-       ((mv kwd-alist term) (extract-hint-wrapper cl)))
-    (cond (kwd-alist
+       ((mv term kwd-alist) (extract-hint-wrapper cl))
+       (- (cw "term: ~q0" term))
+       (- (cw "kwd-alist: ~q0" kwd-alist)))
+    (cond ((or term kwd-alist)
            (mv-let (pre post)
              (split-keyword-alist :expand kwd-alist)
              (cond
