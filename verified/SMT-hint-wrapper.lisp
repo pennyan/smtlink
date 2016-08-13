@@ -34,19 +34,25 @@
              (cond
               (post ; then there was already an :expand hint; splice one in
                (assert$ (eq (car post) :in-theory)
-                        `(,@pre
+                        `(:computed-hint-replacement
+                          ('(,@pre ,@post))
+                          :do-not '(preprocess)
                           :in-theory (enable hint-please ,@(cdadr post))
-                          ,@post)))
+                          ;; :expand ,(cons `(hint-please ,term ',kwd-alist)
+                          ;;                (cadr post))))
+                          )
               (t ; simply extend kwd-alist
                (prog2$ (cw "~q0" `(:computed-hint-replacement
                                    ('(,@kwd-alist))
                                    :do-not '(preprocess)
                                    :in-theory (enable hint-please)
+                                   ;; :expand (hint-please ,term ',kwd-alist)
                                    ))
                        `(:computed-hint-replacement
                          ('(,@kwd-alist))
                          :do-not '(preprocess)
                          :in-theory (enable hint-please)
+                         ;; :expand (hint-please ,term ',kwd-alist)
                          ))))))
           (t nil))))
 
