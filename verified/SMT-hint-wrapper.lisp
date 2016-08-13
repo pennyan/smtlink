@@ -39,8 +39,8 @@
                           :do-not '(preprocess)
                           :in-theory (enable hint-please ,@(cdadr post))
                           ;; :expand ,(cons `(hint-please ,term ',kwd-alist)
-                          ;;                (cadr post))))
-                          )
+                          ;;                (cadr post))
+                          )))
               (t ; simply extend kwd-alist
                (prog2$ (cw "~q0" `(:computed-hint-replacement
                                    ('(,@kwd-alist))
