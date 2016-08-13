@@ -30,28 +30,29 @@
        (- (cw "kwd-alist: ~q0" kwd-alist)))
     (cond ((or term kwd-alist)
            (mv-let (pre post)
-             (split-keyword-alist :expand kwd-alist)
+             (split-keyword-alist :in-theory kwd-alist)
              (cond
               (post ; then there was already an :expand hint; splice one in
-               (assert$ (eq (car post) :expand)
-                        `(:computed-hint-replacement
-                          t
-                          ,@pre
-                          :expand ,(cons `(hint-please ,term ',kwd-alist)
-                                         (cadr post))
+               (assert$ (eq (car post) :in-theory)
+                        `(,@pre
+                          :in-theory (enable hint-please ,@(cdadr post))
                           ,@post)))
               (t ; simply extend kwd-alist
                (prog2$ (cw "~q0" `(:computed-hint-replacement
-                                   t
-                                   :expand (hint-please ,term ',kwd-alist)
-                                   ,@kwd-alist))
+                                   ('(,@kwd-alist))
+                                   :do-not '(preprocess)
+                                   :in-theory (enable hint-please)
+                                   ))
                        `(:computed-hint-replacement
-                         t
-                         :expand (hint-please ,term ',kwd-alist)
-                         ,@kwd-alist))))))
+                         ('(,@kwd-alist))
+                         :do-not '(preprocess)
+                         :in-theory (enable hint-please)
+                         ))))))
           (t nil))))
 
 (logic)
 
 ;; Add this line to your code to add a default hint of SMT-hint-wrapper-hint
 ;; (add-default-hints '((SMT-hint-wrapper-hint clause)))
+;; Remove hint:
+;; (remove-default-hints '((SMT-hint-wrapper-hint clause)))

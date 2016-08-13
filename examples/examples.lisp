@@ -22,24 +22,17 @@
             :clause-processor
             (SMT::Smtlink clause))))
 
-;; ;; Example 2
-;; (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
-;; (defthm poly-of-expt-example
-;;   (implies (and (rationalp x) (rationalp y) (rationalp z)
-;;                 (integerp m) (integerp n)
-;;                 (< 0 z) (< z 1) (< 0 m) (< m n))
-;;            (<= (* 2 (expt z n) x y)
-;;                (* (expt z m) (||x^2+y^2||^2 x y))))
-;;   :hints (("Goal"
-;;            :clause-processor
-;;            (Smtlink-custom-config clause
-;;                                   '((:expand ((:functions ((||x^2+y^2||^2 rationalp)))
-;;                                               (:expansion-level 1)))
-;;                                     (:let ((expt_z_m (expt z m) rationalp)
-;;                                            (expt_z_n (expt z n) rationalp)))
-;;                                     (:hypothesize ((< expt_z_n expt_z_m)
-;;                                                    (< 0 expt_z_m)
-;;                                                    (< 0 expt_z_n))))))))
+;; Example 2
+(defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
+(defthm poly-of-expt-example
+  (implies (and (rationalp x) (rationalp y) (rationalp z)
+                (integerp m) (integerp n)
+                (< 0 z) (< z 1) (< 0 m) (< m n))
+           (<= (* 2 (expt z n) x y)
+               (* (expt z m) (||x^2+y^2||^2 x y))))
+  :hints (("Goal"
+           :clause-processor
+           (SMT::Smtlink clause))))
 
 ;; ;; Buggy example
 ;; (defthm non-theorem
