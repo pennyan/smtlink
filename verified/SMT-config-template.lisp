@@ -7,6 +7,13 @@
 
 (in-package "SMT")
 (include-book "centaur/fty/top" :dir :system)
+(include-book "xdoc/top" :dir :system)
+(include-book "std/util/define" :dir :system)
+
+
+(defsection SMT-config
+  :parents (Smtlink)
+  :short "Define Smtlink config"
 
 (defprod smtlink-config
   ((interface-dir stringp)
@@ -20,8 +27,10 @@
 
 (defstub smt-cnf () => *)
 
-(defun default-smtlink-config ()
+(define default-smtlink-config ()
   (declare (xargs :guard t))
   (change-smtlink-config *default-smtlink-config*))
 
 (defattach smt-cnf default-smtlink-config)
+
+)

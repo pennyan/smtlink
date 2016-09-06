@@ -8,6 +8,7 @@
 (in-package "SMT")
 (include-book "std/util/bstar" :dir :system)
 
+
 ;; --------------------------------------------------------
 
 (defmacro Smtlink (clause)

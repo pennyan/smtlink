@@ -11,11 +11,17 @@
 
 (in-package "SMT")
 (include-book "std/util/bstar" :dir :system)
+(include-book "xdoc/top" :dir :system)
+(include-book "std/util/define" :dir :system)
 
+
+(defsection SMT-hint-wrapper
+  :parents (Smtlink)
+  :short "Define Smtlink hint wrapper"
 
 (program)
 
-(defun extract-hint-wrapper (cl)
+(define extract-hint-wrapper (cl)
   (cond ((endp cl) (mv nil nil))
         (t (b* ((lit (car cl)))
              (case-match lit
@@ -23,7 +29,7 @@
                 (mv term kwd-alist))
                (& (extract-hint-wrapper (cdr cl))))))))
 
-(defun SMT-hint-wrapper-hint (cl)
+(define SMT-hint-wrapper-hint (cl)
   (b* ((- (cw "cl entering hint-wrapper: ~q0" cl))
        ((mv term kwd-alist) (extract-hint-wrapper cl))
        (- (cw "term: ~q0" term))
@@ -58,6 +64,7 @@
 
 (logic)
 
+)
 ;; Add this line to your code to add a default hint of SMT-hint-wrapper-hint
 ;; (add-default-hints '((SMT-hint-wrapper-hint clause)))
 ;; Remove hint:

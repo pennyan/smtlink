@@ -82,9 +82,8 @@
                        :int-to-rat t
                        :python-file ""
                        :smt-hint nil
-                       :aux-hint-list (list (make-hint-pair :thm '(a1) :hints nil)
-                                            (make-hint-pair :thm '(a2) :hints nil))
-                       :expanded-clause-w/-hint (make-hint-pair :thm '(if a b c) :hints nil)))
+                       :aux-hint-list nil
+                       :expanded-clause-w/-hint (make-hint-pair :thm nil :hints nil)))
 
   (defstub smt-hint () => *)
 

@@ -38,7 +38,7 @@ import getopt
 import re
 
 def is_marker(mk):
-    if (mk == "(defconst *default-smtlink-config* (make-smtlink-config :dir-interface "" :dir-files "" :SMT-module "" :SMT-class "" :smt-cmd "" :file-format ""))\n"):
+    if (mk == "(defconst *default-smtlink-config* (make-smtlink-config :interface-dir \"\" :SMT-files-dir \"\" :SMT-module \"\" :SMT-class \"\" :SMT-cmd \"\" :file-format \"\"))\n"):
         return True
     else:
         return False
@@ -47,15 +47,18 @@ def gen_code(py_exe, py_file):
     code = []
 
     code.append("(defconst *default-smtlink-config*\n")
-    code.append("  (make-smtlink-config :interface-dir nil\n")
-    code.append("                       :dir-files \"" + py_file + "\"\n")
+    code.append("  (make-smtlink-config :interface-dir \"../z3_interface/\"\n")
+    if (py_file == "nil"):
+        code.append("                       :SMT-files-dir \"\"\n")
+    else:
+        code.append("                       :SMT-files-dir \"" + py_file + "\"\n")
     code.append("                       :SMT-module \"ACL2_to_Z3\"\n")
     code.append("                       :SMT-class \"ACL22SMT\"\n")
-    if (py_exe == ""):
+    if (py_exe == "nil"):
         print "Error: Python executable is not set yet ..."
         exit(1)
     else:
-        code.append("                       :smt-cmd \"" + py_exe + "\"\n")
+        code.append("                       :SMT-cmd \"" + py_exe + "\"\n")
     code.append("                       :file-format \".py\"))\n")
 
     return code
@@ -68,6 +71,8 @@ def gen(inf, outf, py_exe, py_file):
         rlines = rf.readlines()
     for rline in rlines:
         if (is_marker(rline)):
+            print "yes"
+            print rline
             wlines += gen_code(py_exe, py_file)
         else:
             wlines.append(rline)
@@ -76,10 +81,10 @@ def gen(inf, outf, py_exe, py_file):
     wt.close()
 
 def main(argv):
-    inf = "config-template.lisp"
-    outf = "config.lisp"
-    py_exe = ""
-    py_file = ""
+    inf = "../verified/SMT-config-template.lisp"
+    outf = "../verified/SMT-config.lisp"
+    py_exe = "nil"
+    py_file = "nil"
     try:
         opts, args = getopt.getopt(argv, "i:o:p:z:")
         print opts, args
