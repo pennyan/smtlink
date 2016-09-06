@@ -62,6 +62,7 @@
 
       fty::defprod
       fty::deflist
+      fty::deffixtype
       )
     )
    ;; Things to remove

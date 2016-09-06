@@ -10,10 +10,12 @@
 (include-book "verified/SMT-verified-cp")
 (include-book "verified/SMT-hint-wrapper")
 (include-book "verified/Smtlink")
-(include-book "verified/SMT-goal-generator")
+;; (include-book "verified/SMT-goal-generator")
 (include-book "verified/SMT-hint-interface")
+(include-book "verified/SMT-config")
 
-(include-book "trusted/SMT-trusted-cp")
+;; (include-book "trusted/SMT-trusted-cp")
+;; (include-book "trusted/SMT-prove")
 
 ;; ------------------------------------------------------- ;;
 ;;    Documentation

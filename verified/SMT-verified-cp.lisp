@@ -25,24 +25,41 @@
 (include-book "std/util/bstar" :dir :system)
 (include-book "misc/eval" :dir :system)
 (include-book "clause-processors/join-thms" :dir :system)
+(include-book "xdoc/top" :dir :system)
+(include-book "std/util/define" :dir :system)
+
+(include-book "SMT-hint-interface")
+
+(defsection SMT-verified-clause-processor
+  :parents (Smtlink)
+  :short "SMT verified clause processor"
 
 ;; -----------------------------------------------------------------
 ;;       Define the identity function.
 ;;
 
-(defun hint-please (cl hint)
+(define hint-please ((hint listp))
   (declare (ignore hint)
            (xargs :guard t))
-  cl)
+  nil)
 
 (defthm hint-please-forward
-  (implies (hint-please cl hint)
-           cl)
+  (implies (hint-please hint)
+           nil)
   :rule-classes :forward-chaining)
 
 (in-theory (disable (:d hint-please)
                     (:e hint-please)
                     (:t hint-please)))
+
+;; -----------------------------------------------------------------
+;;       Define evaluators
+
+(defevaluator ev-Smtlink-subgoals ev-lst-Smtlink-subgoals
+  ((not x) (if x y z) (hint-please hint) ))
+
+(def-join-thms ev-Smtlink-subgoals)
+
 
 ;; -----------------------------------------------------------------
 ;;       Define Smtlink subgoals.
@@ -60,105 +77,98 @@
 ;; G-prim : The expanded original clause
 ;; G : The original clause
 
-(defun and-logic (a b)
-  `(if ,a ,b 'nil))
+(define preprocess-auxes ((hinted-As hint-pair-listp) (G pseudo-termp))
+  :enabled t
+  :returns (mv (list-of-A-thm true-listp)
+               (list-of-not-As true-listp))
+  (b* (((unless (hint-pair-listp hinted-As)) (mv nil nil))
+      ((if (endp hinted-As)) (mv nil nil))
+       ((cons first-hinted-A rest-hinted-As) hinted-As)
+       (A (hint-pair->thm first-hinted-A))
+       (A-hint (hint-pair->hints first-hinted-A))
+       (first-A-thm `((hint-please ,A-hint) ,A ,G))
+       (first-not-A-clause `(not ,A))
+       ((mv rest-A-thms rest-not-A-clauses)
+        (preprocess-auxes rest-hinted-As G)))
+    (mv (cons first-A-thm rest-A-thms)
+        (cons first-not-A-clause rest-not-A-clauses)))
+  ///
+  ;; For helping verify clause processor
+  (defthm preprocess-auxes-corollary
+    (implies (and (pseudo-term-listp cl)
+                  (alistp b)
+                  (hint-pair-listp hinted-As)
+                  (ev-smtlink-subgoals
+                   (disjoin (mv-nth 1 (preprocess-auxes hinted-As (disjoin cl)))) b)
+                  (ev-smtlink-subgoals
+                   (conjoin-clauses (mv-nth 0 (preprocess-auxes hinted-As (disjoin cl)))) b))
+             (ev-smtlink-subgoals (disjoin cl) b))
+    :hints (("Goal"
+             :induct (preprocess-auxes hinted-As (disjoin cl)))))
+  )
 
-(defun and-list-logic (lst)
-  (cond ((endp lst) ''t)
-        ((endp (cdr lst)) (car lst))
-        (t (and-logic (car lst) (and-list-logic (cdr lst))))))
-
-(defun or-logic (a b)
-  `(if ,a 't ,b))
-
-(defun or-list-logic (lst)
-  (cond ((endp lst) ''t)
-        ((endp (cdr lst)) (car lst))
-        (t (or-logic (car lst) (or-list-logic (cdr lst))))))
-
-(defun construct-aux-clauses (A-list hint-list G)
-  (if (endp A-list)
-      nil
-    (b* ((first-A (car A-list))
-         (first-hint (car hint-list)))
-      (cons `((hint-please ,(or-logic first-A G) ',first-hint))
-            (construct-aux-clauses (cdr A-list) (cdr hint-list) G)))))
-
-(defun construct-smtlink-subgoals (As G-prim hints G)
-  (b* ((A-and-list (and-list-logic As))
-       (hint-list (car hints))
-       (main-hint (cadr hints))
-       (SMT-hint (caddr hints))
-       (cl0 `((hint-please (implies ,A-and-list ,G-prim) ',SMT-hint)))
-       (cl1 `((hint-please (implies ,(and-logic G-prim (and-list-logic As)) ,G) ',main-hint)))
-       (aux-clauses (construct-aux-clauses As hint-list G)))
+;;
+;; Constructing three type of clauses:
+;;
+;; 1. ((not A1) ... (not An) G-prim)
+;; 2. ((not A1) ... (not An) (not G-prim) G)
+;; 3. (A1 G)
+;;    ...
+;;    (An G)
+;;
+;; Adding hint-please:
+;;
+;; 1. ((hint-please smt-hint) (not A1) ... (not An) G-prim)
+;; 2. ((hint-please main-hint) (not A1) ... (not An) (not G-prim) G)
+;; 3. ((hint-please A1-hint) A1 G)
+;;    ...
+;;    ((hint-please An-hint) An G)
+;;
+(define construct-smtlink-subgoals ((hinted-As hint-pair-listp)
+                                    (hinted-G-prim hint-pair-p)
+                                    (smt-hint listp)
+                                    (G pseudo-termp))
+  :enabled t
+  (b* (((mv aux-clauses list-of-not-As) (preprocess-auxes hinted-As G))
+       (G-prim (hint-pair->thm hinted-G-prim))
+       (main-hint (hint-pair->hints hinted-G-prim))
+       (cl0 `((hint-please ,smt-hint) ,@list-of-not-As ,G-prim))
+       (cl1 `((hint-please ,main-hint) ,@list-of-not-As (not ,G-prim) ,G)))
     `(,cl0 ,cl1 ,@aux-clauses)))
 
-(defun get-smtlink-subterms (clause)
-  (b* ((As (caar clause))
-       (G-prim (cadar clause))
-       (hints (cadr clause)))
-    (mv As G-prim hints)))
+;; If I give guard to smtlink-hint, then I get the error:
 
-;;
-;; Shape of clause:
-;;
-;; (;; clauses: list of As, G-prim
-;;  ((A1 A2 ... An)
-;;   G-prim)
-;;  ;; hints: list of A-hints, main-hints
-;;  ((A1-hint A2-hint ... An-hint)
-;;   main-hint
-;;   SMT-hint))
-;;
-(defun Smtlink-subgoals (cl clause)
-  (mv-let (As G-prim hints) (get-smtlink-subterms clause)
-    (construct-smtlink-subgoals As G-prim hints (disjoin cl))))
+;; ACL2 Error in ( DEFTHM CORRECTNESS-OF-SMTLINK-SUBGOALS ...):  The clause-
+;; processor of a :CLAUSE-PROCESSOR rule must have a guard that obviously
+;; holds whenever its first argument is known to be a PSEUDO-TERM-LISTP
+;; and any stobj arguments are assumed to satisfy their stobj predicates.
+;; However, the guard for SMTLINK-SUBGOALS is
+;; (AND (PSEUDO-TERM-LISTP CL) (SMTLINK-HINT-P SMTLINK-HINT)).  See :DOC
+;; clause-processor.
 
 
-
-;; Test Smtlink-subgoals
-(must-succeed
- (defthm test-case-1
-   (equal (Smtlink-subgoals '(G)
-                            '(((A1 A2)
-                               G-prim)
-                              ((A1-hint A2-hint)
-                               main-hint
-                               SMT-hint)))
-          '(((hint-please (implies (IF A1 A2 'NIL) G-PRIM) 'SMT-hint))
-            ((hint-please (implies (IF G-prim (IF A1 A2 'NIL) 'NIL) G) 'main-hint))
-            ((hint-please (IF A1 'T G) 'A1-hint))
-            ((hint-please (If A2 'T G) 'A2-hint))))))
-;; Test clause processor
-(defmacro test-smtlink-cp (subgoals)
-  `(thm (implies (and ,@(conjoin-clauses subgoals)) G)))
-
-
+(define Smtlink-subgoals ((cl pseudo-term-listp) (smtlink-hint t))
+  :enabled t
+  (b* (((unless (smtlink-hint-p smtlink-hint)) (list cl))
+       (hinted-As (smtlink-hint->aux-hint-list smtlink-hint))
+       (hinted-G-prim (smtlink-hint->expanded-clause-w/-hint smtlink-hint))
+       (smt-hint (smtlink-hint->smt-hint smtlink-hint)))
+    (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint (disjoin cl))))
 
 ;; ------------------------------------------------------------
 ;;         Prove correctness of clause processor
 ;;
 
-(defevaluator ev-Smtlink-subgoals ev-lst-Smtlink-subgoals
-  ((not x) (if x y z) (implies x y) (hint-please cl hint) ))
-
-(def-join-thms ev-Smtlink-subgoals)
-
-(defthm correctness-of-Smtlink-subgoals-lemma
-  (implies
-   (and (pseudo-term-listp cl)
-        (alistp b)
-        (not (ev-smtlink-subgoals (and-list-logic As) b))
-        (ev-smtlink-subgoals
-         (conjoin-clauses (construct-aux-clauses As A-hints (disjoin cl))) b))
-   (ev-smtlink-subgoals (disjoin cl) b)))
-
 (defthm correctness-of-Smtlink-subgoals
   (implies (and (pseudo-term-listp cl)
                 (alistp b)
                 (ev-Smtlink-subgoals
-                 (conjoin-clauses (Smtlink-subgoals cl clause))
+                 (conjoin-clauses (Smtlink-subgoals cl smtlink-hint))
                  b))
            (ev-Smtlink-subgoals (disjoin cl) b))
-  :rule-classes :clause-processor)
+  :rule-classes :clause-processor
+  :hints (("Goal"
+           :use ((:instance preprocess-auxes-corollary
+                            (hinted-As (smtlink-hint->aux-hint-list smtlink-hint)))))))
+
+)

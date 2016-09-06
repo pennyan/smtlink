@@ -22,18 +22,44 @@
     :irrelevant-formals-ok t
     term)
 
-  (define generate-aux (fn-lst hp-lst)
+  (define generate-fn-hint-lst (fn-lst)
+    :guard (func-listp fn-lst)
+    :returns (fn-hint-lst hint-pair-listp)
     :ignore-ok t
     :irrelevant-formals-ok t
-    (mv nil nil))
+
+    nil
+    )
+
+  (define generate-hyp-hint-lst (hyp-lst)
+    :guard (hint-pair-listp hyp-lst)
+    :returns (hyp-hint-lst hint-pair-listp)
+    :ignore-ok t
+    :irrelevant-formals-ok t
+
+    nil
+    )
 
   (define SMT-goal-generator (cl hints)
-    :guard (smtlink-hint-p hints)
-    (b* ((main-hint (smtlink-hint->hints hints))
-         (fn-lst (smtlink-hint->functions hints))
-         (hp-lst (smtlink-hint->hypotheses hints))
+    :guard (and (smtlink-hint-p hints)
+                (pseudo-term-listp cl))
+    :returns (new-hints smtlink-hint-p)
+
+    (b* ((fn-lst (smtlink-hint->functions hints))
+         (fn-hint-lst (generate-fn-hint-lst fn-lst))
+
+         (hyp-lst (smtlink-hint->hypotheses hints))
+         (hyp-hint-lst (generate-hyp-hint-lst hyp-lst))
+
+         (total-aux-hint-lst `(,@(fn-hint-lst hyp-hint-lst)))
+
          (G-prim (expand (disjoin cl) fn-lst))
-         ((mv aux-list aux-hint-list) (generate-aux hp-lst fn-lst))
-         (SMT-hint `(:clause-processor (SMT-trusted-cp clause))))
-      `((,aux-list ,G-prim) (,aux-hint-list ,main-hint ,SMT-hint))))
+         (main-hint (smtlink-hint->main-hint hints))
+         (expanded-clause-w/-hint `(G-prim . main-hint))
+         (new-hints
+          (change-smtlink-hint hints
+                               :aux-hint-list total-aux-hint-lst
+                               :expanded-clause-w/-hint expanded-clause-w/-hint
+                               )))
+      new-hints))
   )
