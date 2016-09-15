@@ -23,8 +23,26 @@
   ;;    to pass in a different hint.
   ;;
 
-  (defun list-fix (x)
-    (declare (xargs :guard t))
+  (define pseudo-term-fix (x)
+    :enabled t
+    (if (pseudo-termp x) x nil))
+
+  (deffixtype pseudo-term
+    :fix pseudo-term-fix
+    :pred pseudo-termp
+    :equiv equal)
+
+  (define pseudo-term-list-fix (x)
+    :enabled t
+    (if (pseudo-term-listp x) x nil))
+
+  (deffixtype pseudo-term-list
+    :fix pseudo-term-list-fix
+    :pred pseudo-term-listp
+    :equiv equal)
+
+  (define list-fix (x)
+    :enabled t
     (if (listp x) x nil))
 
   (deffixtype list
@@ -33,8 +51,8 @@
     :equiv equal)
 
   (defprod hint-pair
-    ((thm listp)       ;; a theorem statement about the variable
-     (hints listp)     ;; the hint for proving this theorem
+    ((thm pseudo-termp :default nil)       ;; a theorem statement about the variable
+     (hints listp :default nil)     ;; the hint for proving this theorem
      ))
 
   (deflist hint-pair-list
@@ -43,8 +61,8 @@
     :true-listp t)
 
   (defprod decl
-    ((name symbolp)
-     (type hint-pair-p)))
+    ((name symbolp :default nil)
+     (type hint-pair-p :default (make-hint-pair))))
 
   (deflist decl-list
     :elt-type decl
@@ -52,43 +70,42 @@
     :true-listp t)
 
   (defprod func
-    ((name symbolp)
-     (formals decl-listp)
-     (guard hint-pair-listp)
-     (returns decl-listp)             ;; belong to auxiliary hypotheses
-     (more-returns hint-pair-listp)   ;; belong ot auxiliary hypotheses
-     (expansion-depth integerp)
-     (uninterpreted booleanp)))
+    ((name symbolp :default nil)
+     (formals decl-listp :default nil)
+     (guard hint-pair-listp :default nil)
+     (returns decl-listp :default nil)             ;; belong to auxiliary hypotheses
+     (more-returns hint-pair-listp :default nil)   ;; belong ot auxiliary hypotheses
+     (body pseudo-termp :default nil)
+     (expansion-depth natp :default 0)
+     (uninterpreted booleanp :default nil)))
 
   (deflist func-list
     :elt-type func
     :pred func-listp
     :true-listp t)
 
+  (defalist func-alist
+    :key-type symbol
+    :val-type func
+    :pred func-alistp)
+
   (defprod smtlink-hint
-    ((functions func-listp)
-     (hypotheses hint-pair-listp)
-     (main-hint listp)
-     (int-to-rat booleanp)
-     (python-file stringp)
-     (smt-hint listp)
-     (aux-hint-list hint-pair-listp)
-     (expanded-clause-w/-hint hint-pair-p)))
+    ((functions func-listp :default nil)
+     (hypotheses hint-pair-listp :default nil)
+     (main-hint listp :default nil)
+     (int-to-rat booleanp :default t)
+     (python-file stringp :default "")
+     (smt-hint listp :default nil)
+     (fast-functions func-alistp :default nil)
+     (aux-hint-list hint-pair-listp :default nil)
+     (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))))
 
   (defconst *default-smtlink-hint*
-    (make-smtlink-hint :functions nil
-                       :hypotheses nil
-                       :main-hint nil
-                       :int-to-rat t
-                       :python-file ""
-                       :smt-hint nil
-                       :aux-hint-list nil
-                       :expanded-clause-w/-hint (make-hint-pair :thm nil :hints nil)))
+    (make-smtlink-hint))
 
   (defstub smt-hint () => *)
 
-  (defun default-smtlink-hint ()
-    (declare (xargs :guard t))
+  (define default-smtlink-hint ()
     (change-smtlink-hint *default-smtlink-hint*))
 
   (defattach smt-hint default-smtlink-hint)

@@ -10,6 +10,7 @@
 ;; load other packages needed to define our new packages...
 (include-book "std/portcullis" :dir :system)
 (include-book "centaur/fty/portcullis" :dir :system)
+(include-book "centaur/fty/basetypes" :dir :system)
 
 ;; define our new packages
 (defpkg "SMT"
@@ -24,13 +25,21 @@
     '(b*
       define
       defconsts
+      more-returns
+      l<
       tshell-ensure
       tshell-call
       set-raw-mode-on
+      defines
       defxdoc
       defsection
       def-join-thms
       termify-clause-set
+      body
+      lambda-formals
+      lambda-body
+
+      pseudo-lambdap
 
       conjoin-clauses
       conjoin
@@ -63,6 +72,9 @@
       fty::defprod
       fty::deflist
       fty::deffixtype
+      fty::defalist
+
+      symbol-fix
       )
     )
    ;; Things to remove
