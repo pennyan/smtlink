@@ -226,21 +226,20 @@
     (define expand ((expand-args ex-args-p))
       :returns (expanded-terms pseudo-term-listp)
       :measure (expand-measure expand-args)
-      :guard-debug t
       :hints
       (("Goal"
         :use ((:instance sum-lvls-decrease-after-update
                          (fn (car (car (ex-args->term-lst expand-args))))
                          (fn-lvls (ex-args->fn-lvls expand-args))))))
       :enabled t
-      (b* (;; (expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args))
-           ((unless (ex-args-p expand-args)) nil)
+      (b* ((expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args))
+           ;; ((unless (ex-args-p expand-args)) nil)
            ((ex-args a) expand-args)
            ((unless (consp a.term-lst)) nil)
            ((cons term rest) a.term-lst)
            ;; If first term is an atom, return the atom
            ;; then recurse on the rest of the list
-           ((if (atom term))
+           ((if (symbolp term))
             (cons term (expand (change-ex-args expand-args :term-lst rest))))
            ((if (and (equal (car term) 'quote)
                      (consp (cdr term))
@@ -310,15 +309,18 @@
 
   (define initialize-fn-lvls ((fn-lst func-alistp))
     :returns (fn-lvls sym-nat-alistp)
+    :measure (len fn-lst)
+    :hints (("Goal" :in-theory (enable func-alist-fix)))
     :enabled t
-    (b* (((unless (func-alistp fn-lst)) nil)
+    (b* ((fn-lst (mbe :logic (func-alist-fix fn-lst) :exec fn-lst))
          ((unless (consp fn-lst)) nil)
          ((cons first rest) fn-lst)
          ((func f) (cdr first)))
       (cons (cons f.name f.expansion-depth) (initialize-fn-lvls rest))))
 
   ;; Generate auxiliary hypotheses from the user given hypotheses
-  (define generate-hyp-hint-lst ((hyp-lst hint-pair-listp) (fn-lst func-alistp) (fn-lvls sym-nat-alistp))
+  (define generate-hyp-hint-lst ((hyp-lst hint-pair-listp)
+                                 (fn-lst func-alistp) (fn-lvls sym-nat-alistp))
     :returns (hyp-hint-lst hint-pair-listp)
     (b* (((if (endp hyp-lst)) nil)
          ((cons (hint-pair hyp) rest) hyp-lst)
