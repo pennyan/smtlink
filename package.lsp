@@ -11,6 +11,7 @@
 (include-book "std/portcullis" :dir :system)
 (include-book "centaur/fty/portcullis" :dir :system)
 (include-book "centaur/fty/basetypes" :dir :system)
+(include-book "centaur/fty/baselists" :dir :system)
 
 ;; define our new packages
 (defpkg "SMT"
@@ -75,6 +76,7 @@
       fty::defalist
 
       symbol-fix
+      symbol-list-fix
       )
     )
    ;; Things to remove

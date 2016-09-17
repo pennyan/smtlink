@@ -10,7 +10,6 @@
 (include-book "xdoc/top" :dir :system)
 (include-book "std/util/define" :dir :system)
 
-
 (defsection SMT-hint-interface
   :parents (Smtlink)
   :short "Define default Smtlink hint interface"
@@ -24,8 +23,10 @@
   ;;
 
   (define pseudo-term-fix (x)
+    (declare (xargs :guard (pseudo-termp x)))
     :enabled t
-    (if (pseudo-termp x) x nil))
+    (mbe :logic (if (pseudo-termp x) x nil)
+         :exec x))
 
   (deffixtype pseudo-term
     :fix pseudo-term-fix
@@ -33,8 +34,10 @@
     :equiv equal)
 
   (define pseudo-term-list-fix (x)
+    (declare (xargs :guard (pseudo-term-listp x)))
     :enabled t
-    (if (pseudo-term-listp x) x nil))
+    (mbe :logic (if (pseudo-term-listp x) x nil)
+         :exec x))
 
   (deffixtype pseudo-term-list
     :fix pseudo-term-list-fix
@@ -42,8 +45,10 @@
     :equiv equal)
 
   (define list-fix (x)
+    (declare (xargs :guard (listp x)))
     :enabled t
-    (if (listp x) x nil))
+    (mbe :logic (if (listp x) x nil)
+         :exec x))
 
   (deffixtype list
     :fix list-fix
@@ -60,9 +65,19 @@
     :pred hint-pair-listp
     :true-listp t)
 
+  (define decl->type-reqfix ((x hint-pair-p))
+    :returns (fixed hint-pair-p)
+    :enabled t
+    (b* ((x (mbe :logic (hint-pair-fix x) :exec x))
+         (thm (hint-pair->thm x))
+         (hints (hint-pair->hints x)))
+      (make-hint-pair :thm (if (symbolp thm) thm nil)
+                      :hints (list-fix hints))))
+
   (defprod decl
     ((name symbolp :default nil)
-     (type hint-pair-p :default (make-hint-pair))))
+     (type hint-pair-p :default (make-hint-pair) :reqfix (decl->type-reqfix type)))
+    :require (symbolp (hint-pair->thm type)))
 
   (deflist decl-list
     :elt-type decl
@@ -73,11 +88,14 @@
     ((name symbolp :default nil)
      (formals decl-listp :default nil)
      (guard hint-pair-listp :default nil)
-     (returns decl-listp :default nil)             ;; belong to auxiliary hypotheses
-     (more-returns hint-pair-listp :default nil)   ;; belong ot auxiliary hypotheses
+     (returns decl-listp :default nil)            ;; belong to auxiliary hypotheses
+     (more-returns hint-pair-listp :default nil)  ;; belong ot auxiliary hypotheses
      (body pseudo-termp :default nil)
      (expansion-depth natp :default 0)
-     (uninterpreted booleanp :default nil)))
+     (uninterpreted booleanp :default nil)
+     (flattened-formals symbol-listp :default nil)
+     (flattened-returns symbol-listp :default nil)))
+
 
   (deflist func-list
     :elt-type func
