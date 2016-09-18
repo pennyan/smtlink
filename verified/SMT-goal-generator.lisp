@@ -14,15 +14,17 @@
 (include-book "kestrel/utilities/terms" :dir :system)
 ;; for symbol-fix
 (include-book "centaur/fty/basetypes" :dir :system)
+;; for symbol-list-fix
+(include-book "centaur/fty/baselists" :dir :system)
 
 ;; Include SMT books
 (include-book "SMT-hint-interface")
 
 
+
 (defsection SMT-goal-generator
   :parents (Smtlink)
-  :short "SMT-goal-generator generates the three type of goals for the verified
-  clause processor"
+  :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
 
   (defalist sym-nat-alist
     :key-type symbol
@@ -71,17 +73,6 @@
                   (cdr (assoc fn fn-lvls))))
       :name updated-fn-lvls-decrease))
     )
-
-  (define flatten-formals ((formal-lst decl-listp))
-    :returns (formals symbol-listp)
-    :measure (len formal-lst)
-    :hints (("Goal" :in-theory (enable decl-list-fix)))
-    :enabled t
-    (b* ((formal-lst (mbe :logic (decl-list-fix formal-lst) :exec formal-lst))
-         ((if (endp formal-lst)) nil)
-         ((cons first rest) formal-lst)
-         ((decl d) first))
-      (cons d.name (flatten-formals rest))))
 
   (defprod ex-args
     ((term-lst pseudo-term-listp :default nil)
@@ -138,7 +129,7 @@
              (implies (and (pseudo-termp z) (consp z) (not (equal (car z) 'quote)))
                       (pseudo-term-listp (cdr z)))))
 
-    (defthm cdar-of-ex-args->term-lst-is-pseudo-term-list
+    (defthm pseudo-term-list-of-cdar-of-ex-args->term-lst
       (implies (and (ex-args-p expand-args)
                     (consp (ex-args->term-lst expand-args))
                     (consp (car (ex-args->term-lst expand-args)))
@@ -149,7 +140,7 @@
              (implies (and (pseudo-term-listp y) (consp y))
                       (pseudo-term-listp (cdr y)))))
 
-    (defthm cdr-of-ex-args->term-lst-is-pseudo-term-list
+    (defthm pseudo-term-listp-of-cdr-of-ex-args->term-lst
       (implies (and (ex-args-p expand-args)
                     (consp (ex-args->term-lst expand-args)))
                (pseudo-term-listp (cdr (ex-args->term-lst expand-args)))))
@@ -163,6 +154,32 @@
                     (consp (ex-args->term-lst expand-args))
                     (not (consp (car (ex-args->term-lst expand-args)))))
                (symbolp (car (ex-args->term-lst expand-args)))))
+
+    (defthm pseudo-termp-of-car-of-ex-args->term-lst
+      (implies (and (ex-args-p expand-args)
+                    (consp (ex-args->term-lst expand-args)))
+               (pseudo-termp (car (ex-args->term-lst expand-args))))
+      :hints (("Goal" :in-theory (enable pseudo-termp))))
+
+    (defthm len-equal-of-formals-of-pseudo-lambdap-and-actuals-of-pseudo-termp
+      (implies (and (ex-args-p expand-args)
+                    (pseudo-termp (car (ex-args->term-lst expand-args)))
+                    (pseudo-lambdap (car (car (ex-args->term-lst expand-args)))))
+               (equal (len (cadr (car (car (ex-args->term-lst expand-args)))))
+                      (len (cdr (car (ex-args->term-lst expand-args))))))
+      :hints (("Goal" :in-theory (enable pseudo-termp pseudo-lambdap))))
+
+    (local (defthm lemma-6
+             (implies (and (pseudo-termp x) (not (symbolp x)) (not (pseudo-lambdap (car x))))
+                      (symbolp (car x)))
+             :hints (("Goal" :in-theory (enable pseudo-termp pseudo-lambdap)))))
+
+    (defthm symbolp-of-caar-of-ex-args->term-lst
+      (implies (and (ex-args-p expand-args)
+                    (consp (ex-args->term-lst expand-args))
+                    (not (symbolp (car (ex-args->term-lst expand-args))))
+                    (not (pseudo-lambdap (car (car (ex-args->term-lst expand-args))))))
+               (symbolp (car (car (ex-args->term-lst expand-args))))))
     )
 
   (encapsulate ()
@@ -200,73 +217,55 @@
     (defthm non-neg-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p
       (implies (and (ex-args-p x) (hons-assoc-equal foo (ex-args->fn-lvls x)))
                (<= 0 (cdr (hons-assoc-equal foo (ex-args->fn-lvls x)))))
-      :hints(("Goal" :use ((:instance natp-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p (x x)))))))
+      :hints(("Goal" :use ((:instance natp-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p (x x))))))
+    )
 
   (encapsulate
     ()
     (set-well-founded-relation l<)
 
-    ;;
-    ;; The hypotheses each function is going to generate:
-    ;;
-    ;; If it is a non-recursive function:
-    ;;   Expanding for once should be enough.
-    ;;   Then we don't need the return types theorems.
-    ;;   Currently we are deciding that we don't need the more-returns theorems
-    ;;     for non-recursive functions.
-    ;;
-    ;; If it is a recursive function, but not declared as uninterpreted:
-    ;;   Detect it and report an error.
-    ;;
-    ;; If it is a uninterpreted function:
-    ;;   Expand it to the lowest level.
-    ;;   We need the return type theorem as auxiliary hypotheses.
-    ;;   Instantiate more returns with lambdas and the function calls.
-    ;;
+    ;; Q FOR YAN:
+    ;; 1. merge expand-args->fn-lst and expand-args->fn-lvls
+    ;; 2. change update-fn-lvls function so that old items are not deleted and update the measure function
+    ;; 3. clean the code in a more structured way - treat lambdas in another function
+    ;; 4. clean up the above encapsulated theorems, maybe in another file
     (define expand ((expand-args ex-args-p))
-      :returns (expanded-terms pseudo-term-listp)
+      :returns (expanded-terms pseudo-term-listp
+                               :hints (("Goal" :in-theory (enable ex-args->term-lst))))
       :measure (expand-measure expand-args)
+      :verify-guards nil
       :hints
       (("Goal"
         :use ((:instance sum-lvls-decrease-after-update
                          (fn (car (car (ex-args->term-lst expand-args))))
                          (fn-lvls (ex-args->fn-lvls expand-args))))))
-      :enabled t
       (b* ((expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args))
-           ;; ((unless (ex-args-p expand-args)) nil)
+           ;; This binds expand-args to a, so that we can call a.term-lst ...
            ((ex-args a) expand-args)
            ((unless (consp a.term-lst)) nil)
            ((cons term rest) a.term-lst)
-           ;; If first term is an atom, return the atom
+           ;; If first term is a symbolp, return the symbol
            ;; then recurse on the rest of the list
            ((if (symbolp term))
-            (cons term (expand (change-ex-args expand-args :term-lst rest))))
-           ((if (and (equal (car term) 'quote)
-                     (consp (cdr term))
-                     (equal (cddr term) nil)))
-            (cons term (expand (change-ex-args expand-args :term-lst rest))))
-           ((unless (not (equal (car term) 'quote)))
-            (er hard? 'SMT-goal-generator=>expand "messed up quote: ~q0" term))
+            (cons term (expand (change-ex-args a :term-lst rest))))
+           ((if (equal (car term) 'quote))
+            (cons term (expand (change-ex-args a :term-lst rest))))
            ;; The first term is now a function call:
            ;; Cons the function call and function actuals out of term
            ((cons fn-call fn-actuals) term)
 
-           ;; See if the fn-call is a lambdap:
-           (pseudo-lambda? (pseudo-lambdap fn-call))
-           ;; If it is a pseudo-lambdap
-           ((if pseudo-lambda?)
-            (b* ((lambda-formals (lambda-formals fn-call))
-                 (lambda-body (car (expand (change-ex-args expand-args :term-lst (list (lambda-body fn-call))))))
-                 (lambda-actuals (expand (change-ex-args expand-args :term-lst fn-actuals)))
-                 ((unless (equal (len lambda-formals) (len lambda-actuals)))
-                  (er hard? 'SMT-goal-generator=>expand "You called your function with the wrong number of actuals: ~q0"
-                      term)))
-              (cons `((lambda ,lambda-formals ,lambda-body) ,@lambda-actuals)
-                    (expand (change-ex-args expand-args :term-lst rest)))))
+           ;; If fn-call is a pseudo-lambdap
+           ((if (pseudo-lambdap fn-call))
+            (cons
+             (b* ((lambda-formals (lambda-formals fn-call))
+                  (lambda-body (car (expand (change-ex-args a :term-lst (list (lambda-body fn-call))))))
+                  (lambda-actuals (expand (change-ex-args a :term-lst fn-actuals)))
+                  ((unless (mbt (equal (len lambda-formals) (len lambda-actuals)))) nil))
+               `((lambda ,lambda-formals ,lambda-body) ,@lambda-actuals))
+             (expand (change-ex-args a :term-lst rest))))
 
            ;; If fn-call is neither a lambda expression nor a function call
-           ((unless (symbolp fn-call))
-            (er hard? 'SMT-goal-generator=>expand "Unrecognizable term: ~q0" term))
+           ((unless (mbt (symbolp fn-call))) a.term-lst)
            ;; Try finding function call from fn-lst
            (fn (hons-get fn-call a.fn-lst))
            ;; If fn-call doesn't exist in fn-lst, it can be a basic function,
@@ -274,38 +273,50 @@
            ;; Otherwise it can be a function that's forgotten to be added to fn-lst.
            ;; The translator will fail to translate it and report an error.
            ((unless fn)
-            (cons (cons fn-call (expand (change-ex-args expand-args :term-lst fn-actuals)))
-                  (expand (change-ex-args expand-args :term-lst rest))))
+            (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals)))
+                  (expand (change-ex-args a :term-lst rest))))
 
            ;; Now fn is a function in fn-lst
            ;; If fn-call is already expanded to level 0, don't expand.
            (lvl-item (hons-get fn-call a.fn-lvls))
            ((unless lvl-item)
-            (er hard? 'SMT-goal-generator=>expand "Function ~q0 exists in the definition list but not in the levels list?" fn-call))
+            (prog2$
+             (er hard? 'SMT-goal-generator=>expand "Function ~q0 exists in the definition list but not in the levels list?" fn-call)
+             a.term-lst))
            ((if (zp (cdr lvl-item)))
-            (cons (cons fn-call (expand (change-ex-args expand-args :term-lst fn-actuals)))
-                  (expand (change-ex-args expand-args :term-lst rest))))
+            (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals)))
+                  (expand (change-ex-args a :term-lst rest))))
 
            ;; If fn-call is not expanded to level 0, still can expand.
            (new-fn-lvls (update-fn-lvls fn-call a.fn-lvls))
            ((func f) (cdr fn))
-           (formals (flatten-formals f.formals))
+           (formals f.flattened-formals)
            (expanded-lambda-body
-            (car (expand (change-ex-args expand-args :term-lst (list f.body) :fn-lvls new-fn-lvls))))
+            (car (expand (change-ex-args a :term-lst (list f.body) :fn-lvls new-fn-lvls))))
            (expanded-lambda `(lambda ,formals ,expanded-lambda-body))
-           (expanded-term-list (expand (change-ex-args expand-args :term-lst fn-actuals)))
+           (expanded-term-list (expand (change-ex-args a :term-lst fn-actuals)))
            ((unless (equal (len formals) (len expanded-term-list)))
-            (er hard? 'SMT-goal-generator=>expand "You called your function with the wrong number of actuals: ~q0"
-                term))
+            (prog2$
+             (er hard? 'SMT-goal-generator=>expand "You called your function with the wrong number of actuals: ~q0"
+                 term)
+             a.term-lst))
            )
         (cons `(,expanded-lambda ,@expanded-term-list)
-              (expand (change-ex-args expand-args :term-lst rest))))
+              (expand (change-ex-args a :term-lst rest))))
+      ///
+      (more-returns
+       (expanded-terms (implies (ex-args-p expand-args)
+                                (equal (len expanded-terms)
+                                       (len (ex-args->term-lst expand-args))))
+                       :name len-of-expand)
+       (expanded-terms (implies (ex-args-p expand-args)
+                                (pseudo-termp (car expanded-terms)))
+                       :name pseudo-termp-of-car-of-expand
+                       :hints (("Goal" :use ((:instance pseudo-term-listp-of-expand))))))
       )
     )
 
-  (defthm pseudo-termp-of-car-of-expand
-    (implies (ex-args-p expand-args)
-             (pseudo-termp (car (expand expand-args)))))
+  (verify-guards expand)
 
   (define initialize-fn-lvls ((fn-lst func-alistp))
     :returns (fn-lvls sym-nat-alistp)
@@ -322,6 +333,7 @@
   (define generate-hyp-hint-lst ((hyp-lst hint-pair-listp)
                                  (fn-lst func-alistp) (fn-lvls sym-nat-alistp))
     :returns (hyp-hint-lst hint-pair-listp)
+    :enabled t
     (b* (((if (endp hyp-lst)) nil)
          ((cons (hint-pair hyp) rest) hyp-lst)
          (G-prim (car (expand (make-ex-args :term-lst (list hyp.thm)
@@ -331,149 +343,380 @@
                             :hints hyp.hints)
             (generate-hyp-hint-lst rest fn-lst fn-lvls))))
 
-  ;; (define generate-fn-hint-pair ((hypo hint-pair-p)
-  ;;                                (fn-name symbolp) (returns symbol-listp) (formals symbol-listp)
-  ;;                                (actuals pseudo-term-listp))
-  ;;   :returns (fn-hint-pair hint-pair-p)
-  ;;   (b* (((hint-pair p) hypo)
-  ;;        (free-vars (all-vars p.thm))
-  ;;        ;; If the returns theorems contain free variables,
-  ;;        ;; report an error.
-  ;;        ((unless (subsetp free-vars (append returns formals)))
-  ;;         (er hard? 'SMT-goal-generator=>generate-fn-hint-pair "Function returns theorem contain free variables: ~q0. The formals are: ~q1 and the returns are: ~q2." p.thm formals returns)))
-  ;;     `((lambda ,formals ((lambda ,returns ,p.thm) (,fn-name ,@formals))) ,@actuals)))
+  (define lambda->actuals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
+    :returns (new-actuals pseudo-term-listp)
+    :enabled t
+    (b* ((formals (mbe :logic (symbol-list-fix formals) :exec formals))
+         (actuals (mbe :logic (pseudo-term-list-fix actuals) :exec actuals))
+         (len-formals (len formals))
+         (len-actuals (len actuals))
+         ((if (equal len-formals len-actuals)) actuals))
+      nil))
 
-  ;; (define generate-fn-returns-hint ((returns decl-listp) (fn-name symbolp)
-  ;;                                   (formals decl-listp) (actuals pseudo-term-listp)
-  ;;                                   (fn-hint-acc hint-pair-listp))
-  ;;   :returns (fn-hint-lst hint-pair-listp :hyp :guard)
-  ;;   :ignore-ok t
-  ;;   nil)
+  (define lambda->formals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
+    :returns (new-formals symbol-listp)
+    :enabled t
+    (b* ((formals (mbe :logic (symbol-list-fix formals) :exec formals))
+         (actuals (mbe :logic (pseudo-term-list-fix actuals) :exec actuals))
+         (len-formals (len formals))
+         (len-actuals (len actuals))
+         ((if (equal len-formals len-actuals)) formals))
+      nil))
 
-  ;; (define generate-fn-more-returns-hint ((more-returns hint-pair-listp) (fn-name symbolp)
-  ;;                                        (formals decl-listp) (actuals pseudo-term-listp)
-  ;;                                        (fn-hint-acc hint-pair-listp))
-  ;;   :returns (fn-hint-lst hint-pair-listp :hyp :guard)
-  ;;   :ignore-ok t
-  ;;   nil)
+  (defprod lambda-binding
+    ((formals symbol-listp
+              :default nil
+              :reqfix (lambda->formals-fix formals actuals))
+     (actuals pseudo-term-listp
+              :default nil
+              :reqfix (lambda->actuals-fix formals actuals)))
+    :require (equal (len formals) (len actuals)))
 
-  ;; (define generate-fn-hint ((fn func-p) (fn-actuals pseudo-term-listp)
-  ;;                           (fn-hint-acc hint-pair-listp))
-  ;;   :returns (fn-hint-lst hint-pair-listp :hyp :guard)
-  ;;   (b* (((func f) fn)
-  ;;        ((unless f.uninterpreted)
-  ;;         (er hard? 'SMT-goal-generator=>generate-fn-hint "Function call ~q0 still exists in term but it's not declared as an uninterpreted function." f.name))
-  ;;        (new-fn-hint-acc
-  ;;         (generate-fn-returns-hint f.returns f.name f.formals fn-actuals fn-hint-acc)))
-  ;;     (generate-fn-more-returns-hint f.more-returns f.name f.formals fn-actuals new-fn-hint-acc)))
+  (deflist lambda-binding-list
+    :elt-type lambda-binding
+    :pred lambda-binding-listp
+    :true-listp t)
+
+  (define generate-lambda-bindings ((lambda-bd-lst lambda-binding-listp) (term pseudo-termp))
+    :returns (new-term pseudo-termp)
+    :measure (len lambda-bd-lst)
+    :enabled t
+    (b* ((lambda-bd-lst (mbe :logic (lambda-binding-list-fix lambda-bd-lst) :exec lambda-bd-lst))
+         (term (mbe :logic (pseudo-term-fix term) :exec term))
+         ((unless (consp lambda-bd-lst)) term)
+         ((cons first-bd rest-bd) lambda-bd-lst)
+         ((lambda-binding b) first-bd))
+      (generate-lambda-bindings rest-bd
+                                `((lambda ,b.formals ,term) ,@b.actuals))))
+
+  (defprod fhg-single-args
+    ((fn func-p :default nil)
+     (actuals pseudo-term-listp :default nil)
+     (fn-hint-acc hint-pair-listp :default nil)
+     (lambda-acc lambda-binding-listp :default nil)))
 
 
-  ;; ;; function hypotheses generation arguments
-  ;; (defprod fhg-args
-  ;;   ((term-lst pseudo-term-listp :default nil)
-  ;;    (fn-lst func-alistp :default nil)
-  ;;    (fn-hint-acc hint-pair-listp :default nil)))
+  ;; Precondition:
+  ;; 1. formals are in the right sequence as the functions are first defined
+  ;; 2. all free vars in the thm of hypo must either be the formals or returns
+  ;; These precondition should be satisfied when generating
+  ;;   Smtlink-hint.
+  (define generate-fn-hint-pair ((hypo hint-pair-p) (args fhg-single-args-p))
+    :returns (fn-hint-pair hint-pair-p)
+    :enabled t
+    :guard-debug t
+    (b* ((hypo (mbe :logic (hint-pair-fix hypo) :exec hypo))
+         (args (mbe :logic (fhg-single-args-fix args) :exec args))
+         ((hint-pair h) hypo)
+         ((fhg-single-args a) args)
+         ((func f) a.fn)
 
-  ;; ;; Generate auxiliary hypotheses from function expansion
-  ;; (define generate-fn-hint-lst ((args fhg-args-p))
-  ;;   :returns (fn-hint-lst hint-pair-listp)
-  ;;   (b* (;; If guard is violated, return nil
-  ;;        ((unless (fhg-args-p args)) nil)
-  ;;        ;; Bind the fields out of the defprod type
-  ;;        ((fhg-args a) args)
-  ;;        ;; If a.term-lst is nil,
-  ;;        ;; return the function hint accumulator a.fn-hint-acc
-  ;;        ((unless (consp a.term-lst)) a.fn-hint-acc)
-  ;;        ;; If not,
-  ;;        ;; cons the first element out of a.term-lst
-  ;;        ((cons first rest) a.term-lst)
+         (formals f.flattened-formals)
+         (returns f.flattened-returns)
+         ((unless (equal (len returns) 1))
+          (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint-pair "User defined function with more than one returns is not supported currently. ~%The function ~q0 has returns ~q1." f.name returns)
+                  (make-hint-pair)))
+         ((unless (equal (len formals) (len a.actuals)))
+          (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint-pair "Number of formals and actuals don't match. ~%Formals: ~q0, actuals: ~q1." formals a.actuals)
+                  (make-hint-pair)))
+         ((if (equal f.name 'quote))
+          (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint-pair "Function name can't be 'quote.")
+                  (make-hint-pair)))
 
-  ;;        ;; If first is symbolp, don't need to generate any hypo
-  ;;        ((if (symbolp first))
-  ;;         (generate-fn-hint-lst (change-fhg-args :term-lst rest)))
-  ;;        ;; Else it must be a consp, if it is a quoted thingy
-  ;;        ;; The quoted thingy (cadr term) can be a non-pseudo-termp.
-  ;;        ((if (and (equal (car term) 'quote)
-  ;;                  (consp (cdr term))
-  ;;                  (equal (cddr term) nil)))
-  ;;         (generate-fn-hint-lst (change-fhg-args :term-lst rest)))
+         (lambdaed-fn-call-instance (generate-lambda-bindings a.lambda-acc `(,f.name ,@a.actuals))))
+      (change-hint-pair h
+                        :thm `((lambda ,formals ((lambda ,returns ,h.thm) ,lambdaed-fn-call-instance)) ,@a.actuals))))
 
-  ;;        ;; Now first must be a true-listp
-  ;;        ((cons fn-call fn-actuals) first)
 
-  ;;        ;; If term is an atom, return fn-hint-acc
-  ;;        ((if (atom G-prim)) fn-hint-acc)
-  ;;        ;; If term is nil, return fn-hint-acc
-  ;;        ((if (endp G-prim)) fn-hint-acc)
-  ;;        ;; Cons the function call and function actuals out of term
-  ;;        ((cons fn-call fn-actuals) term)
-  ;;        ;; See if fn-call is a lambda expression
-  ;;        (pseudo-lambda? (pseudo-lambdap fn-call))
-  ;;        ;; Try finding function call from fn-lst
-  ;;        (fn (hons-get fn-call fn-lst))
-  ;;        ;; If fn-call does not belong to fn-lst and it is not a lambda,
-  ;;        ;; then no need to add any hypotheses.
-  ;;        ((unless (or fn pseudo-lambda?))
-  ;;         (generate-fn-hint-lst-on-lst fn-actuals fn-lst fn-hint-acc))
-  ;;        ;; If fn-call belongs to fn-lst
-  ;;        ((if fn)
-  ;;         (generate-fn-hint-lst-on-lst fn-actuals fn-lst
-  ;;                                      (generate-fn-hint (cdr fn) fn-actuals fn-hint-acc)))
-  ;;        ;; Else fn-call is a lambda expression
-  ;;        (body-fn-hint-lst (generate-fn-hint-lst (lambda-body fn-call) fn-lst fn-hint-acc))
-  ;;        )
-  ;;     (generate-fn-hint-lst-on-lst fn-actuals fn-lst body-fn-hint-lst)))
+  (define generate-fn-returns-hint ((returns decl-listp) (args fhg-single-args-p))
+    :returns (fn-hint-lst hint-pair-listp)
+    :measure (len returns)
+    :enabled t
+    (b* ((returns (mbe :logic (decl-list-fix returns) :exec returns))
+         (args (mbe :logic (fhg-single-args-fix args) :exec args))
+         ((fhg-single-args a) args)
+         ((unless (consp returns)) a.fn-hint-acc)
+         ((cons first rest) returns)
+         ((decl d) first)
+         ((hint-pair h) d.type)
+         (hypo (change-hint-pair h :thm `(,h.thm ,d.name)))
+         (first-hint-pair (generate-fn-hint-pair hypo args)))
+      (generate-fn-returns-hint rest
+                                (change-fhg-single-args a :fn-hint-acc (cons first-hint-pair a.fn-hint-acc)))))
 
-  ;; Make fn-lst a fast alist
+  (define generate-fn-more-returns-hint ((more-returns hint-pair-listp) (args fhg-single-args-p))
+    :returns (fn-hint-lst hint-pair-listp)
+    :measure (len more-returns)
+    :enabled t
+    (b* ((more-returns (mbe :logic (hint-pair-list-fix more-returns) :exec more-returns))
+         (args (mbe :logic (fhg-single-args-fix args) :exec args))
+         ((fhg-single-args a) args)
+         ((unless (consp more-returns)) a.fn-hint-acc)
+         ((cons first rest) more-returns)
+         (first-hint-pair (generate-fn-hint-pair first args)))
+      (generate-fn-more-returns-hint rest
+                                     (change-fhg-single-args a :fn-hint-acc (cons first-hint-pair a.fn-hint-acc)))))
+
+  (define generate-fn-hint ((args fhg-single-args-p))
+    :returns (fn-hint-lst hint-pair-listp)
+    :enabled t
+    (b* ((args (mbe :logic (fhg-single-args-fix args) :exec args))
+         ((fhg-single-args a) args)
+         ((func f) a.fn)
+         ((unless f.uninterpreted)
+          (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint "Function call ~q0 still exists in term but it's not declared as an uninterpreted function." f.name)
+                  a.fn-hint-acc))
+         (fn-hint-acc-1 (generate-fn-returns-hint f.returns a)))
+      (generate-fn-more-returns-hint f.more-returns (change-fhg-single-args a :fn-hint-acc fn-hint-acc-1))))
+
+
+  ;; function hypotheses generation arguments
+  (defprod fhg-args
+    ((term-lst pseudo-term-listp :default nil)
+     (fn-lst func-alistp :default nil)
+     (fn-hint-acc hint-pair-listp :default nil)
+     (lambda-acc lambda-binding-listp :default nil)))
+
+
+  (encapsulate ()
+
+    (local (defthm lemma-1
+             (implies (fhg-args-p x)
+                      (pseudo-term-listp (fhg-args->term-lst x)))))
+
+    (local (defthm lemma-2
+             (implies (and (pseudo-term-listp y) (consp y))
+                      (pseudo-termp (car y)))))
+
+    (local (defthm lemma-3
+             (implies (and (pseudo-termp z) (consp z) (not (equal (car z) 'quote)))
+                      (pseudo-term-listp (cdr z)))))
+
+    (local (defthm not-symbolp-then-consp-of-pseudo-termp
+             (implies (and (pseudo-termp x)
+                           (not (symbolp x)))
+                      (consp x))))
+
+    (defthm not-symbolp-then-consp-of-car-of-fhg-args->term-lst
+      (implies (and (fhg-args-p args)
+                    (consp (fhg-args->term-lst args))
+                    (not (symbolp (car (fhg-args->term-lst args)))))
+               (consp (car (fhg-args->term-lst args)))))
+
+    (local (defthm lemma-4
+             (implies (and (pseudo-term-listp y) (consp y))
+                      (pseudo-term-listp (cdr y)))))
+
+    (defthm pseudo-term-listp-of-cdr-of-fhg-args->term-lst
+      (implies (and (fhg-args-p args)
+                    (consp (fhg-args->term-lst args)))
+               (pseudo-term-listp (cdr (fhg-args->term-lst args)))))
+
+    (defthm pseudo-term-listp-of-cdar-of-fhg-args->term-lst
+      (implies (and (fhg-args-p args)
+                    (consp (fhg-args->term-lst args))
+                    (not (symbolp (car (fhg-args->term-lst args))))
+                    (not (equal (car (car (fhg-args->term-lst args)))
+                                'quote)))
+               (pseudo-term-listp (cdr (car (fhg-args->term-lst args))))))
+
+    (local (defthm lemma-5
+             (implies (and (pseudo-termp z)
+                           (not (symbolp z)) (not (pseudo-lambdap (car z))))
+                      (symbolp (car z)))
+             :hints (("Goal" :in-theory (enable pseudo-termp pseudo-lambdap)))))
+
+    (defthm symbolp-of-caar-of-fhg-args->term-lst
+      (implies (and (fhg-args-p args)
+                    (consp (fhg-args->term-lst args))
+                    (not (symbolp (car (fhg-args->term-lst args))))
+                    (not (pseudo-lambdap (car (car (fhg-args->term-lst args))))))
+               (symbolp (car (car (fhg-args->term-lst args))))))
+
+    (local (defthm lemma-6
+             (implies (and (pseudo-termp x) (pseudo-lambdap (car x)))
+                      (equal (len (cadar x)) (len (cdr x))))
+             :hints (("Goal" :in-theory (enable pseudo-lambdap pseudo-termp)))))
+
+    (defthm len-equal-of-formals-of-pseudo-lambdap-and-actuals-of-pseudo-termp-of-car-of-fhg-args->term-lst
+      (implies (and (fhg-args-p args)
+                    (consp (fhg-args->term-lst args))
+                    (pseudo-lambdap (car (car (fhg-args->term-lst args)))))
+               (equal (len (cadr (car (car (fhg-args->term-lst args)))))
+                      (len (cdr (car (fhg-args->term-lst args)))))))
+    )
+
+
+  ;;
+  ;; The hypotheses each function is going to generate:
+  ;;
+  ;; If it is a non-recursive function:
+  ;; No hypotheses needed because the function doesn't exist anymore.
+  ;; If there's a case where one needs hypotheses for non-recursive functions,
+  ;;   I will be interested to know.
+  ;;
+  ;; If it is a recursive function, but not declared as uninterpreted:
+  ;;   An error will be produced when Smtlink gets to the translator.
+  ;;   The expander doesn't know enough information.
+  ;;
+  ;; If it is a uninterpreted function:
+  ;;   Generate hypotheses for return type theorems and more return
+  ;;     theorems.
+  ;;
+  (define generate-fn-hint-lst ((args fhg-args-p))
+    :short "@(call generate-fn-hint-lst) generate auxiliary hypotheses from function expansion"
+    :returns (fn-hint-lst hint-pair-listp)
+    :measure (acl2-count (fhg-args->term-lst args))
+    :verify-guards nil
+    (b* ((args (mbe :logic (fhg-args-fix args) :exec args))
+         ;; Syntactic sugar for easy field access, e.g. a.term-lst
+         ((fhg-args a) args)
+         ((unless (consp a.term-lst)) a.fn-hint-acc)
+         ((cons term rest) a.term-lst)
+         ;; If first term is an symbolp, return the symbol
+         ;; then recurse on the rest of the list
+         ((if (symbolp term))
+          (generate-fn-hint-lst (change-fhg-args a :term-lst rest)))
+         ((if (equal (car term) 'quote))
+          (generate-fn-hint-lst (change-fhg-args a :term-lst rest)))
+         ;; The first term is now a function call:
+         ;; Cons the function call and function actuals out of term
+         ((cons fn-call fn-actuals) term)
+
+         ;; If fn-call is a pseudo-lambdap, update lambda-binding-lst
+         ((if (pseudo-lambdap fn-call))
+          (b* ((lambda-formals (lambda-formals fn-call))
+               (lambda-body (lambda-body fn-call))
+               (lambda-actuals fn-actuals)
+               (lambda-bd (make-lambda-binding :formals lambda-formals :actuals lambda-actuals))
+               ((unless (mbt (lambda-binding-p lambda-bd))) a.fn-hint-acc)
+               (fn-hint-acc-1
+                (generate-fn-hint-lst (change-fhg-args a
+                                                       :term-lst (list lambda-body)
+                                                       :lambda-acc (cons lambda-bd a.lambda-acc))))
+               (fn-hint-acc-2
+                (generate-fn-hint-lst (change-fhg-args a
+                                                       :term-lst lambda-actuals
+                                                       :fn-hint-acc fn-hint-acc-1))))
+            (generate-fn-hint-lst (change-fhg-args a
+                                                   :term-lst rest
+                                                   :fn-hint-acc fn-hint-acc-2))))
+
+         ;; If fn-call is neither a lambda expression nor a function call
+         ((unless (mbt (symbolp fn-call))) a.fn-hint-acc)
+         ;; Try finding function call from fn-lst
+         (fn (hons-get fn-call a.fn-lst))
+         ;; If fn-call doesn't exist in fn-lst, it can be a basic function,
+         ;; in that case we don't do anything with it.
+         ;; Otherwise it can be a function that's forgotten to be added to fn-lst.
+         ;; The translator will fail to translate it and report an error.
+         ((unless fn)
+          (b* ((fn-hint-acc-1 (generate-fn-hint-lst (change-fhg-args a :term-lst fn-actuals))))
+            (generate-fn-hint-lst (change-fhg-args a :term-lst rest :fn-hint-acc fn-hint-acc-1))))
+
+         ;; Now fn is a function in fn-lst,
+         ;;   we need to generate returns and more-returns hypotheses for them
+         ((func f) (cdr fn))
+         (fn-hint-acc-1 (generate-fn-hint (make-fhg-single-args :fn f
+                                                                :actuals fn-actuals
+                                                                :fn-hint-acc a.fn-hint-acc
+                                                                :lambda-acc a.lambda-acc)))
+         (fn-hint-acc-2
+          (generate-fn-hint-lst (change-fhg-args a
+                                                 :term-lst fn-actuals
+                                                 :fn-hint-acc fn-hint-acc-1)))
+         )
+      (generate-fn-hint-lst (change-fhg-args a
+                                             :term-lst rest
+                                             :fn-hint-acc fn-hint-acc-2))))
+
+  (verify-guards generate-fn-hint-lst)
+
+
+  (define flatten-formals/returns ((formal/return-lst decl-listp))
+    :returns (flattened-lst symbol-listp)
+    :measure (len formal/return-lst)
+    :hints (("Goal" :in-theory (enable decl-list-fix)))
+    :enabled t
+    (b* ((formal/return-lst (mbe :logic (decl-list-fix formal/return-lst) :exec formal/return-lst))
+         ((if (endp formal/return-lst)) nil)
+         ((cons first rest) formal/return-lst)
+         ((decl d) first))
+      (cons d.name (flatten-formals/returns rest))))
+
   (define make-alist-fn-lst ((fn-lst func-listp))
+    :short "@(call make-alist-fn-lst) makes fn-lst a fast alist"
     :returns (fast-fn-lst func-alistp)
     :measure (len fn-lst)
     :enabled t
     (b* ((fn-lst (mbe :logic (func-list-fix fn-lst) :exec fn-lst))
          ((unless (consp fn-lst)) nil)
          ((cons first rest) fn-lst)
-         ((func f) first))
-      (cons (cons f.name f) (make-alist-fn-lst rest))))
+         ((func f) first)
+         (new-f (change-func f
+                             :flattened-formals (flatten-formals/returns f.formals)
+                             :flattened-returns (flatten-formals/returns f.returns))))
+      (cons (cons f.name new-f) (make-alist-fn-lst rest))))
 
-  ;; The top level function for generating SMT goals: G-prim and A's
-  (define SMT-goal-generator ((cl pseudo-term-listp) (hints smtlink-hint-p))
-    :returns (new-hints smtlink-hint-p)
-    :short "@(call SMT-goal-generator) is the top level function for generating SMT goals: G-prim and A's"
+  (encapsulate ()
+    (local (in-theory (enable pseudo-term-listp-of-expand
+                              hint-pair-listp-of-generate-fn-hint-lst
+                              hint-pair-listp-of-generate-hyp-hint-lst)))
 
-    (b* ((cl (mbe :logic (pseudo-term-list-fix cl) :exec cl))
-         (hints (mbe :logic (smtlink-hint-fix hints) :exec hints))
-         ((smtlink-hint h) hints)
-         ;; Make a fast alist version of fn-lst
-         (fn-lst (make-alist-fn-lst h.functions))
-         (fn-lvls (initialize-fn-lvls fn-lst))
+    (local (defthm pseudo-termp-of-disjoin-of-pseudo-term-listp
+             (implies (pseudo-term-listp cl)
+                      (pseudo-termp (disjoin cl)))))
 
-         ;; Generate user given hypotheses and their hints from hyp-lst
-         (hyp-hint-lst (with-fast-alist fn-lst (generate-hyp-hint-lst h.hypotheses fn-lst fn-lvls)))
+    (local (defthm hint-pair-listp-of-append
+             (implies (and (hint-pair-listp x) (hint-pair-listp y))
+                      (hint-pair-listp (append x y)))))
 
-         ;; Expand main clause using fn-lst
-         ;; Generate function hypotheses and their hints from fn-lst
-         (G-prim
-          (with-fast-alist fn-lst (car (expand (make-ex-args
-                                                :term-lst (list (disjoin cl))
-                                                :fn-lst fn-lst
-                                                :fn-lvls fn-lvls)))))
+    ;; The top level function for generating SMT goals: G-prim and A's
+    (define SMT-goal-generator ((cl pseudo-term-listp) (hints smtlink-hint-p))
+      :returns (new-hints smtlink-hint-p)
+      :short "@(call SMT-goal-generator) is the top level function for generating SMT goals: G-prim and A's"
+      :guard-debug t
+      :verify-guards nil
+      (b* ((cl (mbe :logic (pseudo-term-list-fix cl) :exec cl))
+           (hints (mbe :logic (smtlink-hint-fix hints) :exec hints))
+           ((smtlink-hint h) hints)
+           ;; Make an alist version of fn-lst
+           (fn-lst (make-alist-fn-lst h.functions))
+           (fn-lvls (initialize-fn-lvls fn-lst))
 
-         ;; Generate auxiliary hypotheses from function expansion
-         (fn-hint-lst ;; (generate-fn-hint-lst G-prim fn-lst nil)
-          nil)
+           ;; Generate user given hypotheses and their hints from hyp-lst
+           (hyp-hint-lst (with-fast-alist fn-lst (generate-hyp-hint-lst h.hypotheses fn-lst fn-lvls)))
 
-         ;; Combine all auxiliary hypotheses
-         (total-aux-hint-lst `(,@fn-hint-lst ,@hyp-hint-lst))
+           ;; Expand main clause using fn-lst
+           ;; Generate function hypotheses and their hints from fn-lst
+           (G-prim
+            (with-fast-alist fn-lst (car (expand (make-ex-args
+                                                  :term-lst (list (disjoin cl))
+                                                  :fn-lst fn-lst
+                                                  :fn-lvls fn-lvls)))))
 
-         ;; Combine expanded main clause and its hint
-         (expanded-clause-w/-hint (make-hint-pair :thm G-prim :hints h.main-hint))
+           ;; Generate auxiliary hypotheses from function expansion
+           (fn-hint-lst (generate-fn-hint-lst (make-fhg-args
+                                               :term-lst (list G-prim)
+                                               :fn-lst fn-lst
+                                               :fn-hint-acc nil
+                                               :lambda-acc nil)))
 
-         ;; Update smtlink-hint
-         (new-hints
-          (change-smtlink-hint hints
-                               :fast-functions fn-lst
-                               :aux-hint-list total-aux-hint-lst
-                               :expanded-clause-w/-hint expanded-clause-w/-hint
-                               )))
-      new-hints))
+           ;; Combine all auxiliary hypotheses
+           (total-aux-hint-lst `(,@fn-hint-lst ,@hyp-hint-lst))
+
+           ;; Combine expanded main clause and its hint
+           (expanded-clause-w/-hint (make-hint-pair :thm G-prim :hints h.main-hint))
+
+           ;; Update smtlink-hint
+           (new-hints
+            (change-smtlink-hint hints
+                                 :fast-functions fn-lst
+                                 :aux-hint-list total-aux-hint-lst
+                                 :expanded-clause-w/-hint expanded-clause-w/-hint
+                                 )))
+        new-hints))
+    (verify-guards SMT-goal-generator)
+    )
+
   )
