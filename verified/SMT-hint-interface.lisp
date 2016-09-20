@@ -44,6 +44,18 @@
     :pred pseudo-term-listp
     :equiv equal)
 
+  (define pseudo-term-list-list-fix (x)
+    (declare (xargs :guard (pseudo-term-list-listp x)))
+    :enabled t
+    (mbe :logic (if (pseudo-term-list-listp x) x nil)
+         :exec x))
+
+  (deffixtype pseudo-term-list-list
+    :fix pseudo-term-list-list-fix
+    :pred pseudo-term-list-listp
+    :equiv equal)
+
+
   (define list-fix (x)
     (declare (xargs :guard (listp x)))
     :enabled t

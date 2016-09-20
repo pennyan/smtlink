@@ -67,8 +67,8 @@
       (implies (and (symbolp fn)
                     (sym-nat-alistp fn-lvls)
                     (consp fn-lvls)
-                    (hons-get fn fn-lvls)
-                    (not (equal (cdr (hons-get fn fn-lvls)) 0)))
+                    (assoc-equal fn fn-lvls)
+                    (not (equal (cdr (assoc-equal fn fn-lvls)) 0)))
                (< (cdr (assoc fn updated-fn-lvls))
                   (cdr (assoc fn fn-lvls))))
       :name updated-fn-lvls-decrease))
@@ -103,8 +103,8 @@
       (implies (and (symbolp fn)
                     (sym-nat-alistp fn-lvls)
                     (consp fn-lvls)
-                    (hons-get fn fn-lvls)
-                    (not (equal (cdr (hons-get fn fn-lvls)) 0)))
+                    (assoc-equal fn fn-lvls)
+                    (not (equal (cdr (assoc-equal fn fn-lvls)) 0)))
                (< (sum-lvls (update-fn-lvls fn fn-lvls))
                   (sum-lvls fn-lvls)))))
 
@@ -205,19 +205,34 @@
     )
 
   (encapsulate ()
-    (local (defthm natp-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p
-             (implies (and (ex-args-p x) (hons-assoc-equal foo (ex-args->fn-lvls x)))
-                      (natp (cdr (hons-assoc-equal foo (ex-args->fn-lvls x)))))))
+    (local (defthm lemma-1
+             (implies (ex-args-p x) (sym-nat-alistp (ex-args->fn-lvls x)))))
 
-    (defthm integerp-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p
-      (implies (and (ex-args-p x) (hons-assoc-equal foo (ex-args->fn-lvls x)))
-               (integerp (cdr (hons-assoc-equal foo (ex-args->fn-lvls x)))))
-      :hints(("Goal" :use ((:instance natp-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p (x x))))))
+    (local (defthm lemma-2
+             (implies (and (sym-nat-alistp y) (assoc-equal foo y))
+                      (natp (cdr (assoc-equal foo y))))))
 
-    (defthm non-neg-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p
-      (implies (and (ex-args-p x) (hons-assoc-equal foo (ex-args->fn-lvls x)))
-               (<= 0 (cdr (hons-assoc-equal foo (ex-args->fn-lvls x)))))
-      :hints(("Goal" :use ((:instance natp-of-cdr-of-hons-get-of-ex-args->fn-lvls-of-ex-args-p (x x))))))
+    (local (defthm lemma-3
+             (implies (and (sym-nat-alistp y) (assoc-equal foo y))
+                      (consp (assoc-equal foo y)))))
+
+    (local (defthm natp-of-cdr-of-assoc-equal-of-ex-args->fn-lvls-of-ex-args-p
+             (implies (and (ex-args-p x) (assoc-equal foo (ex-args->fn-lvls x)))
+                      (natp (cdr (assoc-equal foo (ex-args->fn-lvls x)))))))
+
+    (defthm integerp-of-cdr-of-assoc-equal-of-ex-args->fn-lvls-of-ex-args-p
+      (implies (and (ex-args-p x) (assoc-equal foo (ex-args->fn-lvls x)))
+               (integerp (cdr (assoc-equal foo (ex-args->fn-lvls x)))))
+      :hints(("Goal" :use ((:instance natp-of-cdr-of-assoc-equal-of-ex-args->fn-lvls-of-ex-args-p (x x))))))
+
+    (defthm non-neg-of-cdr-of-assoc-equal-of-ex-args->fn-lvls-of-ex-args-p
+      (implies (and (ex-args-p x) (assoc-equal foo (ex-args->fn-lvls x)))
+               (<= 0 (cdr (assoc-equal foo (ex-args->fn-lvls x)))))
+      :hints(("Goal" :use ((:instance natp-of-cdr-of-assoc-equal-of-ex-args->fn-lvls-of-ex-args-p (x x))))))
+
+    (defthm consp-of-assoc-equal-of-ex-args->fn-lvls-of-ex-args-p
+      (implies (and (ex-args-p x) (assoc-equal foo (ex-args->fn-lvls x)))
+               (consp (assoc-equal foo (ex-args->fn-lvls x)))))
     )
 
   (encapsulate
@@ -278,7 +293,7 @@
 
            ;; Now fn is a function in fn-lst
            ;; If fn-call is already expanded to level 0, don't expand.
-           (lvl-item (hons-get fn-call a.fn-lvls))
+           (lvl-item (assoc-equal fn-call a.fn-lvls))
            ((unless lvl-item)
             (prog2$
              (er hard? 'SMT-goal-generator=>expand "Function ~q0 exists in the definition list but not in the levels list?" fn-call)
@@ -696,11 +711,11 @@
                                                   :fn-lvls fn-lvls)))))
 
            ;; Generate auxiliary hypotheses from function expansion
-           (fn-hint-lst (generate-fn-hint-lst (make-fhg-args
-                                               :term-lst (list G-prim)
-                                               :fn-lst fn-lst
-                                               :fn-hint-acc nil
-                                               :lambda-acc nil)))
+           (fn-hint-lst (with-fast-alist fn-lst (generate-fn-hint-lst (make-fhg-args
+                                                                       :term-lst (list G-prim)
+                                                                       :fn-lst fn-lst
+                                                                       :fn-hint-acc nil
+                                                                       :lambda-acc nil))))
 
            ;; Combine all auxiliary hypotheses
            (total-aux-hint-lst `(,@fn-hint-lst ,@hyp-hint-lst))

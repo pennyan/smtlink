@@ -33,7 +33,7 @@
                     :mode :program))
     (prog2$ (cw "cl given to the clause processor: ~q0"  cl)
             (if (SMT-prove-stub (disjoin cl))
-                (prog2$ (cw "Proved!")
+                (prog2$ (cw "Proved!~%")
                         nil)
               (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
                   my-clause-processor and indicated hint.~|")

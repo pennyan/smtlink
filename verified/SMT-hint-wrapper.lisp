@@ -23,9 +23,9 @@
 
 (define extract-hint-wrapper (cl)
   (cond ((endp cl) (mv nil nil))
-        (t (b* ((lit (car cl)))
+        (t (b* ((lit cl))
              (case-match lit
-               (('hint-please term ('quote kwd-alist))
+               ((('hint-please ('quote kwd-alist)) . term)
                 (mv term kwd-alist))
                (& (extract-hint-wrapper (cdr cl))))))))
 

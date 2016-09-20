@@ -8,6 +8,28 @@
 (in-package "ACL2")
 (include-book "../top")
 (in-package "SMT")
+(include-book "clause-processors/meta-extract-user" :dir :system)
+
+
+(defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
+
+(defun my-smtlink-hint ()
+  (declare (xargs :guard t))
+  (change-smtlink-hint
+   *default-smtlink-hint*
+   :functions (list (make-func :name 'X^2+Y^2^2
+                               :formals (list (make-decl :name 'x
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil))
+                                              (make-decl :name 'y
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
+                               :returns (list (make-decl :name 'x
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
+                               :body '(binary-+ (binary-* x x) (binary-* y y))
+                               :expansion-depth 1
+                               :uninterpreted nil))
+   :smt-hint '(:clause-processor (SMT-trusted-cp clause))))
+
+(defattach smt-hint my-smtlink-hint)
 
 (add-default-hints '((SMT::SMT-hint-wrapper-hint clause)))
 
@@ -23,8 +45,7 @@
             (SMT::Smtlink clause))))
 
 ;; Example 2
-(defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
-(defthm poly-of-expt-example
+(defthm poly-of-expt-exlsample
   (implies (and (rationalp x) (rationalp y) (rationalp z)
                 (integerp m) (integerp n)
                 (< 0 z) (< z 1) (< 0 m) (< m n))
