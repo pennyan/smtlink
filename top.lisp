@@ -17,6 +17,8 @@
 
 (include-book "trusted/SMT-trusted-cp")
 (include-book "trusted/SMT-prove")
+(include-book "trusted/SMT-translator")
+
 
 ;; ------------------------------------------------------- ;;
 ;;    Documentation

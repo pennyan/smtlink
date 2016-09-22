@@ -6,14 +6,13 @@
 ;;
 
 (in-package "SMT")
-
 (include-book "SMT-prove")
 
 (defstub SMT-prove-stub (term smtlink-hint) t)
 
-(program)
-
 (defttag :SMT-trusted-cp)
+
+(program)
 
 (progn
 
@@ -42,8 +41,11 @@
   (push-untouchable SMT-prove-stub t)
   )
 
+(logic)
 
 (define-trusted-clause-processor
   SMT-trusted-cp
   nil
   :ttag SMT-trusted-cp)
+
+(defttag nil)

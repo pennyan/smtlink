@@ -142,7 +142,7 @@
      (hypotheses hint-pair-listp :default nil)
      (main-hint listp :default nil)
      (int-to-rat booleanp :default t)
-     (python-file stringp :default "")
+     (smt-fname stringp :default "")
      (smt-hint listp :default nil)
      (fast-functions func-alistp :default nil)
      (aux-hint-list hint-pair-listp :default nil)
