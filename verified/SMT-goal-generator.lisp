@@ -19,7 +19,7 @@
 
 ;; Include SMT books
 (include-book "SMT-hint-interface")
-
+(include-book "SMT-extractor")
 
 
 (defsection SMT-goal-generator
@@ -700,6 +700,14 @@
                              :flattened-returns (flatten-formals/returns f.returns))))
       (cons (cons f.name new-f) (make-alist-fn-lst rest))))
 
+  (define structurize-type-decl-list ((type-decl-list pseudo-term-listp))
+    :returns (structured-decl-list hint-pair-listp)
+    (b* ((type-decl-list (mbe :logic (pseudo-term-list-fix type-decl-list) :exec type-decl-list))
+         ((unless (consp type-decl-list)) nil)
+         ((cons first rest) type-decl-list))
+      (cons (make-hint-pair :thm first)
+            (structurize-type-decl-list rest))))
+
   (encapsulate ()
     (local (in-theory (enable pseudo-term-listp-of-expand
                               hint-pair-listp-of-generate-fn-hint-lst
@@ -742,19 +750,25 @@
                                                                        :term-lst (list G-prim)
                                                                        :fn-lst fn-lst
                                                                        :fn-hint-acc nil
-                                                                       :lambda-acc nil))))
+                                                                       :lambda-acc
+                                                                       nil))))
+
+           ;; Generate auxiliary hypotheses for type extraction
+           ((mv type-decl-list G-prim-without-type) (SMT-extract G-prim))
+           (structured-decl-list (structurize-type-decl-list type-decl-list))
 
            ;; Combine all auxiliary hypotheses
            (total-aux-hint-lst `(,@fn-hint-lst ,@hyp-hint-lst))
 
            ;; Combine expanded main clause and its hint
-           (expanded-clause-w/-hint (make-hint-pair :thm G-prim :hints h.main-hint))
+           (expanded-clause-w/-hint (make-hint-pair :thm G-prim-without-type :hints h.main-hint))
 
            ;; Update smtlink-hint
            (new-hints
             (change-smtlink-hint hints
                                  :fast-functions fn-lst
                                  :aux-hint-list total-aux-hint-lst
+                                 :type-decl-list structured-decl-list
                                  :expanded-clause-w/-hint expanded-clause-w/-hint
                                  )))
         new-hints))

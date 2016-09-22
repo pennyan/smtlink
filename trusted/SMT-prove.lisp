@@ -13,8 +13,8 @@
 
 (include-book "../verified/SMT-hint-interface")
 (include-book "../verified/SMT-config")
-(include-book "../verified/SMT-names")
-(include-book "SMT-translator")
+(include-book "./z3-py/SMT-names")
+(include-book "./z3-py/SMT-translator")
 
 (defttag :tshell)
 (value-triple (tshell-ensure))
@@ -76,7 +76,7 @@
          ((smtlink-hint h) smtlink-hint)
          ((smtlink-config c) h.smt-cnf)
          (smt-file (make-fname c.SMT-files-dir h.smt-fname c.file-format))
-         (smt-term (SMT-translation term smtlink-hint))
+         (smt-term (SMT-translation (disjoin term) smtlink-hint))
          ;; (state (write-SMT-file translated-py-term smt-file))
          ;; (result (run-SMT-solver smt-file))
          (result t))

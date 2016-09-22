@@ -13,11 +13,13 @@
 (include-book "verified/SMT-goal-generator")
 (include-book "verified/SMT-hint-interface")
 (include-book "verified/SMT-config")
-(include-book "verified/SMT-names")
+(include-book "verified/SMT-extractor")
 
 (include-book "trusted/SMT-trusted-cp")
 (include-book "trusted/SMT-prove")
-(include-book "trusted/SMT-translator")
+
+(include-book "trusted/z3-py/SMT-translator")
+(include-book "trusted/z3-py/SMT-names")
 
 
 ;; ------------------------------------------------------- ;;

@@ -9,8 +9,8 @@
 (include-book "xdoc/top" :dir :system)
 (include-book "std/util/define" :dir :system)
 
-(include-book "../verified/SMT-hint-interface")
-(include-book "../verified/SMT-names")
+(include-book "../../verified/SMT-hint-interface")
+(include-book "./SMT-names")
 
 ;; ;; -------------- translate operator  -----------:
 
@@ -269,8 +269,9 @@
   :parents (Smtlink)
   :short "SMT-translator does the LISP to Python translation."
 
-  (define SMT-translation ((term pseudo-term-listp) (smtlink-hint smtlink-hint-p))
+  (define SMT-translation ((term pseudo-termp) (smtlink-hint smtlink-hint-p))
     :ignore-ok t
-    nil
+    ()
     )
 )
+

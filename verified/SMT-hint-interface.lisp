@@ -50,6 +50,9 @@
             :name acl2-count-<=-pseudo-term-list-fix
             :rule-classes :linear)
      (new-x (implies (pseudo-term-listp x)
+                     (equal new-x x))
+            :name equal-pseudo-term-list-fix)
+     (new-x (implies (pseudo-term-listp x)
                      (equal (len new-x) (len x)))
             :name len-equal-pseudo-term-list-fix
             :rule-classes :linear)))
@@ -146,6 +149,7 @@
      (smt-hint listp :default nil)
      (fast-functions func-alistp :default nil)
      (aux-hint-list hint-pair-listp :default nil)
+     (type-decl-list hint-pair-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
      (smt-cnf smtlink-config-p :default (make-smtlink-config))))
 
