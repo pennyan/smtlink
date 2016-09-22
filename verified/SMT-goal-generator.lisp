@@ -180,6 +180,31 @@
                     (not (symbolp (car (ex-args->term-lst expand-args))))
                     (not (pseudo-lambdap (car (car (ex-args->term-lst expand-args))))))
                (symbolp (car (car (ex-args->term-lst expand-args))))))
+
+    (local (defthm lemma-7
+             (implies (and (pseudo-termp x) (consp x) (equal (car x) 'quote))
+                      (and (not (cddr x)) (consp (cdr x))))))
+
+    (defthm not-cddr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst
+      (implies (and (consp (ex-args->term-lst expand-args))
+                    (consp (car (ex-args->term-lst expand-args)))
+                    (not (symbolp (car (ex-args->term-lst expand-args))))
+                    (equal (car (car (ex-args->term-lst expand-args))) 'quote))
+               (not (cddr (car (ex-args->term-lst expand-args))))))
+
+    (defthm consp-cdr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst
+      (implies (and (consp (ex-args->term-lst expand-args))
+                    (consp (car (ex-args->term-lst expand-args)))
+                    (not (symbolp (car (ex-args->term-lst expand-args))))
+                    (equal (car (car (ex-args->term-lst expand-args))) 'quote))
+               (consp (cdr (car (ex-args->term-lst expand-args))))))
+
+    (defthm pseudo-term-listp-of-pseudo-lambdap-of-cdar-ex-args->term-lst
+      (implies (and (ex-args-p expand-args)
+                    (consp (ex-args->term-lst expand-args))
+                    (consp (car (ex-args->term-lst expand-args)))
+                    (not (equal (caar (ex-args->term-lst expand-args)) 'quote)))
+               (pseudo-term-listp (cdar (ex-args->term-lst expand-args)))))
     )
 
   (encapsulate ()
@@ -246,7 +271,8 @@
     ;; 4. clean up the above encapsulated theorems, maybe in another file
     (define expand ((expand-args ex-args-p))
       :returns (expanded-terms pseudo-term-listp
-                               :hints (("Goal" :in-theory (enable ex-args->term-lst))))
+                               :hints (("Goal" :use ((:instance not-cddr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst)
+                                                     (:instance consp-cdr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst)))))
       :measure (expand-measure expand-args)
       :verify-guards nil
       :hints
@@ -321,17 +347,18 @@
       ///
       (more-returns
        (expanded-terms (implies (ex-args-p expand-args)
-                                (equal (len expanded-terms)
-                                       (len (ex-args->term-lst expand-args))))
-                       :name len-of-expand)
-       (expanded-terms (implies (ex-args-p expand-args)
                                 (pseudo-termp (car expanded-terms)))
                        :name pseudo-termp-of-car-of-expand
-                       :hints (("Goal" :use ((:instance pseudo-term-listp-of-expand))))))
+                       :hints (("Goal" :use ((:instance pseudo-term-listp-of-expand)))))
+       (expanded-terms (implies (ex-args-p expand-args)
+                                (equal (len expanded-terms)
+                                       (len (ex-args->term-lst expand-args))))
+                       :name len-of-expand))
       )
     )
 
-  (verify-guards expand)
+  (verify-guards expand
+    :hints (("Goal" :use ((:instance pseudo-term-listp-of-pseudo-lambdap-of-cdar-ex-args->term-lst)))))
 
   (define initialize-fn-lvls ((fn-lst func-alistp))
     :returns (fn-lvls sym-nat-alistp)

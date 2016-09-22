@@ -13,6 +13,7 @@
 (include-book "verified/SMT-goal-generator")
 (include-book "verified/SMT-hint-interface")
 (include-book "verified/SMT-config")
+(include-book "verified/SMT-names")
 
 (include-book "trusted/SMT-trusted-cp")
 (include-book "trusted/SMT-prove")

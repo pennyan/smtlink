@@ -16,12 +16,12 @@
   :short "Define Smtlink config"
 
 (defprod smtlink-config
-  ((interface-dir stringp)
-   (SMT-files-dir stringp)
-   (SMT-module    stringp)
-   (SMT-class     stringp)
-   (SMT-cmd       stringp)
-   (file-format   stringp)))
+  ((interface-dir stringp :default "")
+   (SMT-files-dir stringp :default "")
+   (SMT-module    stringp :default "")
+   (SMT-class     stringp :default "")
+   (SMT-cmd       stringp :default "")
+   (file-format   stringp :default "")))
 
 (defconst *default-smtlink-config* (make-smtlink-config :interface-dir "" :SMT-files-dir "" :SMT-module "" :SMT-class "" :SMT-cmd "" :file-format ""))
 

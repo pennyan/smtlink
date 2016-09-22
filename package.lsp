@@ -67,6 +67,10 @@
       str::firstn-chars
       str::strval
       str::search
+      str::natchars16
+      str::hex-digit-listp
+      str::charlisteqv
+      str::character-list-fix
 
       std::defaggregate
 
@@ -81,3 +85,4 @@
     )
    ;; Things to remove
    '()))
+

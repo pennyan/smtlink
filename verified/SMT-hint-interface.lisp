@@ -10,6 +10,8 @@
 (include-book "xdoc/top" :dir :system)
 (include-book "std/util/define" :dir :system)
 
+(include-book "SMT-config")
+
 (defsection SMT-hint-interface
   :parents (Smtlink)
   :short "Define default Smtlink hint interface"
@@ -35,9 +37,22 @@
 
   (define pseudo-term-list-fix (x)
     (declare (xargs :guard (pseudo-term-listp x)))
+    :returns (new-x pseudo-term-listp)
     :enabled t
-    (mbe :logic (if (pseudo-term-listp x) x nil)
-         :exec x))
+    (mbe :logic (if (consp x)
+                    (cons (pseudo-term-fix (car x))
+                          (pseudo-term-list-fix (cdr x)))
+                  nil)
+         :exec x)
+    ///
+    (more-returns
+     (new-x (<= (acl2-count new-x) (acl2-count x))
+            :name acl2-count-<=-pseudo-term-list-fix
+            :rule-classes :linear)
+     (new-x (implies (pseudo-term-listp x)
+                     (equal (len new-x) (len x)))
+            :name len-equal-pseudo-term-list-fix
+            :rule-classes :linear)))
 
   (deffixtype pseudo-term-list
     :fix pseudo-term-list-fix
@@ -47,7 +62,10 @@
   (define pseudo-term-list-list-fix (x)
     (declare (xargs :guard (pseudo-term-list-listp x)))
     :enabled t
-    (mbe :logic (if (pseudo-term-list-listp x) x nil)
+    (mbe :logic (if (consp x)
+                    (cons (pseudo-term-list-fix (car x))
+                          (pseudo-term-list-list-fix (cdr x)))
+                  nil)
          :exec x))
 
   (deffixtype pseudo-term-list-list
@@ -128,7 +146,8 @@
      (smt-hint listp :default nil)
      (fast-functions func-alistp :default nil)
      (aux-hint-list hint-pair-listp :default nil)
-     (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))))
+     (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
+     (smt-cnf smtlink-config-p :default (make-smtlink-config))))
 
   (defconst *default-smtlink-hint*
     (make-smtlink-hint))

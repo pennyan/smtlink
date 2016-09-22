@@ -26,17 +26,17 @@
    (set-raw-mode-on state)
 
    (defun SMT-prove-stub (term smtlink-hint)
-     (SMT-prove term smtlink-hint)))
+     (SMT-prove term smtlink-hint smt-cnf)))
 
   (defun SMT-trusted-cp (cl smtlink-hint)
     (declare (xargs :guard (pseudo-term-listp cl)
                     :mode :program))
-    (prog2$ (cw "cl given to the clause processor: ~q0"  cl)
+    (prog2$ (cw "cl given to the trusted clause processor: ~q0"  cl)
             (if (SMT-prove-stub (disjoin cl) smtlink-hint)
                 (prog2$ (cw "Proved!~%")
                         nil)
               (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
-                  my-clause-processor and indicated hint.~|")
+                  SMT-trusted-cp and indicated hint.~|")
                       (list cl)))))
 
   (push-untouchable SMT-prove-stub t)
