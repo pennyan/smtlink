@@ -27,7 +27,8 @@
   (deffixtype character
     :fix character-fix
     :pred characterp
-    :equiv equal)
+    :equiv character-equiv
+    :define t)
 
   (defalist special-char-alist
     :key-type character

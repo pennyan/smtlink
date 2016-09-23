@@ -78,5 +78,5 @@
       )
     )
    ;; Things to remove
-   '()))
+   '(good-atom-listp)))
 

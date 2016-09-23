@@ -265,13 +265,80 @@
 ;; 	(translate-theorem)))
 
 
-(defsection SMT-translator
-  :parents (Smtlink)
-  :short "SMT-translator does the LISP to Python translation."
+;; (defsection SMT-translator
+;;   :parents (Smtlink)
+;;   :short "SMT-translator does the LISP to Python translation."
+
+  (define good-atomp (atom)
+    (declare (xargs :guard t))
+    :returns (good? booleanp)
+    (if (or (acl2-numberp atom)
+            (symbolp atom)
+            (characterp atom)
+            (stringp atom))
+        t
+      nil))
+
+  (define good-atom-fix ((atom good-atomp))
+    :returns (fixed good-atomp)
+    :enabled t
+    (mbe :logic (if (good-atomp atom) atom nil)
+         :exec atom)
+    ///
+    (more-returns
+     (fixed (equal (good-atom-fix fixed) fixed)
+            :name equal-fixed)))
+
+  (deffixtype good-atom
+    :fix good-atom-fix
+    :pred good-atomp
+    :equiv good-atom-equiv
+    :define t)
+
+  (define good-atom-listp (atom-lst)
+    (declare (xargs :guard t))
+    :returns (good? booleanp)
+    (if (atom atom-lst)
+        (equal atom-lst nil)
+      (and (good-atomp (car atom-lst))
+           (good-atom-listp (cdr atom-lst))))
+    ///
+    (more-returns
+     (good? (implies (and good? (consp atom-lst)) (good-atomp (car atom-lst)))
+            :name good-atomp-of-car-of-good-atom-listp
+            :hints (("Goal" :in-theory (enable good-atom-listp))))
+     (good? (implies good? (true-listp atom-lst))
+            :name true-listp-of-good-atom-listp
+            :hints (("Goal" :in-theory (enable good-atom-listp))))))
+
+  (encapsulate ()
+    (local (in-theory (enable good-atom-fix good-atomp good-atom-listp)))
+    (define good-atom-list-fix ((atom-lst good-atom-listp))
+      :returns (fixed good-atom-listp)
+      (mbe :logic (if (consp atom-lst)
+                      (cons (good-atom-fix (car atom-lst))
+                            (good-atom-list-fix (cdr atom-lst)))
+                    nil)
+           :exec atom-lst)
+      ///
+      (more-returns
+       (fixed (implies (good-atom-listp atom-lst) (equal fixed atom-lst))
+              :name equal-of-good-atom-listp)))
+    )
+
+  (deffixtype good-atom-list
+    :fix good-atom-list-fix
+    :pred good-atom-listp
+    :equiv good-atom-list-equiv
+    :define t)
+
+  (deflist good-atom-list-list
+    :elt-type good-atom-list
+    :pred good-atom-list-listp
+    :true-listp t)
 
   (define SMT-translation ((term pseudo-termp) (smtlink-hint smtlink-hint-p))
+    :returns (py-term good-atom-list-listp)
     :ignore-ok t
-    ()
-    )
-)
-
+    nil)
+;; )

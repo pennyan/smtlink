@@ -26,14 +26,20 @@
 
   (define pseudo-term-fix (x)
     (declare (xargs :guard (pseudo-termp x)))
+    :returns (fixed pseudo-termp)
     :enabled t
     (mbe :logic (if (pseudo-termp x) x nil)
-         :exec x))
+         :exec x)
+    ///
+    (more-returns
+     (fixed (implies (pseudo-termp x) (equal fixed x))
+            :name equal-fixed-and-x-of-pseudo-termp)))
 
   (deffixtype pseudo-term
     :fix pseudo-term-fix
     :pred pseudo-termp
-    :equiv equal)
+    :equiv pseudo-term-equiv
+    :define t)
 
   (define pseudo-term-list-fix (x)
     (declare (xargs :guard (pseudo-term-listp x)))
@@ -60,10 +66,12 @@
   (deffixtype pseudo-term-list
     :fix pseudo-term-list-fix
     :pred pseudo-term-listp
-    :equiv equal)
+    :equiv pseudo-term-list-equiv
+    :define t)
 
   (define pseudo-term-list-list-fix (x)
     (declare (xargs :guard (pseudo-term-list-listp x)))
+    :returns (fixed pseudo-term-list-listp)
     :enabled t
     (mbe :logic (if (consp x)
                     (cons (pseudo-term-list-fix (car x))
@@ -74,8 +82,8 @@
   (deffixtype pseudo-term-list-list
     :fix pseudo-term-list-list-fix
     :pred pseudo-term-list-listp
-    :equiv equal)
-
+    :equiv pseudo-term-list-list-equiv
+    :define t)
 
   (define list-fix (x)
     (declare (xargs :guard (listp x)))
@@ -86,12 +94,14 @@
   (deffixtype list
     :fix list-fix
     :pred listp
-    :equiv equal)
+    :equiv list-equiv
+    :define t)
 
   (defprod hint-pair
     ((thm pseudo-termp :default nil)       ;; a theorem statement about the variable
      (hints listp :default nil)     ;; the hint for proving this theorem
-     ))
+     )
+    :verbosep t)
 
   (deflist hint-pair-list
     :elt-type hint-pair
