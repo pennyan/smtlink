@@ -25,13 +25,14 @@
 ;; ------------------------------------------------------- ;;
 ;;    Documentation
 
-;; (include-book "xdoc/save" :dir :system)  ;; load xdoc::save
+(include-book "xdoc/save" :dir :system)  ;; load xdoc::save
 
-;; (defsection acl2::top           ;; create a "top" topic
-;;   :short "Tutorial and documentation for the ACL2 book, Smtlink."
-;;   :long "<h3>Introduction</h3>
-;;          <p><b>Smtlink</b> is a tool for integrating external SMT solvers into ACL2.
-;;          It is based on the @(see Clause-processor) mechanism.</p>
-;;          <p>Under construction ...</p>")
+(defxdoc Smtlink
+  :parents (ACL2::top)
+  :short "Tutorial and documentation for the ACL2 book, Smtlink."
+  :long "<h3>Introduction</h3>
+         <p><b>Smtlink</b> is a tool for integrating external SMT solvers into ACL2.
+         It is based on the @(see Clause-processor) mechanism.</p>
+         <p>Under construction ...</p>")
 
-;; (xdoc::save "./Smtlink-manual")  ;; write the manual
+(xdoc::save "./Smtlink-manual" :redef-okp t)  ;; write the manual

@@ -17,7 +17,7 @@ expanded
 *.log
 *.swp
 # .#*
-*/Smtlink-manual
+Smtlink-manual/*
 
 doc.lisp.backup
 workxxx
