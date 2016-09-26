@@ -132,7 +132,7 @@
      (formals decl-listp :default nil)
      (guard hint-pair-listp :default nil)
      (returns decl-listp :default nil)            ;; belong to auxiliary hypotheses
-     (more-returns hint-pair-listp :default nil)  ;; belong ot auxiliary hypotheses
+     (more-returns hint-pair-listp :default nil)  ;; belong to auxiliary hypotheses
      (body pseudo-termp :default nil)
      (expansion-depth natp :default 0)
      (uninterpreted booleanp :default nil)
@@ -159,9 +159,34 @@
      (smt-hint listp :default nil)
      (fast-functions func-alistp :default nil)
      (aux-hint-list hint-pair-listp :default nil)
-     (type-decl-list hint-pair-listp :default nil)
+     (type-decl-list decl-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
      (smt-cnf smtlink-config-p :default (make-smtlink-config))))
+
+  (define flatten-formals/returns ((formal/return-lst decl-listp))
+    :returns (flattened-lst symbol-listp)
+    :measure (len formal/return-lst)
+    :hints (("Goal" :in-theory (enable decl-list-fix)))
+    :enabled t
+    (b* ((formal/return-lst (mbe :logic (decl-list-fix formal/return-lst) :exec formal/return-lst))
+         ((if (endp formal/return-lst)) nil)
+         ((cons first rest) formal/return-lst)
+         ((decl d) first))
+      (cons d.name (flatten-formals/returns rest))))
+
+  (define make-alist-fn-lst ((fn-lst func-listp))
+    :short "@(call make-alist-fn-lst) makes fn-lst a fast alist"
+    :returns (fast-fn-lst func-alistp)
+    :measure (len fn-lst)
+    :enabled t
+    (b* ((fn-lst (mbe :logic (func-list-fix fn-lst) :exec fn-lst))
+         ((unless (consp fn-lst)) nil)
+         ((cons first rest) fn-lst)
+         ((func f) first)
+         (new-f (change-func f
+                             :flattened-formals (flatten-formals/returns f.formals)
+                             :flattened-returns (flatten-formals/returns f.returns))))
+      (cons (cons f.name new-f) (make-alist-fn-lst rest))))
 
   (defconst *default-smtlink-hint*
     (make-smtlink-hint))

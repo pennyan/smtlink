@@ -675,37 +675,30 @@
   (verify-guards generate-fn-hint-lst)
 
 
-  (define flatten-formals/returns ((formal/return-lst decl-listp))
-    :returns (flattened-lst symbol-listp)
-    :measure (len formal/return-lst)
-    :hints (("Goal" :in-theory (enable decl-list-fix)))
+  ;; ---------------------------------------------------------------------
+  ;; TODO
+  ;; Should this function be in this file?
+  (define is-type-decl ((type pseudo-termp))
+    :returns (is? booleanp)
     :enabled t
-    (b* ((formal/return-lst (mbe :logic (decl-list-fix formal/return-lst) :exec formal/return-lst))
-         ((if (endp formal/return-lst)) nil)
-         ((cons first rest) formal/return-lst)
-         ((decl d) first))
-      (cons d.name (flatten-formals/returns rest))))
+    (b* ((type (mbe :logic (pseudo-term-fix type) :exec type))
+         ((unless (consp type)) nil))
+      (and (equal (len type) 2)
+           (symbolp (car type))
+           (symbolp (cadr type)))))
 
-  (define make-alist-fn-lst ((fn-lst func-listp))
-    :short "@(call make-alist-fn-lst) makes fn-lst a fast alist"
-    :returns (fast-fn-lst func-alistp)
-    :measure (len fn-lst)
-    :enabled t
-    (b* ((fn-lst (mbe :logic (func-list-fix fn-lst) :exec fn-lst))
-         ((unless (consp fn-lst)) nil)
-         ((cons first rest) fn-lst)
-         ((func f) first)
-         (new-f (change-func f
-                             :flattened-formals (flatten-formals/returns f.formals)
-                             :flattened-returns (flatten-formals/returns f.returns))))
-      (cons (cons f.name new-f) (make-alist-fn-lst rest))))
+  ;; --------------------------------------------------------------------
 
   (define structurize-type-decl-list ((type-decl-list pseudo-term-listp))
-    :returns (structured-decl-list hint-pair-listp)
+    :returns (structured-decl-list decl-listp)
+    :guard-debug t
     (b* ((type-decl-list (mbe :logic (pseudo-term-list-fix type-decl-list) :exec type-decl-list))
          ((unless (consp type-decl-list)) nil)
-         ((cons first rest) type-decl-list))
-      (cons (make-hint-pair :thm first)
+         ((cons first rest) type-decl-list)
+         ((unless (is-type-decl first))
+          (er hard? 'SMT-goal-generator=>structurize-type-decl-list "Non type declaration found: ~q0" first))
+         ((list type name) first))
+      (cons (make-decl :name name :type (make-hint-pair :thm type))
             (structurize-type-decl-list rest))))
 
   (encapsulate ()

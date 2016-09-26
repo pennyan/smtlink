@@ -8,270 +8,59 @@
 (include-book "centaur/fty/top" :dir :system)
 (include-book "xdoc/top" :dir :system)
 (include-book "std/util/define" :dir :system)
+;; for lambda expression
+(include-book "kestrel/utilities/terms" :dir :system)
+(include-book "centaur/misc/hons-extra" :dir :system)
 
 (include-book "../../verified/SMT-hint-interface")
 (include-book "./SMT-names")
 
-;; ;; -------------- translate operator  -----------:
+(defsection SMT-translator
+  :parents (Smtlink)
+  :short "SMT-translator does the LISP to Python translation."
 
-;; ;; translate-operator-list
-;; (defun translate-operator-list (opr uninterpreted)
-;;   "translate-operator-list: look up an associate list for the translation"
-;;   (assoc opr (combine '((binary-+ "_SMT_.plus" 0)
-;;                         (binary-* "_SMT_.times" 0)
-;;                         (unary-/ "_SMT_.reciprocal" 1)
-;;                         (unary-- "_SMT_.negate" 1)
-;;                         (equal "_SMT_.equal" 2)
-;;                         (< "_SMT_.lt" 2)
-;;                         (if "_SMT_.ifx" 3)
-;;                         (not "_SMT_.notx" 1)
-;;                         (lambda "lambda" 2)
-;;                         (implies "_SMT_.implies" 2)
-;;                         ;; There are soundness issues with these functions
-;;                         ;;(integerp "_SMT_.integerp" 1)
-;;                         ;;(rationalp "_SMT_.rationalp" 1)
-;;                         ;;(booleanp "_SMT_.booleanp" 1)
-;;                         )
-;;                       uninterpreted)
-;;          ))
+  (defconst *SMT-functions*
+    ;;(ACL2 function . (SMT function       Least # of arguments))
+    `((binary-+      . ("_SMT_.plus"       0))
+      (binary-*      . ("_SMT_.times"      0))
+      (unary-/       . ("_SMT_.reciprocal" 1))
+      (unary--       . ("_SMT_.negate"     1))
+      (equal         . ("_SMT_.equal"      2))
+      (<             . ("_SMT_.lt"         2))
+      (if            . ("_SMT_.ifx"        3))
+      (not           . ("_SMT_.notx"       1))
+      (lambda        . ("lambda"           2))
+      (implies       . ("_SMT_.implies"    2))
+      ))
 
-;; ;; translate-operator
-;; (defun translate-operator (opr uninterpreted)
-;;   "translate-operator: given an operator in ACL2 format, translate into its Z3 format by looking up the associated list"
-;;   (let ((result (translate-operator-list opr uninterpreted)))
-;;     (if (equal result nil)
-;; 	(prog2$ (er hard? 'top-level "Error(translator): Operator ~q0 does not exist!" opr)
-;; 		nil)
-;;       (cadr result))))
+  (defconst *SMT-types*
+    ;;(ACL2 type .  SMT type)
+    `((rationalp . "_SMT_.isReal")
+      (integerp  . "_SMT_.isInt")
+      (booleanp  . "_SMT_.isBool")))
 
-;; ;; ----------------------- translate-type -----------------------------:
-
-;; ;; translate-type-list
-;; (defun translate-type-list (type)
-;;   "translate-type-list: look up an associate list for the translation"
-;;   (assoc type '((RATIONALP "_SMT_.isReal")
-;; 		(INTEGERP "_SMT_.isReal")
-;; 		(BOOLEANP "_SMT_.isBool"))))
-
-;; ;; translate-type
-;; (defun translate-type (type)
-;;   "translate-type: translates a type in ACL2 SMT-formula into Z3 type"     ;; all using reals because Z3 is not very good at mixed types
-;;   (let ((result (translate-type-list type)))
-;;     (if (equal result nil)
-;; 	(prog2$ (er hard? 'top-level "Error(translator): Type ~q0 does not exist!" type)
-;; 		nil)
-;;       (cadr result))))
-
-;; ;; ----------------------- translate-number -----------------------------:
-
-;; ;; translate-number
-;; (defun translate-number (num)
-;;   "translate-number: translates ACL2 SMT-number into a Z3 number"
-;;   (if (is-SMT-rational num)
-;;       (list "_SMT_.Qx(" (numerator num) "," (denominator num) ")")
-;;     (if (is-SMT-integer num)
-;; 	num
-;;       (er hard? 'top-level "Error(translator): Cannot translate an unrecognized number: ~q0" num))))
-
-;; ;; ----------------------- translate-variable ---------------------------:
-;; ;; translate-variable
-;; (defun translate-variable (var)
-;;   "translate-variable: translate a SMT variable into Z3 variable"
-;;   (if (is-SMT-variable var)
-;;       (lisp-to-python-names var)
-;;       (er hard? 'top-level "Error(translator): Cannot translate an unrecognized variable: ~q0" var)))
-
-;; ;; ----------------------- translate-constant ---------------------------:
-
-;; ;; translate-const-name 
-;; (defun translate-const-name (const-name)
-;;   "translate-const-name: translate a SMT constant name into Z3"
-;;   (subseq
-;;    (coerce (symbol-name const-name) 'list)
-;;    1 (1- (len const-name))))
-
-;; ;; translate-constant
-;; (defun translate-constant (const)
-;;   "translate-constant: translate a SMT constant definition into Z3 code"
-;;   (list (translate-const-name (car const)) '= (translate-number (cadr const))))
-
-;; ;; translate-constant-list
-;; (defun translate-constant-list (const-list)
-;;   "translate-constant-list: translate a SMT constant list in ACL2 into a Z3 line of code"
-;;   (if (consp const-list)
-;;       (cons (translate-constant (car const-list)) 
-;; 	    (cons #\Newline (translate-constant-list (cdr const-list))))
-;;     nil))
-
-;; ;; ;; check-const
-;; ;; (defun check-const (expr)
-;; ;;   "check-const: check to see if an expression is a constant"
-;; ;;   (if (and (atom expr)
-;; ;; 	   (let ((expr-list (coerce (symbol-name expr) 'list)))
-;; ;; 	     (and (equal #\* (car expr-list))
-;; ;; 		  (equal #\* (nth (1- (len expr-list)) expr-list)))))
-;; ;;       t
-;; ;;     nil))
-
-;; ;; ;; get-constant-list-help
-;; ;; (defun get-constant-list-help (expr const-list)
-;; ;;   "get-constant-list-help: check all constants in a clause"
-;; ;;   (cond
-;; ;;     ( (consp expr)
-;; ;;       (let ((const-list-2 (get-constant-list-help (car expr) const-list)))
-;; ;; 	(get-constant-list-help (cdr expr) const-list-2))
-;; ;;     )
-;; ;;     ( (check-const expr)
-;; ;;       (mv-let (keyword name value)
-;; ;; 	      (pe expr) ;; pe will not be working for this
-;; ;; 	      (cons (list expr (translate-number value)) const-list))
-;; ;;       )
-;; ;;     ( (atom expr)
-;; ;;       (get-constant-list-help (cdr expr) const-list)
-;; ;;       )
-;; ;;     ( t
-;; ;;       const-list
-;; ;;       )
-;; ;;     )
-;; ;;   )
-
-;; ;; ;; get-constant-list
-;; ;; (defun get-constant-list (expr)
-;; ;;   "get-constant-list: get the list of constants in an associate list"
-;; ;;   (get-constant-list-help expr '()))
-
-
-;; ;; ----------------------- translate-declaration ---------------------------:
-
-;; ;; translate-declaration
-;; (defun translate-declaration (decl)
-;;   "translate-declaration: translate a declaration in ACL2 SMT formula into Z3 declaration"
-;;    (let ((type (car decl))
-;; 	 (name (cadr decl)))
-;;      (list (translate-variable name) '= (translate-type type) '\(  '\" (translate-variable name) '\" '\))))
-
-;; ;; translate-declaration-list
-;; (defun translate-declaration-list (decl-list)
-;;   "translate-declaration-list: translate a list of SMT-formula declarations into Z3 code"
-;;   (if (consp decl-list)
-;;       (cons (translate-declaration (car decl-list))
-;; 	    (cons #\Newline (translate-declaration-list (cdr decl-list))))
-;;     nil))
-
-;; ;; ----------------------- translate-expression --------------------------:
-
-;; ;; make-lambda-list
-;; (defun make-lambda-list (lambda-list)
-;;   "make-lambda-list: translating the binding list of a lambda expression"
-;;   (if (endp (cdr lambda-list))
-;;       (car lambda-list)
-;;     (cons (car lambda-list)
-;; 	  (cons '\, (make-lambda-list (cdr lambda-list))))))
-
-;; (skip-proofs
-;; (mutual-recursion
-
-;; ;; translate-expression-long
-;; (defun translate-expression-long (expression uninterpreted)
-;;   "translate-expression-long: translate a SMT expression's parameters in ACL2 into Z3 expression"
-;;   (if (endp (cdr expression))
-;;       (translate-expression (car expression) uninterpreted)
-;;     (cons (translate-expression (car expression) uninterpreted)
-;; 	  (cons '\,
-;; 		(translate-expression-long
-;; 		 (cdr expression) uninterpreted)))))
-
-;; ;; stuff.let(['x', 2.0], ['y', v('a')*v('b') + v('c')], ['z', ...]).inn(2*v('x') - v('y'))
-;; ;; translate-expression
-;; ;  mrg -- I added a case for quoted symbols to support using define in lieu of defun.
-;; ;    Note that (symbolp nil) is t.  Yan should check to see if she can think of anyway
-;; ;    that this change might introduce an error into the translation.
-;; (defun translate-expression (expression uninterpreted)
-;;   "translate-expression: translate a SMT expression in ACL2 to Z3 expression"
-;;   (if (and (not (equal expression nil))
-;; 	   (consp expression)
-;; 	   (not (equal expression ''1)))
-;;       (cond ((and (consp (car expression))
-;; 		  (is-SMT-operator (caar expression) uninterpreted)
-;; 		  ;; special treatment for let expression
-;; 		  (equal (caar expression) 'lambda))
-;; 	     (list '\(
-;; 		   (translate-operator (caar expression) uninterpreted)
-;; 		   #\Space
-;; 		   (if (endp (cadr (car expression)))
-;; 		       #\Space
-;; 		       (make-lambda-list (cadr (car expression))))
-;; 		   '\:
-;; 		   (translate-expression (caddr (car expression)) uninterpreted)
-;; 		   '\) '\(
-;; 		   (if (endp (cdr expression))
-;; 		       #\Space
-;; 		       (translate-expression-long (cdr expression) uninterpreted))
-;; 		   '\)))
-;; 	    ;; ((and (is-SMT-operator (car expression))
-;; 	    ;; 	  (equal (car expression) 'list))
-;; 	    ;;  (list (translate-operator (car expression))
-;; 	    ;; 	   '\( '\[
-;; 	    ;; 	   (translate-expression-long (cdr expression))
-;; 	    ;; 	   '\] '\)))
-;; 	    ((is-SMT-operator (car expression) uninterpreted)
-;; 	     (list (translate-operator (car expression) uninterpreted)
-;; 		   '\(
-;; 		   (translate-expression-long (cdr expression) uninterpreted)
-;; 		   '\)))
-;; 	    ((and (equal (car expression) 'quote) (symbolp (cadr expression))) ; mrg: added 21 May 2015
-;; 	     (list "_SMT_.atom" '\( '\" (translate-expression (cadr expression) uninterpreted) '\" '\) ))
-;; 	    (t (list "_SMT_.unknown" '\( (translate-expression-long (cdr expression) uninterpreted) '\))))
-;;     (cond ((is-SMT-number expression)
-;; 	   (translate-number expression))
-;; 	  ((equal expression 'nil) "False") ;; what if when 'nil is a list?
-;; 	  ((equal expression 't) "True")
-;; 	  ((is-SMT-variable expression)
-;; 	   (translate-variable expression))
-;; 	  (t (er hard? 'top-level "Error(translator): Invalid number or variable: ~q0" expression)))))))
-
-;; ;; ----------------------- translate-hypothesis --------------------------:
-
-;; ;; translate-hypothesis-list
-;; (defun translate-hypothesis-list (hypothesis uninterpreted)
-;;   "translate-hypothesis-list: translate a SMT-formula hypothesis statement into Z3"
-;;   ;;(prog2$ (cw "(mrg translate-hypothesis-list:~%  hypothesis = ~x0~%" hypothesis)
-;;   (list (cons "hypothesis"
-;; 	      (cons '= (translate-expression hypothesis uninterpreted))) #\Newline))
-
-;; ;; ----------------------- translate-conclusion --------------------------:
-;; ;; translate-conclusion-list
-;; (defun translate-conclusion-list (concl-list uninterpreted)
-;;   "translate-conclusion-list: translate a SMT-formula conclusion statement into Z3"
-;;   (list (cons "conclusion"
-;; 	      (cons '= (translate-expression concl-list uninterpreted))) #\Newline))
-
-;; ;; ----------------------- translate-theorem --------------------------:
-;; ;; translate-theorem
-;; (defun translate-theorem ()
-;;   "translate-theorem: construct a theorem statement for Z3"
-;;   (list "_SMT_.prove(hypothesis, conclusion)" #\Newline))
-
-;; ;; ----------------------- translate-SMT-formula --------------------------:
-
-;; ;; translate-SMT-formula
-;; (defun translate-SMT-formula (decl-list hypothesis concl uninterpreted)
-;;   "translate-SMT-formula: translate a SMT formula into its Z3 code"
-;;   (list ;;(translate-constant-list
-;;    ;;  (get-constant-list formula))
-;; 	(translate-declaration-list decl-list)
-;; 	(translate-hypothesis-list hypothesis uninterpreted)
-;; 	(translate-conclusion-list concl uninterpreted)
-;; 	(translate-theorem)))
-
-
-;; (defsection SMT-translator
-;;   :parents (Smtlink)
-;;   :short "SMT-translator does the LISP to Python translation."
-
-  (define good-atomp (atom)
+  (define SMT-numberp (sym)
     (declare (xargs :guard t))
-    :returns (good? booleanp)
+    :returns (is? booleanp)
+    :enabled t
+    (if (or (rationalp sym) (integerp sym)) t nil))
+
+  (define SMT-number-fix ((num SMT-numberp))
+    :returns (fixed SMT-numberp)
+    :enabled t
+    (mbe :logic (if (SMT-numberp num) num 0)
+         :exec num))
+
+  (deffixtype SMT-number
+    :fix SMT-number-fix
+    :pred SMT-numberp
+    :equiv SMT-number-equiv
+    :define t)
+
+  (define wordp (atom)
+    (declare (xargs :guard t))
+    :returns (word? booleanp)
+    :enabled t
     (if (or (acl2-numberp atom)
             (symbolp atom)
             (characterp atom)
@@ -279,66 +68,465 @@
         t
       nil))
 
-  (define good-atom-fix ((atom good-atomp))
-    :returns (fixed good-atomp)
+  (define word-fix ((atom wordp))
+    :returns (fixed wordp)
     :enabled t
-    (mbe :logic (if (good-atomp atom) atom nil)
+    (mbe :logic (if (wordp atom) atom nil)
          :exec atom)
     ///
     (more-returns
-     (fixed (equal (good-atom-fix fixed) fixed)
-            :name equal-fixed)))
+     (fixed (equal (word-fix fixed) fixed)
+            :name equal-word-fixed)))
 
-  (deffixtype good-atom
-    :fix good-atom-fix
-    :pred good-atomp
-    :equiv good-atom-equiv
+  (deffixtype word
+    :fix word-fix
+    :pred wordp
+    :equiv word-equiv
     :define t)
 
-  (define good-atom-listp (atom-lst)
+  (defthm wordp-of-lisp-to-python-names
+    (wordp (lisp-to-python-names x))
+    :hints (("Goal" :in-theory (enable wordp))))
+
+
+  (define translate-function ((opr symbolp))
+    :returns (translated stringp)
+    (b* ((translated (cadr (assoc-equal opr *SMT-functions*)))
+         ((if (equal translated nil))
+          (prog2$ (er hard? 'SMT-translator=>translate-function "Not a basic SMT function: ~q0" opr)
+                  "")))
+      translated))
+
+  (defthm wordp-of-translate-function
+    (wordp (translate-function x))
+    :hints (("Goal" :in-theory (enable wordp))))
+
+  (define paragraphp (par)
     (declare (xargs :guard t))
-    :returns (good? booleanp)
-    (if (atom atom-lst)
-        (equal atom-lst nil)
-      (and (good-atomp (car atom-lst))
-           (good-atom-listp (cdr atom-lst))))
-    ///
-    (more-returns
-     (good? (implies (and good? (consp atom-lst)) (good-atomp (car atom-lst)))
-            :name good-atomp-of-car-of-good-atom-listp
-            :hints (("Goal" :in-theory (enable good-atom-listp))))
-     (good? (implies good? (true-listp atom-lst))
-            :name true-listp-of-good-atom-listp
-            :hints (("Goal" :in-theory (enable good-atom-listp))))))
+    :returns (paragraph? booleanp)
+    :short "A paragraph is made up of lists of words. Notice a single word is also counted as a paragraphp."
+    (if (atom par)
+        (wordp par)
+      (and (paragraphp (car par)) (paragraphp (cdr par)))))
+
+  (defthm paragraphp-corollary-1
+    (implies (wordp x) (paragraphp x))
+    :hints (("Goal" :in-theory (enable paragraphp wordp))))
+
+  (defthm paragraphp-corollary-2
+    (implies (and (consp x) (paragraphp (car x)) (paragraphp (cdr x))) (paragraphp x))
+    :hints (("Goal" :in-theory (enable paragraphp))))
 
   (encapsulate ()
-    (local (in-theory (enable good-atom-fix good-atomp good-atom-listp)))
-    (define good-atom-list-fix ((atom-lst good-atom-listp))
-      :returns (fixed good-atom-listp)
-      (mbe :logic (if (consp atom-lst)
-                      (cons (good-atom-fix (car atom-lst))
-                            (good-atom-list-fix (cdr atom-lst)))
-                    nil)
-           :exec atom-lst)
-      ///
-      (more-returns
-       (fixed (implies (good-atom-listp atom-lst) (equal fixed atom-lst))
-              :name equal-of-good-atom-listp)))
+    (local (in-theory (enable paragraphp)))
+    (define paragraph-fix ((x paragraphp))
+      :returns (fixed paragraphp)
+      (mbe :logic (if (consp x)
+                      (cons (paragraph-fix (car x)) (paragraph-fix (cdr x)))
+                    (word-fix x))
+           :exec x))
     )
 
-  (deffixtype good-atom-list
-    :fix good-atom-list-fix
-    :pred good-atom-listp
-    :equiv good-atom-list-equiv
-    :define t)
+  (encapsulate ()
+    (local (in-theory (enable paragraph-fix)))
+    (deffixtype paragraph
+      :fix paragraph-fix
+      :pred paragraphp
+      :equiv paragraph-equiv
+      :define t)
+    )
 
-  (deflist good-atom-list-list
-    :elt-type good-atom-list
-    :pred good-atom-list-listp
-    :true-listp t)
+  (define translate-number ((num SMT-numberp))
+    :returns (translated paragraphp :hints (("Goal" :in-theory (enable wordp paragraphp))))
+    :guard-debug t
+    (b* ((num (mbe :logic (SMT-number-fix num) :exec num))
+         ((if (and (rationalp num) (not (integerp num))))
+          `("_SMT_.Qx(" ,(numerator num) "," ,(denominator num) ")")))
+      (list num)))
+
+  (define translate-symbol ((sym symbolp))
+    :returns (translated paragraphp
+                         :hints (("Goal" :in-theory (enable paragraphp wordp))))
+    (cond ;; A number
+     ((SMT-numberp sym) (translate-number sym))
+     ;; Boolean: nil
+     ((equal sym 'nil) (list "False"))
+     ;; Boolean: t
+     ((equal sym 't) (list "True"))
+     ;; A variable
+     (t (list (lisp-to-python-names sym)))))
+
+  (define translate-type ((type symbolp))
+    :returns (translated stringp)
+    (b* ((type (mbe :logic (symbol-fix type) :exec type))
+         (item (assoc-equal type *SMT-types*)))
+      (if (endp item)
+          (prog2$ (er hard? 'SMT-translator=>translate-type "Not a SMT type: ~q0" type) "")
+        (cdr item))))
+
+  (defprod te-args
+    ((expr-lst pseudo-term-listp :default nil)
+     (fn-lst func-alistp :default nil)
+     (uninterpreted-lst symbol-listp :default nil)))
+
+  (define translate-lambda-formals ((formals symbol-listp))
+    :returns (translated paragraphp
+                         :hints (("Goal" :in-theory (enable translate-symbol paragraphp))))
+    :measure (len formals)
+    (b* ((formals (mbe :logic (symbol-list-fix formals) :exec formals))
+         ((unless (consp formals)) nil)
+         ((cons first rest) formals)
+         (translated-name (translate-symbol first)))
+      (cons translated-name `(#\Space ,@(translate-lambda-formals rest)))))
+
+  (define translate-expression ((args te-args-p))
+    :returns (mv (translated paragraphp
+                             :hints (("Goal" :in-theory (enable paragraphp))))
+                 (uninterpreted symbol-listp))
+    :measure (acl2-count (te-args->expr-lst args))
+    :hints (("Goal" :in-theory (enable pseudo-lambdap)))
+    :verify-guards nil
+    (b* ((args (mbe :logic (te-args-fix args) :exec args))
+         ((te-args a) args)
+         ((unless (consp a.expr-lst)) (mv nil a.uninterpreted-lst))
+         ((cons expr rest) a.expr-lst)
+         ((mv translated-rest uninterpreted-rest)
+          (translate-expression (change-te-args a :expr-lst rest)))
+         ;; If first term is an symbolp, should be a variable name
+         ;; translate the variable then recurse on the rest of the list
+         ((if (symbolp expr))
+          (mv (cons (translate-symbol expr) translated-rest)
+              uninterpreted-rest))
+         ;; If car of term is 'quote
+         ;; Translate it into a SMT atom
+         ((if (equal (car expr) 'quote))
+          (b* (((unless (symbolp (cadr expr)))
+                (mv (er hard? 'SMT-translator=>translate-expression "List not supported: ~q0" expr) nil))
+               (translated-quote `("_SMT_.atom" #\( #\" ,(translate-symbol (cadr expr)) #\" #\) )))
+            (mv (cons translated-quote translated-rest)
+                uninterpreted-rest)))
+         ;; The first term is now a function call:
+         ;; Either a lambda or a symbol
+         ((cons fn-call fn-actuals) expr)
+
+         ;; If fn-call is a lambda
+         ((if (pseudo-lambdap fn-call))
+          (b* ((formals (lambda-formals fn-call))
+               (body (lambda-body fn-call))
+               (lambda-sym (car fn-call))
+               (translated-lambda (translate-function lambda-sym))
+               (translated-formals (translate-lambda-formals formals))
+               ((mv translated-body uninterpreted-1)
+                (translate-expression (change-te-args a :expr-lst (list body) :uninterpreted-lst uninterpreted-rest)))
+               ((mv translated-actuals uninterpreted-2)
+                (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-1)))
+               (translated-lambda-whole
+                `(#\( ,translated-lambda #\Space ,translated-formals #\: ,translated-body #\)
+                  #\( ,translated-actuals #\))))
+            (mv (cons translated-lambda-whole translated-rest)
+                uninterpreted-2)))
+
+         ;; If fn-call is neither a lambda expression nor a function call
+         ((unless (mbt (symbolp fn-call))) (mv nil nil))
+         ;; See if fn-call is an uninterpreted function
+         (fn (hons-get fn-call a.fn-lst))
+         ((if fn)
+          (b* (((func f) (cdr fn))
+               ((if (not f.uninterpreted))
+                (mv (er hard? 'SMT-translator=>translate-expression "Not a basic SMT function: ~q0" fn-call) nil))
+               ((mv translated-actuals uninterpreted-1)
+                (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-rest)))
+               (translated-fn-call
+                `(,(translate-symbol fn-call) #\( ,translated-actuals #\) )))
+            (mv (cons translated-fn-call translated-rest)
+                (cons fn-call uninterpreted-1))))
+         ;; If fn-call is not an uninterpreted function, then it has to be a basic function
+         ((mv translated-actuals uninterpreted-1)
+          (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-rest))))
+      (mv (cons `( ,(translate-function fn-call) #\( ,translated-actuals #\) ) translated-rest)
+          uninterpreted-1)))
+
+  (encapsulate ()
+    (local (defthm lemma-1
+             (implies (te-args-p x)
+                      (pseudo-term-listp (te-args->expr-lst x)))))
+    (local (defthm lemma-2
+             (implies (and (pseudo-term-listp x) (consp x))
+                      (pseudo-term-listp (cdr x)))))
+    (defthm pseudo-term-listp-of-cdr-of-te-args->expr-lst
+      (implies (and (te-args-p x)
+                    (consp (te-args->expr-lst x)))
+               (pseudo-term-listp (cdr (te-args->expr-lst x))))
+      :hints (("Goal" :in-theory (enable pseudo-term-listp))))
+
+    (local (defthm lemma-3
+             (implies (and (pseudo-term-listp x) (consp x))
+                      (pseudo-termp (car x)))))
+
+    (local (defthm lemma-4
+             (implies (and (pseudo-termp x) (not (symbolp x)))
+                      (consp x))))
+
+    (defthm consp-of-car-of-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args)))))
+               (consp (car (te-args->expr-lst args)))))
+
+    (local (defthm lemma-5
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (not (symbolp (car x))) (equal (caar x) 'quote))
+                      (consp (cdar x)))))
+
+    (defthm not-cdr-of-car-of-quote-ex-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (equal (car (car (te-args->expr-lst args)))
+                           'quote)
+                    (not (consp (cdr (car (te-args->expr-lst args))))))
+               (not (cdr (car (te-args->expr-lst args))))))
+
+    (local (defthm lemma-6
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (pseudo-lambdap (caar x)))
+                      (symbolp (caaar x)))))
+
+    (defthm symbolp-of-caaar-of-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (pseudo-lambdap (car (car (te-args->expr-lst args)))))
+               (symbolp (car (car (car (te-args->expr-lst args)))))))
+
+    (local (defthm lemma-7
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (not (symbolp (car x))) (not (pseudo-lambdap (caar x))))
+                      (symbolp (caar x)))
+             :hints (("Goal" :in-theory (enable pseudo-termp pseudo-lambdap pseudo-term-listp)))))
+
+    (defthm symbolp-of-caar-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (pseudo-lambdap (car (car (te-args->expr-lst args))))))
+               (symbolp (car (car (te-args->expr-lst args))))))
+
+    (local (defthm lemma-8
+             (implies (and (pseudo-term-listp x) (consp x) (pseudo-lambdap (caar x)))
+                      (symbol-listp (cadaar x)))
+             :hints (("Goal" :in-theory (enable pseudo-termp pseudo-lambdap pseudo-term-listp)))))
+
+    (defthm symbol-listp-of-cadaar-of-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (pseudo-lambdap (car (car (te-args->expr-lst args)))))
+               (symbol-listp (cadr (car (car (te-args->expr-lst args)))))))
+
+    (local (defthm lemma-9
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (pseudo-lambdap (caar x)))
+                      (pseudo-termp (caddr (caar x))))
+             :hints (("Goal" :in-theory (enable pseudo-lambdap pseudo-term-listp pseudo-termp)))))
+
+    (defthm pseudo-termp-of-caddaar-of-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (pseudo-lambdap (car (car (te-args->expr-lst args)))))
+               (pseudo-termp (caddr (car (car (te-args->expr-lst args)))))))
+
+    (local (defthm lemma-10
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (pseudo-lambdap (caar x)))
+                      (pseudo-term-listp (cdar x)))))
+
+    (defthm pseudo-term-listp-of-cdar-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (pseudo-lambdap (car (car (te-args->expr-lst args)))))
+               (pseudo-term-listp (cdr (car (te-args->expr-lst args))))))
+
+    (local (defthm lemma-11
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (not (symbolp (car x))) (not (pseudo-lambdap (caar x)))
+                           (not (equal (caar x) 'quote)))
+                      (pseudo-term-listp (cdar x)))))
+
+    (defthm pseudo-term-listp-of-cdar-of-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (not (pseudo-lambdap (car (car (te-args->expr-lst args))))))
+               (pseudo-term-listp (cdr (car (te-args->expr-lst args))))))
+
+    (local (defthm lemma-12
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (pseudo-lambdap (caar x)))
+                      (consp (cdaar x)))
+             :hints (("Goal" :in-theory (enable pseudo-lambdap pseudo-term-listp pseudo-termp)))))
+
+    (defthm not-cdaar-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (pseudo-lambdap (car (car (te-args->expr-lst args))))
+                    (not (consp (cdr (car (car (te-args->expr-lst args)))))))
+               (not (cdr (car (car (te-args->expr-lst args)))))))
+
+    (local (defthm lemma-13
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (pseudo-lambdap (caar x)))
+                      (consp (cddaar x)))
+             :hints (("Goal" :in-theory (enable pseudo-lambdap pseudo-term-listp pseudo-termp)))))
+
+    (defthm not-cddaar-of-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (pseudo-lambdap (car (car (te-args->expr-lst args))))
+                    (not (consp (cddr (car (car (te-args->expr-lst args)))))))
+               (not (cddr (car (car (te-args->expr-lst args)))))))
+
+    (local (defthm lemma-14
+             (implies (and (pseudo-term-listp x) (consp x)
+                           (pseudo-lambdap (caar x)))
+                      (consp (caar x)))
+             :hints (("Goal" :in-theory (enable pseudo-lambdap pseudo-term-listp pseudo-termp)))))
+
+    (defthm not-caar-of-te-args->expr-lst
+      (implies (and (te-args-p args)
+                    (consp (te-args->expr-lst args))
+                    (not (symbolp (car (te-args->expr-lst args))))
+                    (not (equal (car (car (te-args->expr-lst args)))
+                                'quote))
+                    (pseudo-lambdap (car (car (te-args->expr-lst args))))
+                    (not (consp (car (car (te-args->expr-lst args))))))
+               (not (car (car (te-args->expr-lst args))))))
+    )
+
+  (verify-guards translate-expression
+    :guard-debug t)
+
+  (define translate-declaration ((name symbolp) (type symbolp))
+    :returns (translated paragraphp
+                         :hints (("Goal"
+                                  :in-theory (enable translate-symbol translate-type paragraphp wordp))))
+    (b* ((name (mbe :logic (symbol-fix name) :exec name))
+         (type (mbe :logic (symbol-fix type) :exec type))
+         (translated-name (translate-symbol name))
+         (translated-type (translate-type type)))
+      `(,translated-name = ,translated-type #\( #\" ,translated-name #\" #\) )))
+
+  (encapsulate ()
+    (local (in-theory (enable paragraph-fix paragraphp)))
+    (define translate-type-decl-list ((type-decl-lst decl-listp) (acc paragraphp))
+      :returns (translated paragraphp
+                           :hints (("Goal" :in-theory (enable translate-declaration))))
+      :measure (len type-decl-lst)
+      (b* ((type-decl-lst (mbe :logic (decl-list-fix type-decl-lst) :exec type-decl-lst))
+           (acc (mbe :logic (paragraph-fix acc) :exec acc))
+           ((unless (consp type-decl-lst)) acc)
+           ((cons first rest) type-decl-lst)
+           ((decl d) first)
+           ((hint-pair h) d.type)
+           (translated-type-decl (translate-declaration d.name h.thm)))
+        (translate-type-decl-list rest (cons translated-type-decl acc))))
+    )
+
+  (define translate-theorem ((theorem pseudo-termp) (fn-lst func-alistp))
+    :returns (mv (translated paragraphp :hints (("Goal" :in-theory (enable translate-expression))))
+                 (uninterpreted symbol-listp
+                                :hints (("Goal"
+                                         :in-theory (disable symbol-listp)
+                                         :use ((:instance symbol-listp-of-translate-expression.uninterpreted))))))
+    (b* ((theorem (mbe :logic (pseudo-term-fix theorem) :exec theorem))
+         (uninterpreted-lst nil)
+         ((mv translated-theorem-body uninterpreted)
+          (with-fast-alists (fn-lst uninterpreted-lst)
+            (translate-expression (make-te-args :expr-lst (list theorem)
+                                                :fn-lst fn-lst
+                                                :uninterpreted-lst uninterpreted-lst))))
+         (theorem-assign `("theorem" = ,translated-theorem-body #\Newline))
+         (prove-theorem `("_SMT_.prove(theorem)" #\Newline)))
+      (mv `(,theorem-assign ,prove-theorem) uninterpreted)))
+
+  (define translate-uninterpreted-arguments ((type symbolp) (args decl-listp))
+    :returns (translated paragraphp
+                         :hints (("Goal" :in-theory (disable true-listp))))
+    :measure (len args)
+    (b* ((type (mbe :logic (symbol-fix type) :exec type))
+         (args (mbe :logic (decl-list-fix args):exec args))
+         ((unless (consp args)) nil)
+         ((cons first rest) args)
+         ((decl d) first)
+         (translated-type (translate-type d.name)))
+      (cons `(#\, #\Space ,translated-type #\( #\))
+            (translate-uninterpreted-arguments type rest))))
+
+  (define translate-uninterpreted-decl ((fn func-p))
+    :returns (translated paragraphp)
+    (b* ((fn (mbe :logic (func-fix fn) :exec fn))
+         ;; Bind everything needed from fn
+         ((func f) fn)
+         (name f.name)
+         (translated-formals (translate-uninterpreted-arguments 'formals f.formals))
+         ((if (> (len f.returns) 1))
+          (er hard? 'SMT-translator=>translate-uninterpreted-decl "Currently, mv returns are not supported."))
+         (translated-returns (translate-uninterpreted-arguments 'returns f.returns)))
+      `(,name "= Function(" #\' ,name #\' ,translated-formals ,translated-returns #\Newline)))
+
+  ;; func1 = Function('func1', I1-type, I2-type, R-type)
+  ;; example:
+  ;;   expr = Function('expr', RealSort(), IntSort(), RealSort())
+  (encapsulate ()
+    (local (in-theory (enable paragraph-fix paragraphp)))
+    (define translate-uninterpreted-decl-lst ((uninterpreted symbol-listp) (fn-lst func-alistp)
+                                              (acc paragraphp))
+      :measure (len uninterpreted)
+      :returns (translated paragraphp)
+      :guard-debug t
+      (b* ((uninterpreted (mbe :logic (symbol-list-fix uninterpreted) :exec uninterpreted))
+           (fn-lst (mbe :logic (func-alist-fix fn-lst) :exec fn-lst))
+           (acc (mbe :logic (paragraph-fix acc) :exec acc))
+           ((unless (consp uninterpreted)) acc)
+           ((cons first rest) uninterpreted)
+           (fn (hons-get first fn-lst))
+           ;; ((unless (mbt fn)) acc)
+           ((unless fn) acc)
+           (first-decl (translate-uninterpreted-decl (cdr fn))))
+        (translate-uninterpreted-decl-lst rest fn-lst (cons first-decl acc))))
+    )
 
   (define SMT-translation ((term pseudo-termp) (smtlink-hint smtlink-hint-p))
-    :returns (py-term good-atom-list-listp)
-    :ignore-ok t
-    nil)
-;; )
+    :returns (py-term paragraphp)
+    (b* ((term (mbe :logic (pseudo-term-fix term) :exec term))
+         (smtlink-hint (mbe :logic (smtlink-hint-fix smtlink-hint) :exec smtlink-hint))
+         ((smtlink-hint h) smtlink-hint)
+         ;; Make an alist version of fn-lst
+         (fn-lst (make-alist-fn-lst h.functions))
+         ((mv translated-theorem uninterpreted) (translate-theorem term fn-lst))
+         (translated-uninterpreted-decls
+          (with-fast-alist fn-lst
+            (translate-uninterpreted-decl-lst uninterpreted fn-lst translated-theorem)))
+         (translated-theorem-with-type-decls
+          (translate-type-decl-list h.type-decl-list translated-uninterpreted-decls))
+         )
+      `(,@translated-theorem-with-type-decls)))
+  )

@@ -136,11 +136,29 @@
            (cons #\_ (lisp-to-python-names-list var-char)))
           (t (lisp-to-python-names-list var-char))))
 
+
+  (define string-or-symbol-p (name)
+    :returns (p? booleanp)
+    :enabled t
+    (or (stringp name) (symbolp name)))
+
+  (define string-or-symbol-fix ((x string-or-symbol-p))
+    :enabled t
+    (mbe :logic (if (string-or-symbol-p x) x nil)
+         :exec x))
+
+  (deffixtype string-or-symbol
+    :fix string-or-symbol-fix
+    :pred string-or-symbol-p
+    :equiv string-or-symbol-equiv
+    :define t)
+
   ;; lisp-to-python-names
-  (define lisp-to-python-names ((var stringp))
+  (define lisp-to-python-names ((var string-or-symbol-p))
     :returns (name stringp)
-    (b* ((var-char (coerce (string var) 'LIST)))
-      (coerce
-       (lisp-to-python-names-list-top var-char) 'STRING)))
+    (b* ((var (mbe :logic (string-or-symbol-fix var) :exec var))
+         (var (if (stringp var) var (string var)))
+         (var-char (coerce var 'LIST)))
+      (coerce (lisp-to-python-names-list-top var-char) 'STRING)))
 
   )

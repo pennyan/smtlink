@@ -52,6 +52,7 @@
       prefixp
       symbol-fix
       symbol-list-fix
+      with-fast-alists
 
       str::cat
       str::natstr
