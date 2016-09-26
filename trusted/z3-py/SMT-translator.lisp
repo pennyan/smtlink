@@ -124,7 +124,23 @@
       (mbe :logic (if (consp x)
                       (cons (paragraph-fix (car x)) (paragraph-fix (cdr x)))
                     (word-fix x))
-           :exec x))
+           :exec x)
+      ///
+      (more-returns
+       (fixed (<= (acl2-count fixed) (acl2-count x))
+              :name acl2-count-of-fixed-smaller
+              :rule-classes :linear)
+       (fixed (implies (consp fixed)
+                       (< (acl2-count (car fixed)) (acl2-count x)))
+              :name acl2-count-of-car-of-fixed-smaller
+              :rule-classes :linear)
+       (fixed (implies (consp fixed)
+                       (< (acl2-count (cdr fixed)) (acl2-count x)))
+              :name acl2-count-of-cdr-of-fixed-smaller
+              :rule-classes :linear)
+       (fixed (implies (paragraphp x)
+                       (equal fixed x))
+              :name equal-of-fixed-to-x)))
     )
 
   (encapsulate ()

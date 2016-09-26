@@ -14,10 +14,10 @@
   :parent (Smtlink)
   :short "SMT-header contains string definitions for the header of a Z3 file."
 
-  (define write-head ((conf smtlink-config-p))
+  (define SMT-head ((smt-conf smtlink-config-p))
     :returns (head paragraphp)
-    (b* ((conf (mbe :logic (smtlink-config-fix conf) :exec conf))
-         ((smtlink-config c) conf))
+    (b* ((smt-conf (mbe :logic (smtlink-config-fix smt-conf) :exec smt-conf))
+         ((smtlink-config c) smt-conf))
       (list "from sys import path"
             #\Newline
             "path.insert(0,\"" c.interface-dir "\")"
