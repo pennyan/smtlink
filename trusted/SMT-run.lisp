@@ -34,7 +34,7 @@
              :args (list cmd))))
 
   ;; Changes included to bind counter example to global variable "cex" - Carl
-(define SMT-interpret ((fname stringp) (smt-conf smtlink-config-p) (state))
+(define SMT-interpret ((fname stringp) (rm-file booleanp) (smt-conf smtlink-config-p) (state))
   (declare (xargs :stobjs state))
     :returns (mv (proved? booleanp)
                  (state))
@@ -45,7 +45,8 @@
          ((if (equal lines nil))
           (mv (er hard? 'SMT-run=>SMT-interpret "Nothing returned from SMT solver.") state))
          ((if (equal (car lines) "proved"))
-          (b* ((cmd (concatenate 'string "rm -f " fname))
+          (b* (((unless (equal rm-file t)) (mv t state))
+               (cmd (concatenate 'string "rm -f " fname))
                ((mv exit-status-rm lines-rm) (time$ (tshell-call cmd
                                                                  :print t
                                                                  :save t)

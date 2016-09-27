@@ -78,6 +78,6 @@
          (smt-file (make-fname c.SMT-files-dir h.smt-fname c.file-format))
          (smt-term (SMT-translation term smtlink-hint))
          (state (SMT-write-file smt-file (ACL22SMT) (SMT-head c) smt-term state))
-         ((mv result state) (SMT-interpret smt-file c state)))
+         ((mv result state) (SMT-interpret smt-file h.rm-file c state)))
       (mv result state)))
   )

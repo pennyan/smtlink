@@ -50,9 +50,11 @@ class ACL22SMT(object):
         self.nameNumber = self.nameNumber+1
         return varName
 
+    # Type declarations
     def isBool(self, who): return Bool(who)
     def isInt(self, who): return Int(who)
     def isReal(self, who): return Real(who)
+
     def plus(self, *args): return reduce(lambda x, y: x+y, args)
     def times(self, *args): return reduce(lambda x, y: x*y, args)
 
@@ -72,6 +74,10 @@ class ACL22SMT(object):
     def integerp(self, x): return sort(x) == IntSort()
     def rationalp(self, x): return sort(x) == RealSort()
     def booleanp(self, x): return sort(x) == BoolSort()
+    # Uninterpreted function types
+    def Z(self): return IntSort()
+    def R(self): return RealSort()
+    def B(self): return BoolSort()
 
     def ifx(self, condx, thenx, elsex):
         return If(condx, thenx, elsex)
