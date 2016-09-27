@@ -17,10 +17,12 @@
 
 (include-book "trusted/SMT-trusted-cp")
 (include-book "trusted/SMT-prove")
+(include-book "trusted/SMT-run")
+(include-book "trusted/SMT-write")
 
 (include-book "trusted/z3-py/SMT-names")
 (include-book "trusted/z3-py/SMT-translator")
-
+(include-book "trusted/z3-py/SMT-header")
 
 ;; ------------------------------------------------------- ;;
 ;;    Documentation

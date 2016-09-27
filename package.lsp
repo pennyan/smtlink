@@ -54,6 +54,8 @@
       symbol-list-fix
       with-fast-alists
 
+      read-string
+
       str::cat
       str::natstr
       str::strtok
