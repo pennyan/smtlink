@@ -117,6 +117,10 @@
     (implies (and (consp x) (paragraphp (car x)) (paragraphp (cdr x))) (paragraphp x))
     :hints (("Goal" :in-theory (enable paragraphp))))
 
+  (defthm paragraphp-corollary-3
+    (implies (and (consp x) (paragraphp x)) (and (paragraphp (car x)) (paragraphp (cdr x))))
+    :hints (("Goal" :in-theory (enable paragraphp))))
+
   (encapsulate ()
     (local (in-theory (enable paragraphp)))
     (define paragraph-fix ((x paragraphp))
@@ -163,8 +167,7 @@
   (define translate-symbol ((sym symbolp))
     :returns (translated paragraphp
                          :hints (("Goal" :in-theory (enable paragraphp wordp))))
-    (cond ;; A number
-     ((SMT-numberp sym) (translate-number sym))
+    (cond
      ;; Boolean: nil
      ((equal sym 'nil) (list "False"))
      ;; Boolean: t
@@ -172,10 +175,12 @@
      ;; A variable
      (t (list (lisp-to-python-names sym)))))
 
-  (define translate-type ((type symbolp))
+  (define translate-type ((type symbolp) (int-to-rat booleanp))
     :returns (translated stringp)
     (b* ((type (mbe :logic (symbol-fix type) :exec type))
-         (item (assoc-equal type *SMT-types*)))
+         (item (if (and (equal type 'integerp) int-to-rat)
+                   (assoc-equal 'rationalp *SMT-types*)
+                 (assoc-equal type *SMT-types*))))
       (if (endp item)
           (prog2$ (er hard? 'SMT-translator=>translate-type "Not a SMT type: ~q0" type) "")
         (cdr item))))
@@ -194,6 +199,16 @@
          ((cons first rest) formals)
          (translated-name (translate-symbol first)))
       (cons translated-name `(#\Space ,@(translate-lambda-formals rest)))))
+
+  (define map-translated-actuals ((actuals paragraphp))
+    :returns (mapped paragraphp
+                     :hints (("Goal" :in-theory (enable paragraphp paragraph-fix))))
+    (b* ((actuals (mbe :logic (paragraph-fix actuals) :exec actuals))
+         ((unless (consp actuals)) actuals)
+         ((unless (consp (cdr actuals))) actuals)
+         ((cons first rest) actuals)
+         (mapped-rest (map-translated-actuals rest)))
+      (cons first (cons #\, mapped-rest))))
 
   (define translate-expression ((args te-args-p))
     :returns (mv (translated paragraphp
@@ -216,9 +231,11 @@
          ;; If car of term is 'quote
          ;; Translate it into a SMT atom
          ((if (equal (car expr) 'quote))
-          (b* (((unless (symbolp (cadr expr)))
-                (mv (er hard? 'SMT-translator=>translate-expression "List not supported: ~q0" expr) nil))
-               (translated-quote `("_SMT_.atom" #\( #\" ,(translate-symbol (cadr expr)) #\" #\) )))
+          (b* (((unless (or (symbolp (cadr expr)) (SMT-numberp (cadr expr)) (booleanp (cadr expr))))
+                (mv (er hard? 'SMT-translator=>translate-expression "Atom not supported: ~q0" expr) nil))
+               (translated-quote (cond ((booleanp (cadr expr)) (translate-symbol (cadr expr)))
+                                       ((SMT-numberp (cadr expr)) (translate-number (cadr expr)))
+                                       (t `("_SMT_.atom" #\( #\" ,(translate-symbol (cadr expr)) #\" #\))))))
             (mv (cons translated-quote translated-rest)
                 uninterpreted-rest)))
          ;; The first term is now a function call:
@@ -238,7 +255,7 @@
                 (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-1)))
                (translated-lambda-whole
                 `(#\( ,translated-lambda #\Space ,translated-formals #\: ,translated-body #\)
-                  #\( ,translated-actuals #\))))
+                  #\( ,(map-translated-actuals translated-actuals) #\))))
             (mv (cons translated-lambda-whole translated-rest)
                 uninterpreted-2)))
 
@@ -253,13 +270,13 @@
                ((mv translated-actuals uninterpreted-1)
                 (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-rest)))
                (translated-fn-call
-                `(,(translate-symbol fn-call) #\( ,translated-actuals #\) )))
+                `(,(translate-symbol fn-call) #\( ,(map-translated-actuals translated-actuals) #\) )))
             (mv (cons translated-fn-call translated-rest)
                 (cons fn-call uninterpreted-1))))
          ;; If fn-call is not an uninterpreted function, then it has to be a basic function
          ((mv translated-actuals uninterpreted-1)
           (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-rest))))
-      (mv (cons `( ,(translate-function fn-call) #\( ,translated-actuals #\) ) translated-rest)
+      (mv (cons `( ,(translate-function fn-call) #\( ,(map-translated-actuals translated-actuals) #\) ) translated-rest)
           uninterpreted-1)))
 
   (encapsulate ()
@@ -440,19 +457,19 @@
   (verify-guards translate-expression
     :guard-debug t)
 
-  (define translate-declaration ((name symbolp) (type symbolp))
+  (define translate-declaration ((name symbolp) (type symbolp) (int-to-rat booleanp))
     :returns (translated paragraphp
                          :hints (("Goal"
                                   :in-theory (enable translate-symbol translate-type paragraphp wordp))))
     (b* ((name (mbe :logic (symbol-fix name) :exec name))
          (type (mbe :logic (symbol-fix type) :exec type))
          (translated-name (translate-symbol name))
-         (translated-type (translate-type type)))
-      `(,translated-name = ,translated-type #\( #\" ,translated-name #\" #\) )))
+         (translated-type (translate-type type int-to-rat)))
+      `(,translated-name = ,translated-type #\( #\" ,translated-name #\" #\) #\Newline)))
 
   (encapsulate ()
     (local (in-theory (enable paragraph-fix paragraphp)))
-    (define translate-type-decl-list ((type-decl-lst decl-listp) (acc paragraphp))
+    (define translate-type-decl-list ((type-decl-lst decl-listp) (acc paragraphp) (int-to-rat booleanp))
       :returns (translated paragraphp
                            :hints (("Goal" :in-theory (enable translate-declaration))))
       :measure (len type-decl-lst)
@@ -462,8 +479,8 @@
            ((cons first rest) type-decl-lst)
            ((decl d) first)
            ((hint-pair h) d.type)
-           (translated-type-decl (translate-declaration d.name h.thm)))
-        (translate-type-decl-list rest (cons translated-type-decl acc))))
+           (translated-type-decl (translate-declaration d.name h.thm int-to-rat)))
+        (translate-type-decl-list rest (cons translated-type-decl acc) int-to-rat)))
     )
 
   (define translate-theorem ((theorem pseudo-termp) (fn-lst func-alistp))
@@ -483,7 +500,7 @@
          (prove-theorem `("_SMT_.prove(theorem)" #\Newline)))
       (mv `(,theorem-assign ,prove-theorem) uninterpreted)))
 
-  (define translate-uninterpreted-arguments ((type symbolp) (args decl-listp))
+  (define translate-uninterpreted-arguments ((type symbolp) (args decl-listp) (int-to-rat booleanp))
     :returns (translated paragraphp
                          :hints (("Goal" :in-theory (disable true-listp))))
     :measure (len args)
@@ -492,20 +509,20 @@
          ((unless (consp args)) nil)
          ((cons first rest) args)
          ((decl d) first)
-         (translated-type (translate-type d.name)))
+         (translated-type (translate-type d.name int-to-rat)))
       (cons `(#\, #\Space ,translated-type #\( #\))
-            (translate-uninterpreted-arguments type rest))))
+            (translate-uninterpreted-arguments type rest int-to-rat))))
 
-  (define translate-uninterpreted-decl ((fn func-p))
+  (define translate-uninterpreted-decl ((fn func-p) (int-to-rat booleanp))
     :returns (translated paragraphp)
     (b* ((fn (mbe :logic (func-fix fn) :exec fn))
          ;; Bind everything needed from fn
          ((func f) fn)
          (name f.name)
-         (translated-formals (translate-uninterpreted-arguments 'formals f.formals))
+         (translated-formals (translate-uninterpreted-arguments 'formals f.formals int-to-rat))
          ((if (> (len f.returns) 1))
           (er hard? 'SMT-translator=>translate-uninterpreted-decl "Currently, mv returns are not supported."))
-         (translated-returns (translate-uninterpreted-arguments 'returns f.returns)))
+         (translated-returns (translate-uninterpreted-arguments 'returns f.returns int-to-rat)))
       `(,name "= Function(" #\' ,name #\' ,translated-formals ,translated-returns #\Newline)))
 
   ;; func1 = Function('func1', I1-type, I2-type, R-type)
@@ -514,7 +531,7 @@
   (encapsulate ()
     (local (in-theory (enable paragraph-fix paragraphp)))
     (define translate-uninterpreted-decl-lst ((uninterpreted symbol-listp) (fn-lst func-alistp)
-                                              (acc paragraphp))
+                                              (acc paragraphp) (int-to-rat booleanp))
       :measure (len uninterpreted)
       :returns (translated paragraphp)
       :guard-debug t
@@ -526,8 +543,8 @@
            (fn (hons-get first fn-lst))
            ;; ((unless (mbt fn)) acc)
            ((unless fn) acc)
-           (first-decl (translate-uninterpreted-decl (cdr fn))))
-        (translate-uninterpreted-decl-lst rest fn-lst (cons first-decl acc))))
+           (first-decl (translate-uninterpreted-decl (cdr fn) int-to-rat)))
+        (translate-uninterpreted-decl-lst rest fn-lst (cons first-decl acc) int-to-rat)))
     )
 
   (define SMT-translation ((term pseudo-termp) (smtlink-hint smtlink-hint-p))
@@ -540,9 +557,9 @@
          ((mv translated-theorem uninterpreted) (translate-theorem term fn-lst))
          (translated-uninterpreted-decls
           (with-fast-alist fn-lst
-            (translate-uninterpreted-decl-lst uninterpreted fn-lst translated-theorem)))
+            (translate-uninterpreted-decl-lst uninterpreted fn-lst translated-theorem h.int-to-rat)))
          (translated-theorem-with-type-decls
-          (translate-type-decl-list h.type-decl-list translated-uninterpreted-decls))
+          (translate-type-decl-list h.type-decl-list translated-uninterpreted-decls h.int-to-rat))
          )
       `(,@translated-theorem-with-type-decls)))
   )

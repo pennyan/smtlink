@@ -437,6 +437,9 @@
      (fn-hint-acc hint-pair-listp :default nil)
      (lambda-acc lambda-binding-listp :default nil)))
 
+  (defthm symbol-listp-of-append-of-symbol-listp
+    (implies (and (symbol-listp x) (symbol-listp y))
+             (symbol-listp (append x y))))
 
   ;; Precondition:
   ;; 1. formals are in the right sequence as the functions are first defined
@@ -467,7 +470,8 @@
 
          (lambdaed-fn-call-instance (generate-lambda-bindings a.lambda-acc `(,f.name ,@a.actuals))))
       (change-hint-pair h
-                        :thm `((lambda ,formals ((lambda ,returns ,h.thm) ,lambdaed-fn-call-instance)) ,@a.actuals))))
+                        :thm `((lambda (,@formals ,@returns) ,h.thm)
+                               ,@a.actuals ,lambdaed-fn-call-instance))))
 
 
   (define generate-fn-returns-hint ((returns decl-listp) (args fhg-single-args-p))

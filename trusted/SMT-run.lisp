@@ -19,9 +19,9 @@
 (defttag :read-string)
 (set-state-ok t)
 
-;; (defsection SMT-run
-;;   :parent (Smtlink)
-;;  :short "SMT-run runs the configured SMT solver then interprets the result and feed it back to ACL2."
+(defsection SMT-run
+  :parent (Smtlink)
+  :short "SMT-run runs the configured SMT solver then interprets the result and feed it back to ACL2."
 
   (define SMT-run ((fname stringp) (smt-conf smtlink-config-p))
     :returns (mv (exit-status natp)
@@ -87,6 +87,5 @@
                :use ((:instance endp-of-not-consp-of-string-listp (x (mv-nth 1 (smt-run fname smt-conf))))
                      (:instance stringp-of-consp-of-string-listp (x (mv-nth 1 (smt-run fname smt-conf))))))))
     )
-  ;; )
+)
 
-(defttag nil)

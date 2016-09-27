@@ -31,12 +31,8 @@
                        :SMT-cmd "/usr/local/bin/python"
                        :file-format ".py"))
 
-(defstub smt-cnf () => *)
-
-(define default-smtlink-config ()
-  (declare (xargs :guard t))
-  (change-smtlink-config *default-smtlink-config*))
-
-(defattach smt-cnf default-smtlink-config)
+(define smt-cnf ()
+  :returns (smt-conf smtlink-config-p)
+  *default-smtlink-config*)
 
 )

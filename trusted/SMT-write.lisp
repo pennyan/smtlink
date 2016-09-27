@@ -30,7 +30,8 @@
     :verify-guards nil
     (b* ((par (mbe :logic (paragraph-fix par) :exec par))
          (channel (mbe :logic (symbol-fix channel) :exec channel))
-         ((unless (consp par)) (princ$ par channel state))
+         ((unless (consp par)) (if (equal par nil) state
+                                 (princ$ par channel state)))
          ((cons first rest) par)
          (state (princ$-paragraph first channel state)))
       (princ$-paragraph rest channel state)))
@@ -63,4 +64,3 @@
       (close-output-channel channel state)))
 )
 
-(defttag nil)
