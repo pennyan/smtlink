@@ -31,6 +31,13 @@
       (not           . ("_SMT_.notx"       1))
       (lambda        . ("lambda"           2))
       (implies       . ("_SMT_.implies"    2))
+      ;; This doesn't work right now because Z3's definition is different from ACL2
+      ;; when using types as hypotheses. If X is rationalp in Z3, then it can not
+      ;; be an integerp. We need to first grab a definition in Z3 that can fully
+      ;; capture its ACL2 meaning.
+      ;; (integerp      . ("_SMT_.integerp"   1))
+      ;; (rationalp     . ("_SMT_.rationalp"  1))
+      ;; (booleanp      . ("_SMT_.booleanp"   1))
       ))
 
   (defconst *SMT-types*
@@ -38,6 +45,11 @@
     `((rationalp . "_SMT_.isReal")
       (integerp  . "_SMT_.isInt")
       (booleanp  . "_SMT_.isBool")))
+
+  (defconst *SMT-uninterpreted-types*
+    `((rationalp . "_SMT_.R")
+      (integerp  . "_SMT_.Z")
+      (booleanp  . "_SMT_.B")))
 
   (define SMT-numberp (sym)
     (declare (xargs :guard t))
@@ -175,12 +187,14 @@
      ;; A variable
      (t (list (lisp-to-python-names sym)))))
 
-  (define translate-type ((type symbolp) (int-to-rat booleanp))
+  (define translate-type ((type symbolp) (int-to-rat booleanp) (flag symbolp))
     :returns (translated stringp)
     (b* ((type (mbe :logic (symbol-fix type) :exec type))
-         (item (if (and (equal type 'integerp) int-to-rat)
-                   (assoc-equal 'rationalp *SMT-types*)
-                 (assoc-equal type *SMT-types*))))
+         (item (cond ((equal flag 'uninterpreted)
+                      (assoc-equal type *SMT-uninterpreted-types*))
+                     ((and (equal type 'integerp) int-to-rat)
+                      (assoc-equal 'rationalp *SMT-types*))
+                     (t (assoc-equal type *SMT-types*)))))
       (if (endp item)
           (prog2$ (er hard? 'SMT-translator=>translate-type "Not a SMT type: ~q0" type) "")
         (cdr item))))
@@ -464,7 +478,7 @@
     (b* ((name (mbe :logic (symbol-fix name) :exec name))
          (type (mbe :logic (symbol-fix type) :exec type))
          (translated-name (translate-symbol name))
-         (translated-type (translate-type type int-to-rat)))
+         (translated-type (translate-type type int-to-rat 'common-type)))
       `(,translated-name = ,translated-type #\( #\" ,translated-name #\" #\) #\Newline)))
 
   (encapsulate ()
@@ -509,7 +523,8 @@
          ((unless (consp args)) nil)
          ((cons first rest) args)
          ((decl d) first)
-         (translated-type (translate-type d.name int-to-rat)))
+         ((hint-pair h) d.type)
+         (translated-type (translate-type h.thm int-to-rat 'uninterpreted)))
       (cons `(#\, #\Space ,translated-type #\( #\))
             (translate-uninterpreted-arguments type rest int-to-rat))))
 
@@ -523,7 +538,7 @@
          ((if (> (len f.returns) 1))
           (er hard? 'SMT-translator=>translate-uninterpreted-decl "Currently, mv returns are not supported."))
          (translated-returns (translate-uninterpreted-arguments 'returns f.returns int-to-rat)))
-      `(,name "= Function(" #\' ,name #\' ,translated-formals ,translated-returns #\Newline)))
+      `(,name "= Function(" #\' ,name #\' ,translated-formals ,translated-returns ")" #\Newline)))
 
   ;; func1 = Function('func1', I1-type, I2-type, R-type)
   ;; example:

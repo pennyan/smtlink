@@ -512,7 +512,11 @@
          ((unless f.uninterpreted)
           (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint "Function call ~q0 still exists in term but it's not declared as an uninterpreted function." f.name)
                   a.fn-hint-acc))
-         (fn-hint-acc-1 (generate-fn-returns-hint f.returns a)))
+         (fn-hint-acc-1 nil
+                        ;; Disabling returns hint for now. See comments about
+                        ;; basic functions in SMT-translator.lisp.
+                        ;;(generate-fn-returns-hint f.returns a)
+                        ))
       (generate-fn-more-returns-hint f.more-returns (change-fhg-single-args a :fn-hint-acc fn-hint-acc-1))))
 
 

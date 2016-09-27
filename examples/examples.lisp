@@ -10,6 +10,7 @@
 (in-package "SMT")
 (include-book "clause-processors/meta-extract-user" :dir :system)
 (include-book "centaur/misc/tshell" :dir :system)
+(include-book "misc/eval" :dir :system)
 
 (defttag :tshell)
 (value-triple (tshell-ensure))
@@ -18,6 +19,39 @@
 
 (defun my-smtlink-hint ()
   (declare (xargs :guard t))
+  (change-smtlink-hint
+   *default-smtlink-hint*
+   :functions (list (make-func :name 'X^2+Y^2^2
+                               :formals (list (make-decl :name 'x
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil))
+                                              (make-decl :name 'y
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
+                               :returns (list (make-decl :name 'z
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
+                               :body '(binary-+ (binary-* x x) (binary-* y y))
+                               :expansion-depth 1
+                               :uninterpreted nil))
+   :rm-file nil
+   :smt-hint nil
+   :smt-cnf (smt-cnf)))
+
+(defattach smt-hint my-smtlink-hint)
+
+(add-default-hints '((SMT::SMT-hint-wrapper-hint clause)))
+
+;; Section 2. A short tour
+;; Example 1
+(defthm poly-ineq-example
+  (implies (and (rationalp x) (rationalp y)
+                (<= (+ (* (/ 9 8) x x) (* y y)) 1)
+                (<= (- (* x x) (* y y)) 1))
+           (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
+    :hints(("Goal"
+            :clause-processor
+            (SMT::Smtlink clause))))
+
+(defun my-smtlink-hint-2 ()
+  (declare (xargs :guard t :guard-debug t))
   (change-smtlink-hint
    *default-smtlink-hint*
    :functions (list (make-func :name 'X^2+Y^2^2
@@ -40,26 +74,18 @@
                                :body 'nil
                                :expansion-depth 0
                                :uninterpreted t))
+   :hypotheses (list (make-hint-pair :thm '(< (expt z n) (expt z m)))
+                     (make-hint-pair :thm '(< '0 (expt z m)))
+                     (make-hint-pair :thm '(< '0 (expt z n))))
+   :rm-file nil
    :smt-hint nil
    :smt-cnf (smt-cnf)))
 
-(defattach smt-hint my-smtlink-hint)
-
-(add-default-hints '((SMT::SMT-hint-wrapper-hint clause)))
-
-;; Section 2. A short tour
-;; Example 1
-(defthm poly-ineq-example
-  (implies (and (rationalp x) (rationalp y)
-                (<= (+ (* (/ 9 8) x x) (* y y)) 1)
-                (<= (- (* x x) (* y y)) 1))
-           (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
-    :hints(("Goal"
-            :clause-processor
-            (SMT::Smtlink clause))))
+(defattach smt-hint my-smtlink-hint-2)
 
 ;; Example 2
-(defthm poly-of-expt-exlsample
+;; Currently failing this theorem because we are using uninterpreted functions
+(defthm poly-of-expt-example
   (implies (and (rationalp x) (rationalp y) (rationalp z)
                 (integerp m) (integerp n)
                 (< 0 z) (< z 1) (< 0 m) (< m n))
@@ -70,6 +96,7 @@
            (SMT::Smtlink clause))))
 
 ;; Buggy example
+(must-fail
 (defthm non-theorem
   (implies (and (rationalp x)
                 (rationalp y)
@@ -77,5 +104,6 @@
            (not (equal y 0)))
   :hints(("Goal"
           :clause-processor
-          (SMT::Smtlink clause))))
-
+          (SMT::Smtlink clause)))
+  :rule-classes nil)
+)
