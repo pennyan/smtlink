@@ -1,5 +1,7 @@
-(in-package "ACL2")
-(defun ACL22SMT () 
+(in-package "SMT")
+(include-book "SMT-translator")
+(define ACL22SMT ()
+  :returns (class-content paragraphp)
   (list
     (list #\# #\Space "Copyright" #\Space #\( "C" #\) #\Space "2015" #\, #\Space "University" #\Space "of" #\Space "British" #\Space "Columbia"  #\Newline )
     (list #\# #\Space "Written" #\Space #\( "originally" #\) #\Space "by" #\Space "Mark" #\Space "Greenstreet" #\Space #\( "13th" #\Space "March" #\, #\Space "2014" #\)  #\Newline )
