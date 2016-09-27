@@ -9,7 +9,10 @@
 (include-book "../top")
 (in-package "SMT")
 (include-book "clause-processors/meta-extract-user" :dir :system)
+(include-book "centaur/misc/tshell" :dir :system)
 
+(defttag :tshell)
+(value-triple (tshell-ensure))
 
 (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
 
@@ -22,12 +25,23 @@
                                                          :type (make-hint-pair :thm 'rationalp :hints nil))
                                               (make-decl :name 'y
                                                          :type (make-hint-pair :thm 'rationalp :hints nil)))
-                               :returns (list (make-decl :name 'x
+                               :returns (list (make-decl :name 'z
                                                          :type (make-hint-pair :thm 'rationalp :hints nil)))
                                :body '(binary-+ (binary-* x x) (binary-* y y))
                                :expansion-depth 1
-                               :uninterpreted nil))
-   :smt-hint '(:clause-processor (SMT-trusted-cp clause))))
+                               :uninterpreted nil)
+                    (make-func :name 'expt
+                               :formals (list (make-decl :name 'r
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil))
+                                              (make-decl :name 'i
+                                                         :type (make-hint-pair :thm 'integerp :hints nil)))
+                               :returns (list (make-decl :name 'ex
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
+                               :body 'nil
+                               :expansion-depth 0
+                               :uninterpreted t))
+   :smt-hint nil
+   :smt-cnf (smt-cnf)))
 
 (defattach smt-hint my-smtlink-hint)
 
@@ -55,10 +69,13 @@
            :clause-processor
            (SMT::Smtlink clause))))
 
-;; ;; Buggy example
-;; (defthm non-theorem
-;;   (implies (and (rationalp x)
-;;                 (rationalp y)
-;;                 (integerp (/ x y)))
-;;            (not (equal y 0)))
-;;        :hints(("Goal" :clause-processor (Smtlink clause nil))))
+;; Buggy example
+(defthm non-theorem
+  (implies (and (rationalp x)
+                (rationalp y)
+                (integerp (/ x y)))
+           (not (equal y 0)))
+  :hints(("Goal"
+          :clause-processor
+          (SMT::Smtlink clause))))
+

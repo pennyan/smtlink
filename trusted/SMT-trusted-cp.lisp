@@ -6,14 +6,19 @@
 ;;
 
 (in-package "SMT")
-
+(include-book "tools/bstar" :dir :system)
 (include-book "SMT-prove")
+(set-state-ok t)
 
-(defstub SMT-prove-stub (term smtlink-hint) t)
+(defsection SMT-trusted-cp
+  :parent (Smtlink)
+  :short "The trusted clause processor"
+
+
+(defstub SMT-prove-stub (term smtlink-hint state) (mv t state))
 
 (program)
-
-(defttag :SMT-trusted-cp)
+(defttag :Smtlink)
 
 (progn
 
@@ -25,25 +30,28 @@
 
    (set-raw-mode-on state)
 
-   (defun SMT-prove-stub (term smtlink-hint)
-     (SMT-prove term smtlink-hint)))
+   (defun SMT-prove-stub (term smtlink-hint state)
+     (SMT-prove term smtlink-hint state)))
 
-  (defun SMT-trusted-cp (cl smtlink-hint)
-    (declare (xargs :guard (pseudo-term-listp cl)
+  (defun SMT-trusted-cp (cl smtlink-hint state)
+    (declare (xargs :stobjs state
+                    :guard (pseudo-term-listp cl)
                     :mode :program))
-    (prog2$ (cw "cl given to the clause processor: ~q0"  cl)
-            (if (SMT-prove-stub (disjoin cl) smtlink-hint)
-                (prog2$ (cw "Proved!~%")
-                        nil)
-              (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
-                  my-clause-processor and indicated hint.~|")
-                      (list cl)))))
+    (b* ((- (cw "clause given to the trusted clause processor: ~q0"  cl))
+         ((mv res state) (SMT-prove-stub (disjoin cl) smtlink-hint state)))
+      (if res
+          (prog2$ (cw "Proved!~%") (mv nil nil state))
+        (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
+                      SMT-trusted-cp and indicated hint.~|")
+                (mv t (list cl) state)))))
 
   (push-untouchable SMT-prove-stub t)
   )
 
+(logic)
 
 (define-trusted-clause-processor
   SMT-trusted-cp
   nil
-  :ttag SMT-trusted-cp)
+  :ttag Smtlink)
+)

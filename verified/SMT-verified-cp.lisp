@@ -173,7 +173,8 @@
          ((unless (smtlink-hint-p smtlink-hint)) (list cl))
          (hinted-As (smtlink-hint->aux-hint-list smtlink-hint))
          (hinted-G-prim (smtlink-hint->expanded-clause-w/-hint smtlink-hint))
-         (smt-hint (smtlink-hint->smt-hint smtlink-hint)))
+         (smt-hint (append `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state))
+                           (smtlink-hint->smt-hint smtlink-hint))))
       (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint (disjoin cl))))
 
   ;; ------------------------------------------------------------

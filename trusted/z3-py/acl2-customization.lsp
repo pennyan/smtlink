@@ -5,5 +5,5 @@
 ;; See the LICENSE file distributed with this software
 ;;
 
-(in-package "ACL2")
-(ld "package.lsp")
+(ld "../../acl2-customization.lsp")
+(in-package "SMT")

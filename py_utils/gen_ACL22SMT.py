@@ -51,7 +51,7 @@ def gen(fromPyFile, toLispFile):
     wt = open(toLispFile, 'w')
     wfile = []
 
-    head = "(in-package \"ACL2\")\n(defun ACL22SMT () \n  (list\n"
+    head = "(in-package \"SMT\")\n(include-book \"SMT-translator\")\n(define ACL22SMT ()\n  :returns (class-content paragraphp)\n  (list\n"
     with open(fromPyFile, 'r') as rf:
         rfile = rf.readlines()
     for rline in rfile:

@@ -16,27 +16,23 @@
   :short "Define Smtlink config"
 
 (defprod smtlink-config
-  ((interface-dir stringp)
-   (SMT-files-dir stringp)
-   (SMT-module    stringp)
-   (SMT-class     stringp)
-   (SMT-cmd       stringp)
-   (file-format   stringp)))
+  ((interface-dir stringp :default "")
+   (SMT-files-dir stringp :default "")
+   (SMT-module    stringp :default "")
+   (SMT-class     stringp :default "")
+   (SMT-cmd       stringp :default "")
+   (file-format   stringp :default "")))
 
 (defconst *default-smtlink-config*
   (make-smtlink-config :interface-dir "../z3_interface/"
                        :SMT-files-dir ""
                        :SMT-module "ACL2_to_Z3"
                        :SMT-class "ACL22SMT"
-                       :SMT-cmd "/Users/penny/bin"
+                       :SMT-cmd "/usr/local/bin/python"
                        :file-format ".py"))
 
-(defstub smt-cnf () => *)
-
-(define default-smtlink-config ()
-  (declare (xargs :guard t))
-  (change-smtlink-config *default-smtlink-config*))
-
-(defattach smt-cnf default-smtlink-config)
+(define smt-cnf ()
+  :returns (smt-conf smtlink-config-p)
+  *default-smtlink-config*)
 
 )

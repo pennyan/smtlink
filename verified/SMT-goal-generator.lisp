@@ -19,7 +19,7 @@
 
 ;; Include SMT books
 (include-book "SMT-hint-interface")
-
+(include-book "SMT-extractor")
 
 
 (defsection SMT-goal-generator
@@ -180,6 +180,31 @@
                     (not (symbolp (car (ex-args->term-lst expand-args))))
                     (not (pseudo-lambdap (car (car (ex-args->term-lst expand-args))))))
                (symbolp (car (car (ex-args->term-lst expand-args))))))
+
+    (local (defthm lemma-7
+             (implies (and (pseudo-termp x) (consp x) (equal (car x) 'quote))
+                      (and (not (cddr x)) (consp (cdr x))))))
+
+    (defthm not-cddr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst
+      (implies (and (consp (ex-args->term-lst expand-args))
+                    (consp (car (ex-args->term-lst expand-args)))
+                    (not (symbolp (car (ex-args->term-lst expand-args))))
+                    (equal (car (car (ex-args->term-lst expand-args))) 'quote))
+               (not (cddr (car (ex-args->term-lst expand-args))))))
+
+    (defthm consp-cdr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst
+      (implies (and (consp (ex-args->term-lst expand-args))
+                    (consp (car (ex-args->term-lst expand-args)))
+                    (not (symbolp (car (ex-args->term-lst expand-args))))
+                    (equal (car (car (ex-args->term-lst expand-args))) 'quote))
+               (consp (cdr (car (ex-args->term-lst expand-args))))))
+
+    (defthm pseudo-term-listp-of-pseudo-lambdap-of-cdar-ex-args->term-lst
+      (implies (and (ex-args-p expand-args)
+                    (consp (ex-args->term-lst expand-args))
+                    (consp (car (ex-args->term-lst expand-args)))
+                    (not (equal (caar (ex-args->term-lst expand-args)) 'quote)))
+               (pseudo-term-listp (cdar (ex-args->term-lst expand-args)))))
     )
 
   (encapsulate ()
@@ -246,7 +271,8 @@
     ;; 4. clean up the above encapsulated theorems, maybe in another file
     (define expand ((expand-args ex-args-p))
       :returns (expanded-terms pseudo-term-listp
-                               :hints (("Goal" :in-theory (enable ex-args->term-lst))))
+                               :hints (("Goal" :use ((:instance not-cddr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst)
+                                                     (:instance consp-cdr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst)))))
       :measure (expand-measure expand-args)
       :verify-guards nil
       :hints
@@ -321,17 +347,18 @@
       ///
       (more-returns
        (expanded-terms (implies (ex-args-p expand-args)
-                                (equal (len expanded-terms)
-                                       (len (ex-args->term-lst expand-args))))
-                       :name len-of-expand)
-       (expanded-terms (implies (ex-args-p expand-args)
                                 (pseudo-termp (car expanded-terms)))
                        :name pseudo-termp-of-car-of-expand
-                       :hints (("Goal" :use ((:instance pseudo-term-listp-of-expand))))))
+                       :hints (("Goal" :use ((:instance pseudo-term-listp-of-expand)))))
+       (expanded-terms (implies (ex-args-p expand-args)
+                                (equal (len expanded-terms)
+                                       (len (ex-args->term-lst expand-args))))
+                       :name len-of-expand))
       )
     )
 
-  (verify-guards expand)
+  (verify-guards expand
+    :hints (("Goal" :use ((:instance pseudo-term-listp-of-pseudo-lambdap-of-cdar-ex-args->term-lst)))))
 
   (define initialize-fn-lvls ((fn-lst func-alistp))
     :returns (fn-lvls sym-nat-alistp)
@@ -410,6 +437,9 @@
      (fn-hint-acc hint-pair-listp :default nil)
      (lambda-acc lambda-binding-listp :default nil)))
 
+  (defthm symbol-listp-of-append-of-symbol-listp
+    (implies (and (symbol-listp x) (symbol-listp y))
+             (symbol-listp (append x y))))
 
   ;; Precondition:
   ;; 1. formals are in the right sequence as the functions are first defined
@@ -440,7 +470,8 @@
 
          (lambdaed-fn-call-instance (generate-lambda-bindings a.lambda-acc `(,f.name ,@a.actuals))))
       (change-hint-pair h
-                        :thm `((lambda ,formals ((lambda ,returns ,h.thm) ,lambdaed-fn-call-instance)) ,@a.actuals))))
+                        :thm `((lambda (,@formals ,@returns) ,h.thm)
+                               ,@a.actuals ,lambdaed-fn-call-instance))))
 
 
   (define generate-fn-returns-hint ((returns decl-listp) (args fhg-single-args-p))
@@ -648,30 +679,31 @@
   (verify-guards generate-fn-hint-lst)
 
 
-  (define flatten-formals/returns ((formal/return-lst decl-listp))
-    :returns (flattened-lst symbol-listp)
-    :measure (len formal/return-lst)
-    :hints (("Goal" :in-theory (enable decl-list-fix)))
+  ;; ---------------------------------------------------------------------
+  ;; TODO
+  ;; Should this function be in this file?
+  (define is-type-decl ((type pseudo-termp))
+    :returns (is? booleanp)
     :enabled t
-    (b* ((formal/return-lst (mbe :logic (decl-list-fix formal/return-lst) :exec formal/return-lst))
-         ((if (endp formal/return-lst)) nil)
-         ((cons first rest) formal/return-lst)
-         ((decl d) first))
-      (cons d.name (flatten-formals/returns rest))))
+    (b* ((type (mbe :logic (pseudo-term-fix type) :exec type))
+         ((unless (consp type)) nil))
+      (and (equal (len type) 2)
+           (symbolp (car type))
+           (symbolp (cadr type)))))
 
-  (define make-alist-fn-lst ((fn-lst func-listp))
-    :short "@(call make-alist-fn-lst) makes fn-lst a fast alist"
-    :returns (fast-fn-lst func-alistp)
-    :measure (len fn-lst)
-    :enabled t
-    (b* ((fn-lst (mbe :logic (func-list-fix fn-lst) :exec fn-lst))
-         ((unless (consp fn-lst)) nil)
-         ((cons first rest) fn-lst)
-         ((func f) first)
-         (new-f (change-func f
-                             :flattened-formals (flatten-formals/returns f.formals)
-                             :flattened-returns (flatten-formals/returns f.returns))))
-      (cons (cons f.name new-f) (make-alist-fn-lst rest))))
+  ;; --------------------------------------------------------------------
+
+  (define structurize-type-decl-list ((type-decl-list pseudo-term-listp))
+    :returns (structured-decl-list decl-listp)
+    :guard-debug t
+    (b* ((type-decl-list (mbe :logic (pseudo-term-list-fix type-decl-list) :exec type-decl-list))
+         ((unless (consp type-decl-list)) nil)
+         ((cons first rest) type-decl-list)
+         ((unless (is-type-decl first))
+          (er hard? 'SMT-goal-generator=>structurize-type-decl-list "Non type declaration found: ~q0" first))
+         ((list type name) first))
+      (cons (make-decl :name name :type (make-hint-pair :thm type))
+            (structurize-type-decl-list rest))))
 
   (encapsulate ()
     (local (in-theory (enable pseudo-term-listp-of-expand
@@ -715,19 +747,25 @@
                                                                        :term-lst (list G-prim)
                                                                        :fn-lst fn-lst
                                                                        :fn-hint-acc nil
-                                                                       :lambda-acc nil))))
+                                                                       :lambda-acc
+                                                                       nil))))
+
+           ;; Generate auxiliary hypotheses for type extraction
+           ((mv type-decl-list G-prim-without-type) (SMT-extract G-prim))
+           (structured-decl-list (structurize-type-decl-list type-decl-list))
 
            ;; Combine all auxiliary hypotheses
            (total-aux-hint-lst `(,@fn-hint-lst ,@hyp-hint-lst))
 
            ;; Combine expanded main clause and its hint
-           (expanded-clause-w/-hint (make-hint-pair :thm G-prim :hints h.main-hint))
+           (expanded-clause-w/-hint (make-hint-pair :thm G-prim-without-type :hints h.main-hint))
 
            ;; Update smtlink-hint
            (new-hints
             (change-smtlink-hint hints
                                  :fast-functions fn-lst
                                  :aux-hint-list total-aux-hint-lst
+                                 :type-decl-list structured-decl-list
                                  :expanded-clause-w/-hint expanded-clause-w/-hint
                                  )))
         new-hints))

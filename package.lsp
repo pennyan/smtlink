@@ -10,8 +10,6 @@
 ;; load other packages needed to define our new packages...
 (include-book "std/portcullis" :dir :system)
 (include-book "centaur/fty/portcullis" :dir :system)
-(include-book "centaur/fty/basetypes" :dir :system)
-(include-book "centaur/fty/baselists" :dir :system)
 
 ;; define our new packages
 (defpkg "SMT"
@@ -39,9 +37,7 @@
       body
       lambda-formals
       lambda-body
-
       pseudo-lambdap
-
       conjoin-clauses
       conjoin
       conjoin2
@@ -52,10 +48,13 @@
       iff-implies-equal-not
       split-keyword-alist
       dumb-negate-lit
-
       must-succeed
-
       prefixp
+      symbol-fix
+      symbol-list-fix
+      with-fast-alists
+
+      read-string
 
       str::cat
       str::natstr
@@ -67,6 +66,11 @@
       str::firstn-chars
       str::strval
       str::search
+      str::natchars16
+      str::hex-digit-listp
+      str::charlisteqv
+      str::character-list-fix
+      str::str-fix
 
       std::defaggregate
 
@@ -74,10 +78,8 @@
       fty::deflist
       fty::deffixtype
       fty::defalist
-
-      symbol-fix
-      symbol-list-fix
       )
     )
    ;; Things to remove
-   '()))
+   '(good-atom-listp)))
+
