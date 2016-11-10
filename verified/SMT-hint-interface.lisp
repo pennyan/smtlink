@@ -201,7 +201,7 @@
 
 
   ;; -------------------------------------------------------------------------
-  ;;        Define a set of utilities for conveniency
+  ;;        Define a set of utilities for convenience
 
   ;; (defmacro def-smt-hint (name &key auto-expand))
   )

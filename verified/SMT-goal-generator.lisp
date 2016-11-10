@@ -9,7 +9,6 @@
 (include-book "std/util/bstar" :dir :system)
 (include-book "xdoc/top" :dir :system)
 (include-book "std/util/define" :dir :system)
-(include-book "ordinals/lexicographic-ordering" :dir :system)
 ;; for lambda expression
 (include-book "kestrel/utilities/terms" :dir :system)
 ;; for symbol-fix
@@ -20,7 +19,8 @@
 ;; Include SMT books
 (include-book "SMT-hint-interface")
 (include-book "SMT-extractor")
-
+;; To be compatible with Arithmetic books
+(include-book "ordinals/lexicographic-ordering-without-arithmetic" :dir :system)
 
 (defsection SMT-goal-generator
   :parents (Smtlink)
@@ -75,9 +75,13 @@
     )
 
   (defprod ex-args
-    ((term-lst pseudo-term-listp :default nil)
-     (fn-lst func-alistp :default nil)
-     (fn-lvls sym-nat-alistp :default nil)))
+    :parents (expand)
+    :short "Argument list for function expand"
+    ((term-lst pseudo-term-listp "List of terms to be expanded.
+      The function finishes when all of them are expanded to given level." :default nil)
+     (fn-lst func-alistp "List of function definitions to use for
+      function expansion." :default nil)
+     (fn-lvls sym-nat-alistp "Levels to expand each functions to." :default nil)))
 
   (defthm natp-of-sum-lvls-lemma
     (implies (and (consp (sym-nat-alist-fix fn-lvls)) (natp x))
@@ -270,6 +274,7 @@
     ;; 3. clean the code in a more structured way - treat lambdas in another function
     ;; 4. clean up the above encapsulated theorems, maybe in another file
     (define expand ((expand-args ex-args-p))
+      :parents (SMT-goal-generator)
       :returns (expanded-terms pseudo-term-listp
                                :hints (("Goal" :use ((:instance not-cddr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst)
                                                      (:instance consp-cdr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst)))))

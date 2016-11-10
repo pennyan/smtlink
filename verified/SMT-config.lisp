@@ -28,11 +28,14 @@
                        :SMT-files-dir ""
                        :SMT-module "ACL2_to_Z3"
                        :SMT-class "ACL22SMT"
-                       :SMT-cmd "/usr/local/bin/python"
+                       :SMT-cmd "python"
                        :file-format ".py"))
 
-(define smt-cnf ()
-  :returns (smt-conf smtlink-config-p)
-  *default-smtlink-config*)
+(defstub smt-cnf () => *)
+
+(define default-smtlink-config ()
+  (change-smtlink-config *default-smtlink-config*))
+
+(defattach smt-cnf default-smtlink-config)
 
 )
