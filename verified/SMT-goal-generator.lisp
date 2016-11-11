@@ -265,27 +265,13 @@
                (consp (assoc-equal foo (ex-args->fn-lvls x)))))
     )
 
-  ;; (defun filter-fn-symbs (lst wrld acc)
-  ;;   (declare (xargs :guard (and (symbol-listp lst)
-  ;;                               (plist-worldp wrld))))
-  ;;   (cond ((endp lst) acc)
-  ;;         (t (filter-fn-symbs (cdr lst)
-  ;;                             wrld
-  ;;                             (if (function-symbolp (car lst) wrld)
-  ;;                                 (cons (car lst) acc)
-  ;;                               acc)))))
-
-  ;; ; The desired result:
-  ;; (let* ((world (w state))
-  ;;        (fns (remove-duplicates-eq
-  ;;              (strip-cadrs (universal-theory :here)))))
-  ;;   (filter-fn-symbs fns world nil))
-
-  (defconst *SMT-basic-functions*
-    `(binary-+ binary-* unary-/ unary--
-               equal <
-               implies if not
-               lambda ))
+  (defconst *SMT-basics*
+    (append
+     '(rationalp booleanp integerp)
+     '(binary-+ binary-* unary-/ unary--
+                equal <
+                implies if not
+                lambda )))
 
   (encapsulate
     ()
@@ -343,29 +329,24 @@
            ;; We are going to expand all function like this for one level.
            ;; If the function is basic or has already been expanded once.
            ((unless fn)
-            (b* ((- (cw "here1"))
-                 ((unless (function-symbolp fn-call (w state)))
+            (b* (((unless (function-symbolp fn-call (w state)))
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Should be a function call: ~q0" fn-call)
                    a.term-lst))
-                 (- (cw "here2"))
-                 (basic-function (member-equal fn-call *SMT-basic-functions*))
+                 (basic-function (member-equal fn-call *SMT-basics*))
                  ((if (or basic-function (<= a.wrld-fn-len 0)))
                   (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals) state))
                         (expand (change-ex-args a :term-lst rest) state)))
-                 (- (cw "here3"))
                  (formals (formals fn-call (w state)))
                  ((unless (symbol-listp formals))
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Formals should be symbol-listp: ~q0" formals)
                    a.term-lst))
-                 (- (cw "here4"))
                  (extract-res (meta-extract-formula fn-call state))
                  ((unless (true-listp extract-res))
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Function formula should be true-listp: ~q0" extract-res)
                    a.term-lst))
-                 (- (cw "here5"))
                  (body (nth 2 extract-res))
                  ((unless (pseudo-termp body))
                   (prog2$
@@ -375,7 +356,7 @@
                  (expanded-lambda-body
                   (car (expand (change-ex-args a
                                                :term-lst (list body)
-                                               :fn-lvls (hons-acons fn-call 0 a.fn-lvls)
+                                               :fn-lvls (cons `(,fn-call . 0) a.fn-lvls)
                                                :wrld-fn-len (1- a.wrld-fn-len))
                                state)))
                  (expanded-lambda `(lambda ,formals ,expanded-lambda-body))
@@ -443,6 +424,7 @@
   ;; Generate auxiliary hypotheses from the user given hypotheses
   (define generate-hyp-hint-lst ((hyp-lst hint-pair-listp)
                                  (fn-lst func-alistp) (fn-lvls sym-nat-alistp)
+                                 (wrld-fn-len natp)
                                  state)
     :returns (hyp-hint-lst hint-pair-listp)
     :enabled t
@@ -450,10 +432,11 @@
          ((cons (hint-pair hyp) rest) hyp-lst)
          (G-prim (car (expand (make-ex-args :term-lst (list hyp.thm)
                                             :fn-lst fn-lst
-                                            :fn-lvls fn-lvls) state))))
+                                            :fn-lvls fn-lvls
+                                            :wrld-fn-len wrld-fn-len) state))))
       (cons (make-hint-pair :thm G-prim
                             :hints hyp.hints)
-            (generate-hyp-hint-lst rest fn-lst fn-lvls state))))
+            (generate-hyp-hint-lst rest fn-lst fn-lvls wrld-fn-len state))))
 
   (define lambda->actuals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
     :returns (new-actuals pseudo-term-listp)
@@ -519,7 +502,6 @@
   (define generate-fn-hint-pair ((hypo hint-pair-p) (args fhg-single-args-p))
     :returns (fn-hint-pair hint-pair-p)
     :enabled t
-    :guard-debug t
     (b* ((hypo (mbe :logic (hint-pair-fix hypo) :exec hypo))
          (args (mbe :logic (fhg-single-args-fix args) :exec args))
          ((hint-pair h) hypo)
@@ -769,7 +751,6 @@
 
   (define structurize-type-decl-list ((type-decl-list pseudo-term-listp))
     :returns (structured-decl-list decl-listp)
-    :guard-debug t
     (b* ((type-decl-list (mbe :logic (pseudo-term-list-fix type-decl-list) :exec type-decl-list))
          ((unless (consp type-decl-list)) nil)
          ((cons first rest) type-decl-list)
@@ -796,7 +777,6 @@
     (define SMT-goal-generator ((cl pseudo-term-listp) (hints smtlink-hint-p) state)
       :returns (new-hints smtlink-hint-p)
       :short "@(call SMT-goal-generator) is the top level function for generating SMT goals: G-prim and A's"
-      :guard-debug t
       :verify-guards nil
       (b* ((cl (mbe :logic (pseudo-term-list-fix cl) :exec cl))
            (hints (mbe :logic (smtlink-hint-fix hints) :exec hints))
@@ -806,24 +786,26 @@
            (fn-lvls (initialize-fn-lvls fn-lst))
 
            ;; Generate user given hypotheses and their hints from hyp-lst
-           (hyp-hint-lst (with-fast-alist fn-lst (generate-hyp-hint-lst h.hypotheses fn-lst fn-lvls state)))
+           (wrld-fn-len h.wrld-fn-len)
+           (hyp-hint-lst (with-fast-alist fn-lst (generate-hyp-hint-lst h.hypotheses fn-lst fn-lvls wrld-fn-len state)))
 
            ;; Expand main clause using fn-lst
            ;; Generate function hypotheses and their hints from fn-lst
            (G-prim
-            (with-fast-alist fn-lst (car (expand (make-ex-args
-                                                  :term-lst (list (disjoin cl))
-                                                  :fn-lst fn-lst
-                                                  :fn-lvls fn-lvls)
-                                                 state))))
+            (with-fast-alist fn-lst
+              (car (expand (make-ex-args
+                            :term-lst (list (disjoin cl))
+                            :fn-lst fn-lst
+                            :fn-lvls fn-lvls
+                            :wrld-fn-len wrld-fn-len)
+                           state))))
 
            ;; Generate auxiliary hypotheses from function expansion
            (fn-hint-lst (with-fast-alist fn-lst (generate-fn-hint-lst (make-fhg-args
                                                                        :term-lst (list G-prim)
                                                                        :fn-lst fn-lst
                                                                        :fn-hint-acc nil
-                                                                       :lambda-acc
-                                                                       nil))))
+                                                                       :lambda-acc nil))))
 
            ;; Generate auxiliary hypotheses for type extraction
            ((mv type-decl-list G-prim-without-type) (SMT-extract G-prim))

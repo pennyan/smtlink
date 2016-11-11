@@ -54,6 +54,7 @@
       symbol-list-fix
       with-fast-alists
       formals
+      strip-cadrs
 
       read-string
 

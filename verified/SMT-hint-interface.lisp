@@ -162,7 +162,8 @@
      (aux-hint-list hint-pair-listp :default nil)
      (type-decl-list decl-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
-     (smt-cnf smtlink-config-p :default (make-smtlink-config))))
+     (smt-cnf smtlink-config-p :default (make-smtlink-config))
+     (wrld-fn-len natp :default 1024)))
 
   (define flatten-formals/returns ((formal/return-lst decl-listp))
     :returns (flattened-lst symbol-listp)

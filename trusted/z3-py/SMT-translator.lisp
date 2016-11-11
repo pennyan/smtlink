@@ -497,23 +497,28 @@
         (translate-type-decl-list rest (cons translated-type-decl acc) int-to-rat)))
     )
 
-  (define translate-theorem ((theorem pseudo-termp) (fn-lst func-alistp))
-    :returns (mv (translated paragraphp :hints (("Goal" :in-theory (enable translate-expression))))
-                 (uninterpreted symbol-listp
-                                :hints (("Goal"
-                                         :in-theory (disable symbol-listp)
-                                         :use ((:instance symbol-listp-of-translate-expression.uninterpreted))))))
-    (b* ((theorem (mbe :logic (pseudo-term-fix theorem) :exec theorem))
-         (uninterpreted-lst nil)
-         ((mv translated-theorem-body uninterpreted)
-          (with-fast-alists (fn-lst uninterpreted-lst)
-            (translate-expression (make-te-args :expr-lst (list theorem)
-                                                :fn-lst fn-lst
-                                                :uninterpreted-lst uninterpreted-lst))))
-         (short-uninterpreted (remove-duplicates-equal uninterpreted))
-         (theorem-assign `("theorem" = ,translated-theorem-body #\Newline))
-         (prove-theorem `("_SMT_.prove(theorem)" #\Newline)))
-      (mv `(,theorem-assign ,prove-theorem) short-uninterpreted)))
+  (encapsulate ()
+    (local (defthm remove-duplicates-maintain-symbol-listp
+             (implies (symbol-listp x) (symbol-listp (remove-duplicates-equal x)))
+             :hints (("Goal"
+                      :in-theory (enable remove-duplicates-equal)))))
+    (define translate-theorem ((theorem pseudo-termp) (fn-lst func-alistp))
+      :returns (mv (translated paragraphp :hints (("Goal" :in-theory (enable translate-expression))))
+                   (uninterpreted symbol-listp
+                                  :hints (("Goal"
+                                           :in-theory (disable symbol-listp)
+                                           :use ((:instance symbol-listp-of-translate-expression.uninterpreted))))))
+      (b* ((theorem (mbe :logic (pseudo-term-fix theorem) :exec theorem))
+           (uninterpreted-lst nil)
+           ((mv translated-theorem-body uninterpreted)
+            (with-fast-alists (fn-lst uninterpreted-lst)
+              (translate-expression (make-te-args :expr-lst (list theorem)
+                                                  :fn-lst fn-lst
+                                                  :uninterpreted-lst uninterpreted-lst))))
+           (short-uninterpreted (remove-duplicates-equal uninterpreted))
+           (theorem-assign `("theorem" = ,translated-theorem-body #\Newline))
+           (prove-theorem `("_SMT_.prove(theorem)" #\Newline)))
+        (mv `(,theorem-assign ,prove-theorem) short-uninterpreted))))
 
   (define translate-uninterpreted-arguments ((type symbolp) (args decl-listp) (int-to-rat booleanp))
     :returns (translated paragraphp
