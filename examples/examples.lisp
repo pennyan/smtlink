@@ -5,9 +5,8 @@
 ;; See the LICENSE file distributed with this software
 
 
-(in-package "ACL2")
-(include-book "../top")
 (in-package "SMT")
+(include-book "../top")
 (include-book "clause-processors/meta-extract-user" :dir :system)
 (include-book "centaur/misc/tshell" :dir :system)
 (include-book "misc/eval" :dir :system)
@@ -15,32 +14,22 @@
 (defttag :tshell)
 (value-triple (tshell-ensure))
 
-(defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
-
 (defun my-smtlink-hint ()
   (declare (xargs :guard t))
   (change-smtlink-hint
    *default-smtlink-hint*
-   :functions (list (make-func :name 'X^2+Y^2^2
-                               :formals (list (make-decl :name 'x
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil))
-                                              (make-decl :name 'y
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
-                               :returns (list (make-decl :name 'z
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
-                               :body '(binary-+ (binary-* x x) (binary-* y y))
-                               :expansion-depth 1
-                               :uninterpreted nil))
+   :functions nil
    :rm-file nil
    :smt-hint nil
    :smt-cnf (smt-cnf)))
-
+x
 (defattach smt-hint my-smtlink-hint)
 
 (add-default-hints '((SMT::SMT-hint-wrapper-hint clause)))
 
 ;; Section 2. A short tour
 ;; Example 1
+(defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
 (defthm poly-ineq-example
   (implies (and (rationalp x) (rationalp y)
                 (<= (+ (* (/ 9 8) x x) (* y y)) 1)
@@ -54,17 +43,7 @@
   (declare (xargs :guard t :guard-debug t))
   (change-smtlink-hint
    *default-smtlink-hint*
-   :functions (list (make-func :name 'X^2+Y^2^2
-                               :formals (list (make-decl :name 'x
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil))
-                                              (make-decl :name 'y
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
-                               :returns (list (make-decl :name 'z
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
-                               :body '(binary-+ (binary-* x x) (binary-* y y))
-                               :expansion-depth 1
-                               :uninterpreted nil)
-                    (make-func :name 'expt
+   :functions (list (make-func :name 'expt
                                :formals (list (make-decl :name 'r
                                                          :type (make-hint-pair :thm 'rationalp :hints nil))
                                               (make-decl :name 'i

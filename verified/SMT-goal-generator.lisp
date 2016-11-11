@@ -22,9 +22,9 @@
 ;; To be compatible with Arithmetic books
 (include-book "ordinals/lexicographic-ordering-without-arithmetic" :dir :system)
 
-(defsection SMT-goal-generator
-  :parents (Smtlink)
-  :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
+;; (defsection SMT-goal-generator
+;;   :parents (Smtlink)
+;;   :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
 
   (defalist sym-nat-alist
     :key-type symbol
@@ -81,7 +81,8 @@
       The function finishes when all of them are expanded to given level." :default nil)
      (fn-lst func-alistp "List of function definitions to use for
       function expansion." :default nil)
-     (fn-lvls sym-nat-alistp "Levels to expand each functions to." :default nil)))
+     (fn-lvls sym-nat-alistp "Levels to expand each functions to." :default nil)
+     (wrld-fn-len natp "Number of function definitions in curent world." :default 0)))
 
   (defthm natp-of-sum-lvls-lemma
     (implies (and (consp (sym-nat-alist-fix fn-lvls)) (natp x))
@@ -118,7 +119,7 @@
     (b* ((expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args))
          ((ex-args a) expand-args)
          (lvl-sum (sum-lvls a.fn-lvls)))
-      (list lvl-sum (acl2-count a.term-lst))))
+      (list a.wrld-fn-len lvl-sum (acl2-count a.term-lst))))
 
   (encapsulate ()
     (local (defthm lemma-1
@@ -264,6 +265,28 @@
                (consp (assoc-equal foo (ex-args->fn-lvls x)))))
     )
 
+;; (defun filter-fn-symbs (lst wrld acc)
+;;   (declare (xargs :guard (and (symbol-listp lst)
+;;                               (plist-worldp wrld))))
+;;   (cond ((endp lst) acc)
+;;         (t (filter-fn-symbs (cdr lst)
+;;                             wrld
+;;                             (if (function-symbolp (car lst) wrld)
+;;                                 (cons (car lst) acc)
+;;                               acc)))))
+
+;; ; The desired result:
+;; (let* ((world (w state))
+;;        (fns (remove-duplicates-eq
+;;              (strip-cadrs (universal-theory :here)))))
+;;   (filter-fn-symbs fns world nil))
+
+(defconst *SMT-basic-functions*
+  `(binary-+ binary-* unary-/ unary--
+    equal <
+    implies if not
+    lambda ))
+
   (encapsulate
     ()
     (set-well-founded-relation l<)
@@ -273,7 +296,7 @@
     ;; 2. change update-fn-lvls function so that old items are not deleted and update the measure function
     ;; 3. clean the code in a more structured way - treat lambdas in another function
     ;; 4. clean up the above encapsulated theorems, maybe in another file
-    (define expand ((expand-args ex-args-p))
+    (define expand ((expand-args ex-args-p) state)
       :parents (SMT-goal-generator)
       :returns (expanded-terms pseudo-term-listp
                                :hints (("Goal" :use ((:instance not-cddr-of-car-of-pseudo-term-list-fix-of-expand-args->term-lst)
@@ -293,9 +316,9 @@
            ;; If first term is a symbolp, return the symbol
            ;; then recurse on the rest of the list
            ((if (symbolp term))
-            (cons term (expand (change-ex-args a :term-lst rest))))
+            (cons term (expand (change-ex-args a :term-lst rest) state)))
            ((if (equal (car term) 'quote))
-            (cons term (expand (change-ex-args a :term-lst rest))))
+            (cons term (expand (change-ex-args a :term-lst rest) state)))
            ;; The first term is now a function call:
            ;; Cons the function call and function actuals out of term
            ((cons fn-call fn-actuals) term)
@@ -304,11 +327,11 @@
            ((if (pseudo-lambdap fn-call))
             (cons
              (b* ((lambda-formals (lambda-formals fn-call))
-                  (lambda-body (car (expand (change-ex-args a :term-lst (list (lambda-body fn-call))))))
-                  (lambda-actuals (expand (change-ex-args a :term-lst fn-actuals)))
+                  (lambda-body (car (expand (change-ex-args a :term-lst (list (lambda-body fn-call))) state)))
+                  (lambda-actuals (expand (change-ex-args a :term-lst fn-actuals) state))
                   ((unless (mbt (equal (len lambda-formals) (len lambda-actuals)))) nil))
                `((lambda ,lambda-formals ,lambda-body) ,@lambda-actuals))
-             (expand (change-ex-args a :term-lst rest))))
+             (expand (change-ex-args a :term-lst rest) state)))
 
            ;; If fn-call is neither a lambda expression nor a function call
            ((unless (mbt (symbolp fn-call))) a.term-lst)
@@ -317,10 +340,45 @@
            ;; If fn-call doesn't exist in fn-lst, it can be a basic function,
            ;; in that case we don't do anything with it.
            ;; Otherwise it can be a function that's forgotten to be added to fn-lst.
-           ;; The translator will fail to translate it and report an error.
+           ;; We are going to expand all function like this for one level.
+           ;; If the function is basic or has already been expanded once.
            ((unless fn)
-            (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals)))
-                  (expand (change-ex-args a :term-lst rest))))
+            (b* (((unless (function-symbolp fn-call (w state)))
+                  (prog2$
+                   (er hard? 'SMT-goal-generator=>expand "Should be a function call: ~q0" fn-call)
+                   a.term-lst))
+                 (basic-function (member-equal fn-call *SMT-basic-functions*))
+                 ((if (or basic-function (<= a.wrld-fn-len 0)))
+                  (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals) state))
+                        (expand (change-ex-args a :term-lst rest) state)))
+                 (formals (formals fn-call (w state)))
+                 ((unless (symbol-listp formals))
+                  (prog2$
+                   (er hard? 'SMT-goal-generator=>expand "Formals should be symbol-listp: ~q0" formals)
+                   a.term-lst))
+                 (extract-res (meta-extract-formula fn-call state))
+                 ((unless (true-listp extract-res))
+                  (prog2$
+                   (er hard? 'SMT-goal-generator=>expand "Function formula should be true-listp: ~q0" extract-res)
+                   a.term-lst))
+                 (body (nth 2 extract-res))
+                 ((unless (pseudo-termp body))
+                  (prog2$
+                   (er hard? 'SMT-goal-generator=>expand "Should be a pseudo-termp: ~q0" body)
+                   a.term-lst))
+                 (expanded-lambda-body
+                  (car (expand (change-ex-args a
+                                               :term-lst (list body)
+                                               :fn-lvls (hons-acons fn-call 0 a.fn-lvls)
+                                               :wrld-fn-len (1- a.wrld-fn-len))
+                               state)))
+                 (expanded-lambda `(lambda ,formals ,expanded-lambda-body))
+                 (expanded-term-list (expand (change-ex-args a :term-lst fn-actuals) state))
+                 ((unless (equal (len formals) (len expanded-term-list)))
+                  (prog2$
+                   (er hard? 'SMT-goal-generator=>expand "You called your function with the wrong number of actuals: ~q0" term) a.term-lst)))
+              (cons `(,expanded-lambda ,@expanded-term-list)
+                    (expand (change-ex-args a :term-lst rest) state))))
 
            ;; Now fn is a function in fn-lst
            ;; If fn-call is already expanded to level 0, don't expand.
@@ -330,17 +388,17 @@
              (er hard? 'SMT-goal-generator=>expand "Function ~q0 exists in the definition list but not in the levels list?" fn-call)
              a.term-lst))
            ((if (zp (cdr lvl-item)))
-            (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals)))
-                  (expand (change-ex-args a :term-lst rest))))
+            (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals) state))
+                  (expand (change-ex-args a :term-lst rest) state)))
 
            ;; If fn-call is not expanded to level 0, still can expand.
            (new-fn-lvls (update-fn-lvls fn-call a.fn-lvls))
            ((func f) (cdr fn))
            (formals f.flattened-formals)
            (expanded-lambda-body
-            (car (expand (change-ex-args a :term-lst (list f.body) :fn-lvls new-fn-lvls))))
+            (car (expand (change-ex-args a :term-lst (list f.body) :fn-lvls new-fn-lvls) state)))
            (expanded-lambda `(lambda ,formals ,expanded-lambda-body))
-           (expanded-term-list (expand (change-ex-args a :term-lst fn-actuals)))
+           (expanded-term-list (expand (change-ex-args a :term-lst fn-actuals) state))
            ((unless (equal (len formals) (len expanded-term-list)))
             (prog2$
              (er hard? 'SMT-goal-generator=>expand "You called your function with the wrong number of actuals: ~q0"
@@ -348,7 +406,7 @@
              a.term-lst))
            )
         (cons `(,expanded-lambda ,@expanded-term-list)
-              (expand (change-ex-args a :term-lst rest))))
+              (expand (change-ex-args a :term-lst rest) state)))
       ///
       (more-returns
        (expanded-terms (implies (ex-args-p expand-args)
@@ -362,7 +420,8 @@
       )
     )
 
-  (verify-guards expand
+(verify-guards expand
+  :guard-debug t
     :hints (("Goal" :use ((:instance pseudo-term-listp-of-pseudo-lambdap-of-cdar-ex-args->term-lst)))))
 
   (define initialize-fn-lvls ((fn-lst func-alistp))
@@ -378,17 +437,18 @@
 
   ;; Generate auxiliary hypotheses from the user given hypotheses
   (define generate-hyp-hint-lst ((hyp-lst hint-pair-listp)
-                                 (fn-lst func-alistp) (fn-lvls sym-nat-alistp))
+                                 (fn-lst func-alistp) (fn-lvls sym-nat-alistp)
+                                 state)
     :returns (hyp-hint-lst hint-pair-listp)
     :enabled t
     (b* (((if (endp hyp-lst)) nil)
          ((cons (hint-pair hyp) rest) hyp-lst)
          (G-prim (car (expand (make-ex-args :term-lst (list hyp.thm)
                                             :fn-lst fn-lst
-                                            :fn-lvls fn-lvls)))))
+                                            :fn-lvls fn-lvls) state))))
       (cons (make-hint-pair :thm G-prim
                             :hints hyp.hints)
-            (generate-hyp-hint-lst rest fn-lst fn-lvls))))
+            (generate-hyp-hint-lst rest fn-lst fn-lvls state))))
 
   (define lambda->actuals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
     :returns (new-actuals pseudo-term-listp)
@@ -728,7 +788,7 @@
                       (hint-pair-listp (append x y)))))
 
     ;; The top level function for generating SMT goals: G-prim and A's
-    (define SMT-goal-generator ((cl pseudo-term-listp) (hints smtlink-hint-p))
+    (define SMT-goal-generator ((cl pseudo-term-listp) (hints smtlink-hint-p) state)
       :returns (new-hints smtlink-hint-p)
       :short "@(call SMT-goal-generator) is the top level function for generating SMT goals: G-prim and A's"
       :guard-debug t
@@ -741,7 +801,7 @@
            (fn-lvls (initialize-fn-lvls fn-lst))
 
            ;; Generate user given hypotheses and their hints from hyp-lst
-           (hyp-hint-lst (with-fast-alist fn-lst (generate-hyp-hint-lst h.hypotheses fn-lst fn-lvls)))
+           (hyp-hint-lst (with-fast-alist fn-lst (generate-hyp-hint-lst h.hypotheses fn-lst fn-lvls state)))
 
            ;; Expand main clause using fn-lst
            ;; Generate function hypotheses and their hints from fn-lst
@@ -749,7 +809,8 @@
             (with-fast-alist fn-lst (car (expand (make-ex-args
                                                   :term-lst (list (disjoin cl))
                                                   :fn-lst fn-lst
-                                                  :fn-lvls fn-lvls)))))
+                                                  :fn-lvls fn-lvls)
+                                                 state))))
 
            ;; Generate auxiliary hypotheses from function expansion
            (fn-hint-lst (with-fast-alist fn-lst (generate-fn-hint-lst (make-fhg-args
@@ -781,4 +842,4 @@
     (verify-guards SMT-goal-generator)
     )
 
-  )
+;;  )

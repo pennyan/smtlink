@@ -25,11 +25,6 @@
 
 (defconst *default-smtlink-config* (make-smtlink-config :interface-dir "" :SMT-files-dir "" :SMT-module "" :SMT-class "" :SMT-cmd "" :file-format ""))
 
-(defstub smt-cnf () => *)
-
-(define default-smtlink-config ()
-  (change-smtlink-config *default-smtlink-config*))
-
-(defattach smt-cnf default-smtlink-config)
+(define smt-cnf () *default-smtlink-config*)
 
 )

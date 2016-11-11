@@ -53,6 +53,7 @@
       symbol-fix
       symbol-list-fix
       with-fast-alists
+      formals
 
       read-string
 

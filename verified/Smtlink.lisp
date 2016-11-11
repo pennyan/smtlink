@@ -14,4 +14,4 @@
 (defmacro Smtlink (clause)
   `(Smtlink-subgoals ,clause
                      ;; A and G-prim and hints
-                     (Smt-goal-generator ,clause (smt-hint) )))
+                     (Smt-goal-generator ,clause (smt-hint) state)))

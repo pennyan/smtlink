@@ -31,11 +31,6 @@
                        :SMT-cmd "python"
                        :file-format ".py"))
 
-(defstub smt-cnf () => *)
-
-(define default-smtlink-config ()
-  (change-smtlink-config *default-smtlink-config*))
-
-(defattach smt-cnf default-smtlink-config)
+(define smt-cnf () *default-smtlink-config*)
 
 )
