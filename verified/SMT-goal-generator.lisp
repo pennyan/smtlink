@@ -22,9 +22,9 @@
 ;; To be compatible with Arithmetic books
 (include-book "ordinals/lexicographic-ordering-without-arithmetic" :dir :system)
 
-;; (defsection SMT-goal-generator
-;;   :parents (Smtlink)
-;;   :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
+(defsection SMT-goal-generator
+  :parents (Smtlink)
+  :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
 
   (defalist sym-nat-alist
     :key-type symbol
@@ -265,27 +265,27 @@
                (consp (assoc-equal foo (ex-args->fn-lvls x)))))
     )
 
-;; (defun filter-fn-symbs (lst wrld acc)
-;;   (declare (xargs :guard (and (symbol-listp lst)
-;;                               (plist-worldp wrld))))
-;;   (cond ((endp lst) acc)
-;;         (t (filter-fn-symbs (cdr lst)
-;;                             wrld
-;;                             (if (function-symbolp (car lst) wrld)
-;;                                 (cons (car lst) acc)
-;;                               acc)))))
+  ;; (defun filter-fn-symbs (lst wrld acc)
+  ;;   (declare (xargs :guard (and (symbol-listp lst)
+  ;;                               (plist-worldp wrld))))
+  ;;   (cond ((endp lst) acc)
+  ;;         (t (filter-fn-symbs (cdr lst)
+  ;;                             wrld
+  ;;                             (if (function-symbolp (car lst) wrld)
+  ;;                                 (cons (car lst) acc)
+  ;;                               acc)))))
 
-;; ; The desired result:
-;; (let* ((world (w state))
-;;        (fns (remove-duplicates-eq
-;;              (strip-cadrs (universal-theory :here)))))
-;;   (filter-fn-symbs fns world nil))
+  ;; ; The desired result:
+  ;; (let* ((world (w state))
+  ;;        (fns (remove-duplicates-eq
+  ;;              (strip-cadrs (universal-theory :here)))))
+  ;;   (filter-fn-symbs fns world nil))
 
-(defconst *SMT-basic-functions*
-  `(binary-+ binary-* unary-/ unary--
-    equal <
-    implies if not
-    lambda ))
+  (defconst *SMT-basic-functions*
+    `(binary-+ binary-* unary-/ unary--
+               equal <
+               implies if not
+               lambda ))
 
   (encapsulate
     ()
@@ -343,29 +343,35 @@
            ;; We are going to expand all function like this for one level.
            ;; If the function is basic or has already been expanded once.
            ((unless fn)
-            (b* (((unless (function-symbolp fn-call (w state)))
+            (b* ((- (cw "here1"))
+                 ((unless (function-symbolp fn-call (w state)))
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Should be a function call: ~q0" fn-call)
                    a.term-lst))
+                 (- (cw "here2"))
                  (basic-function (member-equal fn-call *SMT-basic-functions*))
                  ((if (or basic-function (<= a.wrld-fn-len 0)))
                   (cons (cons fn-call (expand (change-ex-args a :term-lst fn-actuals) state))
                         (expand (change-ex-args a :term-lst rest) state)))
+                 (- (cw "here3"))
                  (formals (formals fn-call (w state)))
                  ((unless (symbol-listp formals))
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Formals should be symbol-listp: ~q0" formals)
                    a.term-lst))
+                 (- (cw "here4"))
                  (extract-res (meta-extract-formula fn-call state))
                  ((unless (true-listp extract-res))
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Function formula should be true-listp: ~q0" extract-res)
                    a.term-lst))
+                 (- (cw "here5"))
                  (body (nth 2 extract-res))
                  ((unless (pseudo-termp body))
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Should be a pseudo-termp: ~q0" body)
                    a.term-lst))
+                 (- (cw "Expanding ~q0 ...~%" fn-call))
                  (expanded-lambda-body
                   (car (expand (change-ex-args a
                                                :term-lst (list body)
@@ -420,8 +426,7 @@
       )
     )
 
-(verify-guards expand
-  :guard-debug t
+  (verify-guards expand
     :hints (("Goal" :use ((:instance pseudo-term-listp-of-pseudo-lambdap-of-cdar-ex-args->term-lst)))))
 
   (define initialize-fn-lvls ((fn-lst func-alistp))
@@ -842,4 +847,4 @@
     (verify-guards SMT-goal-generator)
     )
 
-;;  )
+  )
