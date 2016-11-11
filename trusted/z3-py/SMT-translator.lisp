@@ -510,9 +510,10 @@
             (translate-expression (make-te-args :expr-lst (list theorem)
                                                 :fn-lst fn-lst
                                                 :uninterpreted-lst uninterpreted-lst))))
+         (short-uninterpreted (remove-duplicates-equal uninterpreted))
          (theorem-assign `("theorem" = ,translated-theorem-body #\Newline))
          (prove-theorem `("_SMT_.prove(theorem)" #\Newline)))
-      (mv `(,theorem-assign ,prove-theorem) uninterpreted)))
+      (mv `(,theorem-assign ,prove-theorem) short-uninterpreted)))
 
   (define translate-uninterpreted-arguments ((type symbolp) (args decl-listp) (int-to-rat booleanp))
     :returns (translated paragraphp

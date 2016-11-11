@@ -22,7 +22,7 @@
    :rm-file nil
    :smt-hint nil
    :smt-cnf (smt-cnf)))
-x
+
 (defattach smt-hint my-smtlink-hint)
 
 (add-default-hints '((SMT::SMT-hint-wrapper-hint clause)))
