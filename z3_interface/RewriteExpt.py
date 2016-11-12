@@ -1,9 +1,9 @@
 # Copyright (C) 2015, University of British Columbia
 # Written (originally) by Mark Greenstreet (13th March, 2014)
+# Editted by Yan Peng (11th Nov. 2016)
 #
 # License: A 3-clause BSD license.
 # See the LICENSE file distributed with this software
-
 
 import collections
 import ACL2_to_Z3
@@ -59,7 +59,7 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
         else: hyps = expr_list[0]
         workQ = collections.deque()  # expt calls we still need to examine
         allQ = collections.deque()   # all expt calls that we've seen
-	report = self.reportFun(report)
+        report = self.reportFun(report)
 
         def enqueue(v):
             # z3 ASTs are unhashable; so we'll use a brute-force
@@ -261,7 +261,7 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
             all([hasattr(d, a) for a in ('__call__', 'arity', 'domain', 'kind', 'range')]) and
             (d.kind() == z3.Z3_OP_UNINTERPRETED) and
             d.arity() > 0)
-          
+
     # I'll assume that all arguments are z3 expressions except for possibly the
     # last one.  If the last one is a function, then it's the 'report' function
     # for debugging.
@@ -272,7 +272,9 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
         funQ = collections.deque()  # uninterpreted functions we've seen
 
         def helper(x):
-            if(self.is_uninterpreted_fun(x)):
+            if(x is None):
+                return x
+            elif(self.is_uninterpreted_fun(x)):
                 match = [f[1] for f in funQ if f[0] is x]
                 if(len(match) == 1):  # found a match
                     return match[0]
@@ -300,16 +302,23 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
                 else:
                     raise ExptRewriteFailure('Internal error')
 
-	newExprs = [helper(x) for x in exprs]
-	report('fun_to_var(', exprs, ') -> ', newExprs)
-	return newExprs
+        newExprs = [helper(x) for x in exprs]
+        report('fun_to_var(', exprs, ') -> ', newExprs)
+        return newExprs
 
     def prove(self, hypotheses, conclusion=None, report=None):
         report = self.reportFun(report)
 
         x_hyps, x_concl = self.analyse_expt(hypotheses, conclusion, report)
         f_hyps, f_concl = self.fun_to_var([x_hyps, x_concl], report)[:]
-        hyps = z3.simplify(f_hyps); concl = z3.simplify(f_concl)
+        if(f_hyps is None):
+            hyps = f_hyps
+        else:
+            hyps = z3.simplify(f_hyps)
+        if(f_concl is None):
+            concl = f_concl
+        else:
+            concl = z3.simplify(f_concl)
 
         report('to_smt_w_expt.prove:')
         report('  hypotheses = ', hyps)

@@ -180,8 +180,8 @@ class ACL22SMT(object):
         print "failed to prove"
 
     # usage prove(claim) or prove(hypotheses, conclusion)
-    def prove(self, hypotheses, conclusion=0):
-        if(conclusion is 0): claim = hypotheses
+    def prove(self, hypotheses, conclusion=None):
+        if(conclusion is None): claim = hypotheses
         else: claim = Implies(hypotheses, conclusion)
 
         self.solver.push()

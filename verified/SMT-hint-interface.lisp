@@ -163,7 +163,7 @@
      (type-decl-list decl-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
      (smt-cnf smtlink-config-p :default (make-smtlink-config))
-     (wrld-fn-len natp :default 1024)))
+     (wrld-fn-len natp :default 8)))
 
   (define flatten-formals/returns ((formal/return-lst decl-listp))
     :returns (flattened-lst symbol-listp)
@@ -204,5 +204,10 @@
   ;; -------------------------------------------------------------------------
   ;;        Define a set of utilities for convenience
 
-  ;; (defmacro def-smt-hint (name &key auto-expand))
+  ;; ;; Example Usage
+  ;; (def-smt-hint my-smt-hint
+  ;;   :function ())
+
+  ;; (defmacro def-smt-hint (name &key auto-expand)
+  ;;   ())
   )

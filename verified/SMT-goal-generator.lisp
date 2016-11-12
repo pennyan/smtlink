@@ -352,7 +352,7 @@
                   (prog2$
                    (er hard? 'SMT-goal-generator=>expand "Should be a pseudo-termp: ~q0" body)
                    a.term-lst))
-                 (- (cw "Expanding ~q0 ...~%" fn-call))
+                 (- (cw "Expanding ... ~q0" fn-call))
                  (expanded-lambda-body
                   (car (expand (change-ex-args a
                                                :term-lst (list body)
