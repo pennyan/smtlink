@@ -15,15 +15,19 @@
   :short "SMT-header contains string definitions for the header of a Z3 file."
 
   (define SMT-head ((smt-conf smtlink-config-p))
-    :returns (head paragraphp)
+    :returns (mv (head paragraphp)
+                 (import paragraphp))
     (b* ((smt-conf (mbe :logic (smtlink-config-fix smt-conf) :exec smt-conf))
          ((smtlink-config c) smt-conf))
-      (list ;; "from sys import path"
-            ;; #\Newline
-            ;; "path.insert(0,\"" c.interface-dir "\")"
-            ;; #\Newline
-            ;; "from " c.SMT-module " import " c.SMT-class
-            ;; #\Newline
-            "_SMT_ = " c.SMT-class "()"
-            #\Newline)))
+      (mv (list
+           "from sys import path"
+           #\Newline
+           "path.insert(0,\"" c.interface-dir "\")"
+           #\Newline
+           #\Newline)
+          (list
+           ;; "from " c.SMT-module " import " c.SMT-class
+           #\Newline
+           "_SMT_ = " c.SMT-class "()"
+           #\Newline))))
   )

@@ -544,7 +544,7 @@
          ((if (> (len f.returns) 1))
           (er hard? 'SMT-translator=>translate-uninterpreted-decl "Currently, mv returns are not supported."))
          (translated-returns (translate-uninterpreted-arguments 'returns f.returns int-to-rat)))
-      `(,name "= Function(" #\' ,name #\' ,translated-formals ,translated-returns ")" #\Newline)))
+      `(,name "= z3.Function(" #\' ,name #\' ,translated-formals ,translated-returns ")" #\Newline)))
 
   ;; func1 = Function('func1', I1-type, I2-type, R-type)
   ;; example:
