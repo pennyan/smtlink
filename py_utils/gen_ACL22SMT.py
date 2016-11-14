@@ -31,7 +31,8 @@ specialChar = {
     r'.' : r'#\.',
     r"'" : r"#\'",
     r'"' : r"#\"",
-    r'#' : r'#\#'
+    r'#' : r'#\#',
+    '\\' : '#\\\\'
 }
 
 def gen_LISPList(line):

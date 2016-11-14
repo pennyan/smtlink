@@ -18,12 +18,12 @@
     :returns (head paragraphp)
     (b* ((smt-conf (mbe :logic (smtlink-config-fix smt-conf) :exec smt-conf))
          ((smtlink-config c) smt-conf))
-      (list "from sys import path"
-            #\Newline
-            "path.insert(0,\"" c.interface-dir "\")"
-            #\Newline
-            "from " c.SMT-module " import " c.SMT-class
-            #\Newline
+      (list ;; "from sys import path"
+            ;; #\Newline
+            ;; "path.insert(0,\"" c.interface-dir "\")"
+            ;; #\Newline
+            ;; "from " c.SMT-module " import " c.SMT-class
+            ;; #\Newline
             "_SMT_ = " c.SMT-class "()"
             #\Newline)))
   )
