@@ -132,7 +132,7 @@ class ACL22SMT(object):
         i = 0
         while i < le:
             if (st.find("("+lst[i]+" ") == -1) and not(lst[i] == 'False') and not(lst[i] == 'True'):
-                if is_bool(eval(lst[i])):
+                if is_bool(lst[i]):
                     st = st + " ("+lst[i]+" (cex-trivial nil))"
                 else:
                     st = st + " ("+lst[i]+" (cex-trivial 0))"
