@@ -1,10 +1,12 @@
 # Copyright (C) 2015, University of British Columbia
 # Written (originally) by Mark Greenstreet (13th March, 2014)
+# Counter-example generation: Carl Kwan (May 2016)
+# Editted by Yan Peng (15th Nov 2016)
 #
 # License: A 3-clause BSD license.
 # See the LICENSE file distributed with this software
 
-from z3 import *# Solver, Bool, Int, Real, BoolSort, IntSort, RealSort, And, Or, Not, Implies, sat, unsat, Array, Select, Store, ToInt, Q, If
+from z3 import *
 
 def sort(x):
     if type(x) == bool:    return BoolSort()
@@ -40,16 +42,14 @@ class ACL22SMT(object):
         def __str__(self):
             return(self.who_am_i)
 
-    def __init__(self, solver=0):
-        if(solver != 0): self.solver = solver
+    def __init__(self, solver=None):
+        if(solver != None): self.solver = solver
         else: self.solver = Solver()
         self.nameNumber = 0
 
-    def newVar(self):
-        varName = '$' + str(self.nameNumber)
-        self.nameNumber = self.nameNumber+1
-        return varName
-
+    # ---------------------------------------------------------
+    #                   Basic Functions
+    #
     # Type declarations
     def isBool(self, who): return Bool(who)
     def isInt(self, who): return Int(who)
@@ -82,33 +82,8 @@ class ACL22SMT(object):
     def ifx(self, condx, thenx, elsex):
         return If(condx, thenx, elsex)
 
-    # # usage prove(claim) or prove(hypotheses, conclusion)
-    # def prove(self, hypotheses, conclusion=0):
-    #     if(conclusion is 0): claim = hypotheses
-    #     else: claim = Implies(hypotheses, conclusion)
-
-    #     self.solver.push()
-    #     self.solver.add(Not(claim))
-    #     res = self.solver.check()
-
-    #     if res == unsat:
-    #         print "proved"
-    #         return self.status(True)  # It's a theorem
-    #     elif res == sat:
-    #         print "counterexample"
-    #         m = self.solver.model()
-    #         print m
-    #         # return an counterexample
-    #         return self.status(False)
-    #     else:
-    #         print "failed to prove"
-    #         r = self.status(False)
-
-    #     self.solver.pop()
-    #     return(r)
-
-    def proof_success(self):
-        print "proved"
+    # -------------------------------------------------------------
+    #       Proof functions and counter-example generation
 
     # finds variable names
     def var_lst (self, lst, ret):
@@ -116,9 +91,10 @@ class ACL22SMT(object):
         i = 0
         while i < llen:
             if lst[i].children() == []:
-                st = str(lst[i]).replace("-", "").replace(".","").replace("/", "")
-                if not st.isdigit():
-                    ret.append(st)
+                st_orig = str(lst[i])
+                st = st_orig.replace("/","").replace("-","").replace(".","")
+                if not(st.isdigit()) and not(st == 'False') and not(st == 'True'):
+                    ret.append(st_orig)
             else:
                 if isinstance(lst[i].children(),list):
                     self.var_lst (lst[i].children(), ret)
@@ -128,11 +104,10 @@ class ACL22SMT(object):
     # concatonate
     def conc_var_lst (self, st, lst):
         le = len(lst)
-        m = self.solver.model()
         i = 0
         while i < le:
-            if (st.find("("+lst[i]+" ") == -1) and not(lst[i] == 'False') and not(lst[i] == 'True'):
-                if is_bool(lst[i]):
+            if (st.find("("+lst[i]+" ") == -1):
+                if is_bool(eval(lst[i])):
                     st = st + " ("+lst[i]+" (cex-trivial nil))"
                 else:
                     st = st + " ("+lst[i]+" (cex-trivial 0))"
@@ -156,25 +131,24 @@ class ACL22SMT(object):
             i = i + 1
         return s
 
-    def parse_cex (self, st):
-        s1 = st.replace("() ", "")
-        s2 = s1.replace("define-fun ", "")
-        s3 = s2.replace("Real", "")
-        s3 = s3.replace(".0", "")
-        s4 = s3.split()
-        s5 = ' '.join(s4)
-        return s5
+    # def parse_cex (self, st):
+    #     s1 = st.replace("() ", "")
+    #     s2 = s1.replace("define-fun ", "")
+    #     s3 = s2.replace("Real", "")
+    #     s3 = s3.replace(".0", "")
+    #     s4 = s3.split()
+    #     s5 = ' '.join(s4)
+    #     return s5
 
     def proof_counterExample(self):
-        thing = self.pymodel_to_lisp()
+        asserts = self.solver.assertions()
+        var_lst = self.var_lst(asserts, [])
+        model_acl2 = self.pymodel_to_lisp()
+        full_model_acl2 = self.conc_var_lst(model_acl2, var_lst)
+        print "(" +  full_model_acl2 + ")"
 
-        m = self.solver.model()
-        a = self.solver.assertions()
-        s0 = m.sexpr()
-        s5 = self.pymodel_to_lisp()
-        alst = self.var_lst(a, [])
-        s6 = self.conc_var_lst(s5, alst)
-        print "(" +  s6 + ")"
+    def proof_success(self):
+        print "proved"
 
     def proof_fail(self):
         print "failed to prove"
@@ -194,5 +168,3 @@ class ACL22SMT(object):
 
         self.solver.pop()
         return(self.status(res == unsat))
-
-
