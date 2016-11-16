@@ -82,6 +82,26 @@ class ACL22SMT(object):
     def ifx(self, condx, thenx, elsex):
         return If(condx, thenx, elsex)
 
+    # ------------------------------------------------------------
+    #         Translate names to ACL2 acceptable ones
+
+    def translate_name(self, name):
+        lst = list(name)
+
+        def special_list(st):
+            tb = {',' : "_com_",
+                  ' ' : "_spa_",
+                  '(' : "_lbra_",
+                  ')' : "_rbra_"}
+            if st in tb:
+                res = tb[st]
+            else:
+                res = st
+            return res
+
+        new_name = [special_list(st) for st in lst]
+        return ''.join(new_name)
+
     # -------------------------------------------------------------
     #       Proof functions and counter-example generation
 

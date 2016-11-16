@@ -124,7 +124,7 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
                 n = v.children()[1]
 
                 report('rewriting expt(', x, ', ', n, ')')
-                
+
                 # Many of the rules below should have guards to ensure that we don't
                 # accidentally say expt(x, n) is defined when x==0 and n < 0.
                 # Rather that figuring out # all of the corner cases, I first check to
@@ -280,7 +280,7 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
                     return match[0]
                 else:
                     rangeSort = x.decl().range()
-                    varName = '$' + str(x)
+                    varName = super(to_smt_w_expt, self).translate_name('$' + str(x))
                     if(rangeSort == z3.RealSort()): newVar = z3.Real(varName)
                     elif(rangeSort == z3.IntSort()): newVar = z3.Int(varName)
                     elif(rangeSort == z3.BoolSort()): newVar = z3.Bool(varName)
