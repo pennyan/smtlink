@@ -56,16 +56,16 @@
                 (mv t state)
               (mv (er hard? 'SMT-run=>SMT-interpret "Remove file error.~% ~q0~%" lines-rm)
                   state))))
-         ((mv err st state) (read-string (car lines) :state state))
-         ((unless (true-listp st))
+         ((mv err str state) (read-string (car lines) :state state))
+         ((unless (true-listp str))
           (prog2$
-           (er hard? 'SMT-run=>SMT-interpret "We can never prove anything about the thing returned by read-string. So we add a check for it. It's surprising that the check for true-listp failed: ~q0" st)
+           (er hard? 'SMT-run=>SMT-interpret "We can never prove anything about the thing returned by read-string. So we add a check for it. It's surprising that the check for true-listp failed: ~q0" str)
            (mv nil state)))
-         (- (cw "st:~q0" st))
-         (- (cw "err:~q0" err))
+         (- (cw "read-string str:~q0" str))
+         (- (cw "read-string err:~q0" err))
          (state (f-put-global 'SMT-cex nil state))
-         (state (f-put-global 'SMT-cex (car st) state)))
-      (mv (cw "~q0" lines) state)))
+         (state (f-put-global 'SMT-cex (car str) state)))
+      (mv nil state)))
 
   (encapsulate ()
     (local

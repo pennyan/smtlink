@@ -82,90 +82,88 @@ class ACL22SMT(object):
     def ifx(self, condx, thenx, elsex):
         return If(condx, thenx, elsex)
 
-    # ------------------------------------------------------------
-    #         Translate names to ACL2 acceptable ones
-
-    def translate_name(self, name):
-        lst = list(name)
-
-        def special_list(st):
-            tb = {',' : "_com_",
-                  ' ' : "_spa_",
-                  '(' : "_lbra_",
-                  ')' : "_rbra_"}
-            if st in tb:
-                res = tb[st]
-            else:
-                res = st
-            return res
-
-        new_name = [special_list(st) for st in lst]
-        return ''.join(new_name)
 
     # -------------------------------------------------------------
     #       Proof functions and counter-example generation
 
-    # finds variable names
-    def var_lst (self, lst, ret):
-        llen = len(lst)
-        i = 0
-        while i < llen:
-            if lst[i].children() == []:
-                st_orig = str(lst[i])
-                st = st_orig.replace("/","").replace("-","").replace(".","")
-                if not(st.isdigit()) and not(st == 'False') and not(st == 'True'):
-                    ret.append(st_orig)
-            else:
-                if isinstance(lst[i].children(),list):
-                    self.var_lst (lst[i].children(), ret)
-            i += 1
-        return list(set(ret));
+    def get_vars(self, asserts):
+        """
+        Return a list of ArithRef objects of variables appeared
+        in the list of expressions stored in asserts.
+        """
+        acc = []
 
-    # concatonate
-    def conc_var_lst (self, st, lst):
-        le = len(lst)
-        i = 0
-        while i < le:
-            if (st.find("("+lst[i]+" ") == -1):
-                if is_bool(eval(lst[i])):
-                    st = st + " ("+lst[i]+" (cex-trivial nil))"
+        def get_vars_ast(v):
+            if(hasattr(v, "children")):
+                # hopefully, v is a z3 expression
+                if v.children() == []:
+                    if not(is_int_value(v) or \
+                           is_rational_value(v) or \
+                           is_true(v) or is_false(v)):
+                        return [v]
+                    else:
+                        return []
                 else:
-                    st = st + " ("+lst[i]+" (cex-trivial 0))"
-            i += 1
-        return st
-
-    def pymodel_to_lisp(self):
-        m = self.solver.model()
-        l = len(m)
-        s = ""
-        i = 0
-        while i < l:
-            if (is_rational_value(m[m[i]])) or (is_bool(m[m[i]])):
-                val_str = str(m[m[i]]).replace(".0", "").replace("False", "nil").replace("True","t")
-                s = s + " (" + str(m[i]) + " " + val_str + ")"
+                    children_lst = []
+                    for nu in v.children():
+                        children_lst += get_vars_ast(nu)
+                    return children_lst
             else:
-                rt_obj = str(m[m[i]].sexpr())
-                rt_obj = rt_obj.replace("root-obj", "cex-root-obj " + "'" + str(m[i]) + " state")
-                rt_obj = rt_obj.replace("(+", "'(+")
-                s = s + " (" + str(m[i]) + " " + rt_obj + ")"
-            i = i + 1
-        return s
+                return []
 
-    # def parse_cex (self, st):
-    #     s1 = st.replace("() ", "")
-    #     s2 = s1.replace("define-fun ", "")
-    #     s3 = s2.replace("Real", "")
-    #     s3 = s3.replace(".0", "")
-    #     s4 = s3.split()
-    #     s5 = ' '.join(s4)
-    #     return s5
+        for ast in asserts:
+            acc += get_vars_ast(ast)
+
+        return list(set(acc))
+
+
+    def get_model(self, var_lst):
+        m = self.solver.model()
+        dontcare_lst = []
+        model_lst = []
+        for var in var_lst:
+            if m.__getitem__(var) == None:
+                value = m.eval(var, model_completion = True)
+                dontcare_lst.append([var, value])
+            else:
+                value = m.eval(var)
+                model_lst.append([var, value])
+        return [model_lst, dontcare_lst]
+
+
+    def translate_to_acl2(self, model_lst, dontcare_lst):
+        model_acl2 = []
+        dontcare_acl2 = []
+
+        def translate_value(n, v):
+            if (is_algebraic_value(v)):
+                rt_obj = str(v.sexpr())
+                rt_obj = rt_obj.replace("root-obj", "cex-root-obj " + "'" + n + " state")
+                rt_obj = rt_obj.replace("(+", "'(+")
+                translated_v = rt_obj
+            else:
+                translated_v = str(v).replace(".0", "").replace("False", "nil").replace("True","t")
+            return translated_v
+
+        def translate_model(model):
+            m = model[0]
+            name = m.decl().name()
+            value = model[1]
+            return "(" + name + " " + translate_value(name, value) + ")"
+
+        model_acl2 = [translate_model(model) for model in model_lst]
+        dontcare_acl2 = [translate_model(model) for model in dontcare_lst]
+        return [model_acl2, dontcare_acl2]
+
 
     def proof_counterExample(self):
         asserts = self.solver.assertions()
-        var_lst = self.var_lst(asserts, [])
-        model_acl2 = self.pymodel_to_lisp()
-        full_model_acl2 = self.conc_var_lst(model_acl2, var_lst)
-        print "(" +  full_model_acl2 + ")"
+        var_lst = self.get_vars(asserts)
+        [model_lst, dontcare_lst] = self.get_model(var_lst)
+        [model_acl2, dontcare_acl2] = self.translate_to_acl2(model_lst, dontcare_lst)
+
+        print "'(" + " ".join(model_acl2+dontcare_acl2) + ")"
+        print "Without dontcares: " + "'(" + " ".join(model_acl2) + ")"
 
     def proof_success(self):
         print "proved"

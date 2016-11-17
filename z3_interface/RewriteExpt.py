@@ -240,7 +240,8 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
 
     def analyse_expt(self, hypotheses, conclusion=None, report=None):
         report = self.reportFun(report)
-        expt_hyps = self.get_expt_rules([hypotheses, conclusion], report)
+        # expt_hyps = self.get_expt_rules([hypotheses, conclusion], report)
+        expt_hyps = []
         if(len(expt_hyps) == 0):
             hyps = hypotheses
             concl = conclusion
@@ -280,7 +281,7 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
                     return match[0]
                 else:
                     rangeSort = x.decl().range()
-                    varName = super(to_smt_w_expt, self).translate_name('$' + str(x))
+                    varName = '|$' + str(x) + '|'
                     if(rangeSort == z3.RealSort()): newVar = z3.Real(varName)
                     elif(rangeSort == z3.IntSort()): newVar = z3.Int(varName)
                     elif(rangeSort == z3.BoolSort()): newVar = z3.Bool(varName)
