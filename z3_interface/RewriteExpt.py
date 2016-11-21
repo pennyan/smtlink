@@ -240,8 +240,8 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
 
     def analyse_expt(self, hypotheses, conclusion=None, report=None):
         report = self.reportFun(report)
-        # expt_hyps = self.get_expt_rules([hypotheses, conclusion], report)
-        expt_hyps = []
+        expt_hyps = self.get_expt_rules([hypotheses, conclusion], report)
+        # expt_hyps = []
         if(len(expt_hyps) == 0):
             hyps = hypotheses
             concl = conclusion
@@ -310,7 +310,11 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
     def prove(self, hypotheses, conclusion=None, report=None):
         report = self.reportFun(report)
 
-        x_hyps, x_concl = self.analyse_expt(hypotheses, conclusion, report)
+        if (conclusion is None):
+            conclusion = hypotheses
+            hypotheses = True
+
+        x_hyps, x_concl = self.analyse_expt(z3.And(hypotheses,z3.Not(conclusion)), conclusion, report)
         f_hyps, f_concl = self.fun_to_var([x_hyps, x_concl], report)[:]
         if(f_hyps is None):
             hyps = f_hyps
