@@ -82,6 +82,8 @@ class ACL22SMT(object):
     def ifx(self, condx, thenx, elsex):
         return If(condx, thenx, elsex)
 
+    def okay(self):
+        return False
 
     # -------------------------------------------------------------
     #       Proof functions and counter-example generation

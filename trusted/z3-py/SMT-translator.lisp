@@ -20,24 +20,25 @@
   :short "SMT-translator does the LISP to Python translation."
 
   (defconst *SMT-functions*
-    ;;(ACL2 function . (SMT function       Least # of arguments))
-    `((binary-+      . ("_SMT_.plus"       0))
-      (binary-*      . ("_SMT_.times"      0))
-      (unary-/       . ("_SMT_.reciprocal" 1))
-      (unary--       . ("_SMT_.negate"     1))
-      (equal         . ("_SMT_.equal"      2))
-      (<             . ("_SMT_.lt"         2))
-      (if            . ("_SMT_.ifx"        3))
-      (not           . ("_SMT_.notx"       1))
-      (lambda        . ("lambda"           2))
-      (implies       . ("_SMT_.implies"    2))
+    ;;(ACL2 function     . (SMT function         Least # of arguments))
+    `((binary-+          . ("_SMT_.plus"       . 1))
+      (binary-*          . ("_SMT_.times"      . 1))
+      (unary-/           . ("_SMT_.reciprocal" . 1))
+      (unary--           . ("_SMT_.negate"     . 1))
+      (equal             . ("_SMT_.equal"      . 2))
+      (<                 . ("_SMT_.lt"         . 2))
+      (if                . ("_SMT_.ifx"        . 3))
+      (not               . ("_SMT_.notx"       . 1))
+      (lambda            . ("lambda"           . 2))
+      (implies           . ("_SMT_.implies"    . 2))
+      (SMT-hint-please   . ("_SMT_.okay"       . 0))
       ;; This doesn't work right now because Z3's definition is different from ACL2
       ;; when using types as hypotheses. If X is rationalp in Z3, then it can not
       ;; be an integerp. We need to first grab a definition in Z3 that can fully
       ;; capture its ACL2 meaning.
-      ;; (integerp      . ("_SMT_.integerp"   1))
-      ;; (rationalp     . ("_SMT_.rationalp"  1))
-      ;; (booleanp      . ("_SMT_.booleanp"   1))
+      ;; (integerp      . ("_SMT_.integerp"   . 1))
+      ;; (rationalp     . ("_SMT_.rationalp"  . 1))
+      ;; (booleanp      . ("_SMT_.booleanp"   . 1))
       ))
 
   (defconst *SMT-types*
@@ -102,15 +103,17 @@
 
 
   (define translate-function ((opr symbolp))
-    :returns (translated stringp)
-    (b* ((translated (cadr (assoc-equal opr *SMT-functions*)))
-         ((if (equal translated nil))
-          (prog2$ (er hard? 'SMT-translator=>translate-function "Not a basic SMT function: ~q0" opr)
-                  "")))
-      translated))
+    :returns (mv (translated stringp)
+                 (nargs natp))
+    (b* ((fn-sig (cdr (assoc-equal opr *SMT-functions*)))
+         ((if (equal fn-sig nil))
+          (prog2$ (er hard? 'SMT-translator=>translate-function "Not a basic SMT function: ~q0" opr) (mv "" 0)))
+         ((cons translated-fn nargs) fn-sig))
+      (mv translated-fn nargs)))
 
   (defthm wordp-of-translate-function
-    (wordp (translate-function x))
+    (b* (((mv fn &) (translate-function x)))
+      (wordp fn))
     :hints (("Goal" :in-theory (enable wordp))))
 
   (define paragraphp (par)
@@ -209,10 +212,11 @@
                          :hints (("Goal" :in-theory (enable translate-symbol paragraphp))))
     :measure (len formals)
     (b* ((formals (mbe :logic (symbol-list-fix formals) :exec formals))
-         ((unless (consp formals)) nil)
+         ((unless (consp (cdr formals)))
+          (list (translate-symbol (car formals))))
          ((cons first rest) formals)
          (translated-name (translate-symbol first)))
-      (cons translated-name `(#\Space ,@(translate-lambda-formals rest)))))
+      (cons translated-name `(#\, #\Space ,@(translate-lambda-formals rest)))))
 
   (define map-translated-actuals ((actuals paragraphp))
     :returns (mapped paragraphp
@@ -261,7 +265,7 @@
           (b* ((formals (lambda-formals fn-call))
                (body (lambda-body fn-call))
                (lambda-sym (car fn-call))
-               (translated-lambda (translate-function lambda-sym))
+               ((mv translated-lambda &) (translate-function lambda-sym))
                (translated-formals (translate-lambda-formals formals))
                ((mv translated-body uninterpreted-1)
                 (translate-expression (change-te-args a :expr-lst (list body) :uninterpreted-lst uninterpreted-rest)))
@@ -288,9 +292,12 @@
             (mv (cons translated-fn-call translated-rest)
                 (cons fn-call uninterpreted-1))))
          ;; If fn-call is not an uninterpreted function, then it has to be a basic function
+         ((mv fn nargs) (translate-function fn-call))
+         ((if (zp nargs))
+          (mv (cons `( ,fn #\( #\) ) translated-rest) uninterpreted-rest))
          ((mv translated-actuals uninterpreted-1)
           (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-rest))))
-      (mv (cons `( ,(translate-function fn-call) #\( ,(map-translated-actuals translated-actuals) #\) ) translated-rest)
+      (mv (cons `( ,fn #\( ,(map-translated-actuals translated-actuals) #\) ) translated-rest)
           uninterpreted-1)))
 
   (encapsulate ()

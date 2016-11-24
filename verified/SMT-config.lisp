@@ -28,7 +28,7 @@
                        :SMT-files-dir ""
                        :SMT-module "ACL2_to_Z3"
                        :SMT-class "ACL22SMT"
-                       :SMT-cmd "python"
+                       :SMT-cmd "/usr/local/bin/python"
                        :file-format ".py"))
 
 (define smt-cnf () *default-smtlink-config*)

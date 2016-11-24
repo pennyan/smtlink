@@ -14,6 +14,12 @@
 (defttag :tshell)
 (value-triple (tshell-ensure))
 
+(local
+ (defun my-smtlink-expt-config ()
+   (declare (xargs :guard t))
+   (change-smtlink-config *default-smtlink-config*
+                          :interface-dir "/Users/penny/Work/fun/theorem_proving/smtlink/z3_interface")))
+
 (defun my-smtlink-hint ()
   (declare (xargs :guard t))
   (change-smtlink-hint
@@ -58,7 +64,7 @@
                      (make-hint-pair :thm '(< '0 (expt z n))))
    :rm-file nil
    :smt-hint nil
-   :smt-cnf (smt-cnf)))
+   :smt-cnf (my-smtlink-expt-config)))
 
 (defattach smt-hint my-smtlink-hint-2)
 

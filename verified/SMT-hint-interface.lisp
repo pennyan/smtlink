@@ -85,6 +85,12 @@
     :equiv pseudo-term-list-list-equiv
     :define t)
 
+  (defalist pseudo-term-alist
+    :key-type pseudo-term
+    :val-type pseudo-term
+    :pred pseudo-term-alistp
+    :true-listp t)
+
   (define list-fix (x)
     (declare (xargs :guard (listp x)))
     :enabled t

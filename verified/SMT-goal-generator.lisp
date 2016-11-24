@@ -74,11 +74,6 @@
       :name updated-fn-lvls-decrease))
     )
 
-  (defalist pseudo-term-alist
-    :key-type pseudo-term
-    :val-type pseudo-term
-    :pred pseudo-term-alistp
-    :true-listp t)
 
   (defprod ex-args
     :parents (expand)
@@ -305,7 +300,7 @@
         :use ((:instance sum-lvls-decrease-after-update
                          (fn (car (car (ex-args->term-lst expand-args))))
                          (fn-lvls (ex-args->fn-lvls expand-args))))))
-      (b* ((expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args))
+      (b* ((expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args)) ;; use ex-args-fix directly
            ;; This binds expand-args to a, so that we can call a.term-lst ...
            ((ex-args a) expand-args)
            ((unless (consp a.term-lst))
@@ -839,6 +834,17 @@
       (cons (make-decl :name name :type (make-hint-pair :thm type))
             (structurize-type-decl-list rest))))
 
+  (define add-expansion-hint ((expanded-fn-lst pseudo-term-alistp))
+    :returns (hint-with-fn-expand listp)
+    :irrelevant-formals-ok t
+    :ignore-ok t
+    (b* (((unless (consp expanded-fn-lst)) nil)
+         ((cons first rest) expanded-fn-lst)
+         ((cons fn &) first)
+         ((unless (true-listp fn))
+          (er hard? 'SMT-goal-generator=>add-expansion-hint "function call should be a true-listp: ~q0" fn)))
+      (cons (car fn) (add-expansion-hint rest))))
+
   (encapsulate ()
     (local (in-theory (enable pseudo-term-listp-of-expand
                               hint-pair-listp-of-generate-fn-hint-lst
@@ -851,6 +857,10 @@
     (local (defthm hint-pair-listp-of-append
              (implies (and (hint-pair-listp x) (hint-pair-listp y))
                       (hint-pair-listp (append x y)))))
+
+    (local (defthm alistp-of-pseudo-term-alistp
+             (implies (pseudo-term-alistp x)
+                      (alistp x))))
 
     ;; The top level function for generating SMT goals: G-prim and A's
     (define SMT-goal-generator ((cl pseudo-term-listp) (hints smtlink-hint-p) state)
@@ -895,7 +905,17 @@
            (total-aux-hint-lst `(,@fn-hint-lst ,@hyp-hint-lst))
 
            ;; Combine expanded main clause and its hint
-           (expanded-clause-w/-hint (make-hint-pair :thm G-prim-without-type :hints h.main-hint))
+           (fncall-lst (strip-cars e.expanded-fn-lst))
+           ((unless (alistp fncall-lst))
+            (prog2$
+             (er hard? 'SMT-goal-generator=>SMT-goal-generator "Function call list should be an alistp: ~q0" fncall-lst)
+             hints))
+           (expand-hint (remove-duplicates-equal (strip-cars fncall-lst)))
+           (hint-with-fn-expand
+            (if (equal nil expand-hint)
+                h.main-hint
+                (append `(:in-theory (enable ,@expand-hint)) h.main-hint)))
+           (expanded-clause-w/-hint (make-hint-pair :thm G-prim-without-type :hints hint-with-fn-expand))
 
            ;; Update smtlink-hint
            (new-hints
@@ -909,4 +929,4 @@
     (verify-guards SMT-goal-generator)
     )
 
-  )
+)

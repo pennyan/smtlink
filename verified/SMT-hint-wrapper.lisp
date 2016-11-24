@@ -25,15 +25,18 @@
   (cond ((endp cl) (mv nil nil))
         (t (b* ((lit cl))
              (case-match lit
-               ((('hint-please ('quote kwd-alist)) . term)
+               ((('SMT-hint-please ('quote kwd-alist)) . term)
+                (mv term kwd-alist))
+               ((('ACL2-hint-please ('quote kwd-alist)) . term)
                 (mv term kwd-alist))
                (& (extract-hint-wrapper (cdr cl))))))))
 
 (define SMT-hint-wrapper-hint (cl)
   (b* ((- (cw "cl entering hint-wrapper: ~q0" cl))
        ((mv term kwd-alist) (extract-hint-wrapper cl))
-       (- (cw "term: ~q0" term))
-       (- (cw "kwd-alist: ~q0" kwd-alist)))
+       ;; (- (cw "term: ~q0" term))
+       ;; (- (cw "kwd-alist: ~q0" kwd-alist))
+       )
     (cond ((or term kwd-alist)
            (mv-let (pre post)
              (split-keyword-alist :in-theory kwd-alist)
@@ -41,24 +44,23 @@
               (post ; then there was already an :expand hint; splice one in
                (assert$ (eq (car post) :in-theory)
                         `(:computed-hint-replacement
-                          ('(,@pre ,@post))
-                          :do-not '(preprocess)
-                          :in-theory (enable hint-please ,@(cdadr post))
-                          ;; :expand ,(cons `(hint-please ,term ',kwd-alist)
-                          ;;                (cadr post))
+                          t
+                          ,@pre
+                          :in-theory (enable ACL2-hint-please ,@(cdadr post))
+                          ,@(cddr post)
                           )))
               (t ; simply extend kwd-alist
                (prog2$ (cw "~q0" `(:computed-hint-replacement
-                                   ('(,@kwd-alist))
+                                   t
                                    :do-not '(preprocess)
-                                   :in-theory (enable hint-please)
-                                   ;; :expand (hint-please ,term ',kwd-alist)
+                                   :in-theory (enable ACL2-hint-please)
+                                   ,@kwd-alist
                                    ))
                        `(:computed-hint-replacement
-                         ('(,@kwd-alist))
+                         t
                          :do-not '(preprocess)
-                         :in-theory (enable hint-please)
-                         ;; :expand (hint-please ,term ',kwd-alist)
+                         :in-theory (enable ACL2-hint-please)
+                         ,@kwd-alist
                          ))))))
           (t nil))))
 
