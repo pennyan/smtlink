@@ -31,7 +31,7 @@
       (not               . ("_SMT_.notx"       . 1))
       (lambda            . ("lambda"           . 2))
       (implies           . ("_SMT_.implies"    . 2))
-      (SMT-hint-please   . ("_SMT_.okay"       . 0))
+      (hint-please       . ("_SMT_.hint_okay"  . 0))
       ;; This doesn't work right now because Z3's definition is different from ACL2
       ;; when using types as hypotheses. If X is rationalp in Z3, then it can not
       ;; be an integerp. We need to first grab a definition in Z3 that can fully

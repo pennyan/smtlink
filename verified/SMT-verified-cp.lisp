@@ -39,41 +39,25 @@
   ;;
 
   ;; hint-please for SMT solver
-  (define SMT-hint-please ((hint listp))
+  (define hint-please ((hint listp))
     (declare (ignore hint)
              (xargs :guard t))
     nil)
 
-  (defthm SMT-hint-please-forward
-    (implies (SMT-hint-please hint)
+  (defthm hint-please-forward
+    (implies (hint-please hint)
              nil)
     :rule-classes :forward-chaining)
 
-  (in-theory (disable (:d SMT-hint-please)
-                      (:e SMT-hint-please)
-                      (:t SMT-hint-please)))
-
-
-  ;; hint-please for ACL2
-  (define ACL2-hint-please ((hint listp))
-    (declare (ignore hint)
-             (xargs :guard t))
-    nil)
-
-  (defthm ACL2-hint-please-forward
-    (implies (ACL2-hint-please hint)
-             nil)
-    :rule-classes :forward-chaining)
-
-  (in-theory (disable (:d ACL2-hint-please)
-                      (:e ACL2-hint-please)
-                      (:t ACL2-hint-please)))
+  (in-theory (disable (:d hint-please)
+                      (:e hint-please)
+                      (:t hint-please)))
 
   ;; -----------------------------------------------------------------
   ;;       Define evaluators
 
   (defevaluator ev-Smtlink-subgoals ev-lst-Smtlink-subgoals
-    ((not x) (if x y z) (SMT-hint-please hint) (ACL2-hint-please hint)))
+    ((not x) (if x y z) (hint-please hint)))
 
   (def-join-thms ev-Smtlink-subgoals)
 
@@ -103,7 +87,7 @@
          ((cons first-hinted-A rest-hinted-As) hinted-As)
          (A (hint-pair->thm first-hinted-A))
          (A-hint (hint-pair->hints first-hinted-A))
-         (first-A-thm `((ACL2-hint-please ',A-hint) ,A ,G))
+         (first-A-thm `((hint-please ',A-hint) ,A ,G))
          (first-not-A-clause `(not ,A))
          ((mv rest-A-thms rest-not-A-clauses)
           (preprocess-auxes rest-hinted-As G)))
@@ -139,11 +123,11 @@
   ;;
   ;; Adding hint-please:
   ;;
-  ;; 1. ((SMT-hint-please smt-hint) (not A1) ... (not An) G-prim)
-  ;; 2. ((ACL2-hint-please main-hint) (not A1) ... (not An) (not G-prim) G)
-  ;; 3. ((ACL2-hint-please A1-hint) A1 G)
+  ;; 1. ((hint-please smt-hint) (not A1) ... (not An) G-prim)
+  ;; 2. ((hint-please main-hint) (not A1) ... (not An) (not G-prim) G)
+  ;; 3. ((hint-please A1-hint) A1 G)
   ;;    ...
-  ;;    ((ACL2-hint-please An-hint) An G)
+  ;;    ((hint-please An-hint) An G)
   ;;
   (define construct-smtlink-subgoals ((hinted-As hint-pair-listp)
                                       (hinted-G-prim hint-pair-p)
@@ -158,8 +142,8 @@
          ((mv aux-clauses list-of-not-As) (preprocess-auxes hinted-As G))
          (G-prim (hint-pair->thm hinted-G-prim))
          (main-hint (hint-pair->hints hinted-G-prim))
-         (cl0 `((SMT-hint-please ',smt-hint) ,@list-of-not-As ,G-prim))
-         (cl1 `((ACL2-hint-please ',main-hint) ,@list-of-not-As (not ,G-prim) ,G)))
+         (cl0 `((hint-please ',smt-hint) ,@list-of-not-As ,G-prim))
+         (cl1 `((hint-please ',main-hint) ,@list-of-not-As (not ,G-prim) ,G)))
       `(,cl0 ,cl1 ,@aux-clauses)))
 
 

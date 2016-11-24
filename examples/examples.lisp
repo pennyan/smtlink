@@ -17,8 +17,12 @@
 (local
  (defun my-smtlink-expt-config ()
    (declare (xargs :guard t))
-   (change-smtlink-config *default-smtlink-config*
-                          :interface-dir "/Users/penny/Work/fun/theorem_proving/smtlink/z3_interface")))
+   (make-smtlink-config :interface-dir "/Users/penny/Work/fun/theorem_proving/smtlink/z3_interface"
+                        :SMT-files-dir "z3\_files"
+                        :SMT-module    "RewriteExpt"
+                        :SMT-class     "to_smt_w_expt"
+                        :SMT-cmd       "python"
+                        :file-format   ".py")))
 
 (defun my-smtlink-hint ()
   (declare (xargs :guard t))
@@ -27,7 +31,7 @@
    :functions nil
    :rm-file nil
    :smt-hint nil
-   :smt-cnf (smt-cnf)))
+   :smt-cnf (my-smtlink-expt-config)))
 
 (defattach smt-hint my-smtlink-hint)
 
@@ -35,15 +39,15 @@
 
 ;; Section 2. A short tour
 ;; Example 1
-(defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
+(defun x^2-y^2 (x y) (- (* x x) (* y y)))
 (defthm poly-ineq-example
   (implies (and (rationalp x) (rationalp y)
                 (<= (+ (* (/ 9 8) x x) (* y y)) 1)
-                (<= (- (* x x) (* y y)) 1))
+                (<=  (x^2-y^2 x y) 1))
            (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
-    :hints(("Goal"
-            :clause-processor
-            (SMT::Smtlink clause))))
+  :hints(("Goal"
+          :clause-processor
+          (SMT::Smtlink clause))))
 
 (defun my-smtlink-hint-2 ()
   (declare (xargs :guard t :guard-debug t))
@@ -70,6 +74,7 @@
 
 ;; Example 2
 ;; Currently failing this theorem because we are using uninterpreted functions
+(defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
 (defthm poly-of-expt-example
   (implies (and (rationalp x) (rationalp y) (rationalp z)
                 (integerp m) (integerp n)

@@ -82,7 +82,7 @@ class ACL22SMT(object):
     def ifx(self, condx, thenx, elsex):
         return If(condx, thenx, elsex)
 
-    def okay(self):
+    def hint_okay(self):
         return False
 
     # -------------------------------------------------------------
