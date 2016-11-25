@@ -18,7 +18,7 @@
 (include-book "./z3-py/SMT-names")
 (include-book "./z3-py/SMT-translator")
 (include-book "./z3-py/SMT-header")
-(include-book "./z3-py/ACL22SMT")
+;; (include-book "./z3-py/ACL22SMT")
 
 (defttag :tshell)
 (value-triple (tshell-ensure))
@@ -78,7 +78,8 @@
          (smt-file (make-fname c.SMT-files-dir h.smt-fname c.file-format))
          (smt-term (SMT-translation term smtlink-hint))
          ((mv head import) (SMT-head c))
-         (state (SMT-write-file smt-file (cons head (ACL22SMT)) import smt-term state))
+         ;; (state (SMT-write-file smt-file (cons head (ACL22SMT)) import smt-term state))
+         (state (SMT-write-file smt-file head import smt-term state))
          ((mv result state) (SMT-interpret smt-file h.rm-file c state)))
       (mv result state)))
   )

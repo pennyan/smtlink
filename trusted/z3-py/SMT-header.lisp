@@ -24,6 +24,8 @@
            #\Newline
            "path.insert(0,\"" c.interface-dir "\")"
            #\Newline
+           "from " c.SMT-module " import *"
+           #\Newline
            #\Newline)
           (list
            ;; "from " c.SMT-module " import " c.SMT-class
