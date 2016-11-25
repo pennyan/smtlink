@@ -11,6 +11,11 @@
 (include-book "centaur/misc/tshell" :dir :system)
 (include-book "misc/eval" :dir :system)
 
+(deftheory before-arith (current-theory :here))
+(include-book "arithmetic-5/top" :dir :system)
+(deftheory after-arith (current-theory :here))
+(deftheory arithmetic-book-only (set-difference-theories (theory 'after-arith) (theory 'before-arith)))
+
 (defttag :tshell)
 (value-triple (tshell-ensure))
 
@@ -57,7 +62,7 @@
                                :formals (list (make-decl :name 'r
                                                          :type (make-hint-pair :thm 'rationalp :hints nil))
                                               (make-decl :name 'i
-                                                         :type (make-hint-pair :thm 'integerp :hints nil)))
+                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
                                :returns (list (make-decl :name 'ex
                                                          :type (make-hint-pair :thm 'rationalp :hints nil)))
                                :body 'nil
@@ -68,7 +73,8 @@
                      (make-hint-pair :thm '(< '0 (expt z n))))
    :rm-file nil
    :smt-hint nil
-   :smt-cnf (my-smtlink-expt-config)))
+   :smt-cnf (my-smtlink-expt-config)
+   :int-to-rat t))
 
 (defattach smt-hint my-smtlink-hint-2)
 
@@ -86,7 +92,7 @@
            (SMT::Smtlink clause))))
 
 ;; Buggy example
-(must-fail
+(acl2::must-fail
 (defthm non-theorem
   (implies (and (rationalp x)
                 (rationalp y)
@@ -97,3 +103,4 @@
           (SMT::Smtlink clause)))
   :rule-classes nil)
 )
+ 

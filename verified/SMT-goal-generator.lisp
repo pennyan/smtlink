@@ -836,8 +836,6 @@
 
   (define add-expansion-hint ((expanded-fn-lst pseudo-term-alistp))
     :returns (hint-with-fn-expand listp)
-    :irrelevant-formals-ok t
-    :ignore-ok t
     (b* (((unless (consp expanded-fn-lst)) nil)
          ((cons first rest) expanded-fn-lst)
          ((cons fn &) first)
