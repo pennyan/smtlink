@@ -50,8 +50,8 @@
     :measure (len fn-lvls)
     :hints (("Goal" :in-theory (enable sym-nat-alist-fix)))
     :enabled t
-    (b* ((fn (mbe :logic (symbol-fix fn) :exec fn))
-         (fn-lvls (mbe :logic (sym-nat-alist-fix fn-lvls) :exec fn-lvls))
+    (b* ((fn (symbol-fix fn))
+         (fn-lvls (sym-nat-alist-fix fn-lvls))
          ((unless (consp fn-lvls)) nil)
          ((cons first rest) fn-lvls)
          ((cons this-fn this-lvl) first)
@@ -106,7 +106,7 @@
     :measure (len fn-lvls)
     :hints (("Goal" :in-theory (enable sym-nat-alist-fix)))
     :enabled t
-    (b* ((fn-lvls (mbe :logic (sym-nat-alist-fix fn-lvls) :exec fn-lvls))
+    (b* ((fn-lvls (sym-nat-alist-fix fn-lvls))
          ((unless (consp fn-lvls)) 0)
          ((cons first rest) fn-lvls)
          ((cons & lvl) first))
@@ -124,7 +124,7 @@
   (define expand-measure ((expand-args ex-args-p))
     :returns (m nat-listp)
     :enabled t
-    (b* ((expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args))
+    (b* ((expand-args (ex-args-fix expand-args))
          ((ex-args a) expand-args)
          (lvl-sum (sum-lvls a.fn-lvls)))
       (list a.wrld-fn-len lvl-sum (acl2-count a.term-lst))))
@@ -300,7 +300,7 @@
         :use ((:instance sum-lvls-decrease-after-update
                          (fn (car (car (ex-args->term-lst expand-args))))
                          (fn-lvls (ex-args->fn-lvls expand-args))))))
-      (b* ((expand-args (mbe :logic (ex-args-fix expand-args) :exec expand-args)) ;; use ex-args-fix directly
+      (b* ((expand-args (ex-args-fix expand-args))
            ;; This binds expand-args to a, so that we can call a.term-lst ...
            ((ex-args a) expand-args)
            ((unless (consp a.term-lst))
@@ -486,7 +486,7 @@
     :measure (len fn-lst)
     :hints (("Goal" :in-theory (enable func-alist-fix)))
     :enabled t
-    (b* ((fn-lst (mbe :logic (func-alist-fix fn-lst) :exec fn-lst))
+    (b* ((fn-lst (func-alist-fix fn-lst))
          ((unless (consp fn-lst)) nil)
          ((cons first rest) fn-lst)
          ((func f) (cdr first)))
@@ -515,8 +515,8 @@
   (define lambda->actuals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
     :returns (new-actuals pseudo-term-listp)
     :enabled t
-    (b* ((formals (mbe :logic (symbol-list-fix formals) :exec formals))
-         (actuals (mbe :logic (pseudo-term-list-fix actuals) :exec actuals))
+    (b* ((formals (symbol-list-fix formals))
+         (actuals (pseudo-term-list-fix actuals))
          (len-formals (len formals))
          (len-actuals (len actuals))
          ((if (equal len-formals len-actuals)) actuals))
@@ -525,8 +525,8 @@
   (define lambda->formals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
     :returns (new-formals symbol-listp)
     :enabled t
-    (b* ((formals (mbe :logic (symbol-list-fix formals) :exec formals))
-         (actuals (mbe :logic (pseudo-term-list-fix actuals) :exec actuals))
+    (b* ((formals (symbol-list-fix formals))
+         (actuals (pseudo-term-list-fix actuals))
          (len-formals (len formals))
          (len-actuals (len actuals))
          ((if (equal len-formals len-actuals)) formals))
@@ -550,8 +550,8 @@
     :returns (new-term pseudo-termp)
     :measure (len lambda-bd-lst)
     :enabled t
-    (b* ((lambda-bd-lst (mbe :logic (lambda-binding-list-fix lambda-bd-lst) :exec lambda-bd-lst))
-         (term (mbe :logic (pseudo-term-fix term) :exec term))
+    (b* ((lambda-bd-lst (lambda-binding-list-fix lambda-bd-lst))
+         (term (pseudo-term-fix term))
          ((unless (consp lambda-bd-lst)) term)
          ((cons first-bd rest-bd) lambda-bd-lst)
          ((lambda-binding b) first-bd))
@@ -576,8 +576,8 @@
   (define generate-fn-hint-pair ((hypo hint-pair-p) (args fhg-single-args-p))
     :returns (fn-hint-pair hint-pair-p)
     :enabled t
-    (b* ((hypo (mbe :logic (hint-pair-fix hypo) :exec hypo))
-         (args (mbe :logic (fhg-single-args-fix args) :exec args))
+    (b* ((hypo (hint-pair-fix hypo))
+         (args (fhg-single-args-fix args))
          ((hint-pair h) hypo)
          ((fhg-single-args a) args)
          ((func f) a.fn)
@@ -604,8 +604,8 @@
     :returns (fn-hint-lst hint-pair-listp)
     :measure (len returns)
     :enabled t
-    (b* ((returns (mbe :logic (decl-list-fix returns) :exec returns))
-         (args (mbe :logic (fhg-single-args-fix args) :exec args))
+    (b* ((returns (decl-list-fix returns))
+         (args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
          ((unless (consp returns)) a.fn-hint-acc)
          ((cons first rest) returns)
@@ -620,8 +620,8 @@
     :returns (fn-hint-lst hint-pair-listp)
     :measure (len more-returns)
     :enabled t
-    (b* ((more-returns (mbe :logic (hint-pair-list-fix more-returns) :exec more-returns))
-         (args (mbe :logic (fhg-single-args-fix args) :exec args))
+    (b* ((more-returns (hint-pair-list-fix more-returns))
+         (args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
          ((unless (consp more-returns)) a.fn-hint-acc)
          ((cons first rest) more-returns)
@@ -632,7 +632,7 @@
   (define generate-fn-hint ((args fhg-single-args-p))
     :returns (fn-hint-lst hint-pair-listp)
     :enabled t
-    (b* ((args (mbe :logic (fhg-single-args-fix args) :exec args))
+    (b* ((args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
          ((func f) a.fn)
          ((unless f.uninterpreted)
@@ -744,7 +744,7 @@
     :returns (fn-hint-lst hint-pair-listp)
     :measure (acl2-count (fhg-args->term-lst args))
     :verify-guards nil
-    (b* ((args (mbe :logic (fhg-args-fix args) :exec args))
+    (b* ((args (fhg-args-fix args))
          ;; Syntactic sugar for easy field access, e.g. a.term-lst
          ((fhg-args a) args)
          ((unless (consp a.term-lst)) a.fn-hint-acc)
@@ -815,7 +815,7 @@
   (define is-type-decl ((type pseudo-termp))
     :returns (is? booleanp)
     :enabled t
-    (b* ((type (mbe :logic (pseudo-term-fix type) :exec type))
+    (b* ((type (pseudo-term-fix type))
          ((unless (consp type)) nil))
       (and (equal (len type) 2)
            (symbolp (car type))
@@ -825,7 +825,7 @@
 
   (define structurize-type-decl-list ((type-decl-list pseudo-term-listp))
     :returns (structured-decl-list decl-listp)
-    (b* ((type-decl-list (mbe :logic (pseudo-term-list-fix type-decl-list) :exec type-decl-list))
+    (b* ((type-decl-list (pseudo-term-list-fix type-decl-list))
          ((unless (consp type-decl-list)) nil)
          ((cons first rest) type-decl-list)
          ((unless (is-type-decl first))
@@ -865,8 +865,8 @@
       :returns (new-hints smtlink-hint-p)
       :short "@(call SMT-goal-generator) is the top level function for generating SMT goals: G-prim and A's"
       :verify-guards nil
-      (b* ((cl (mbe :logic (pseudo-term-list-fix cl) :exec cl))
-           (hints (mbe :logic (smtlink-hint-fix hints) :exec hints))
+      (b* ((cl (pseudo-term-list-fix cl))
+           (hints (smtlink-hint-fix hints))
            ((smtlink-hint h) hints)
            ;; Make an alist version of fn-lst
            (fn-lst (make-alist-fn-lst h.functions))

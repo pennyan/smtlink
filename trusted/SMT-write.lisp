@@ -28,8 +28,8 @@
                    (:instance acl2-count-of-car-of-fixed-smaller (x par))
                    (:instance acl2-count-of-cdr-of-fixed-smaller (x par)))))
     :verify-guards nil
-    (b* ((par (mbe :logic (paragraph-fix par) :exec par))
-         (channel (mbe :logic (symbol-fix channel) :exec channel))
+    (b* ((par (paragraph-fix par))
+         (channel (symbol-fix channel))
          ((unless (consp par)) (if (equal par nil) state
                                  (princ$ par channel state)))
          ((cons first rest) par)
@@ -52,8 +52,8 @@
 
   (define SMT-write-file ((fname stringp) (acl22smt paragraphp) (smt-head paragraphp) (thm paragraphp) (state))
     :returns (state)
-    (b* ((fname (mbe :logic (str-fix fname) :exec fname))
-         (acl22smt (mbe :logic (paragraph-fix acl22smt) :exec acl22smt))
+    (b* ((fname (str-fix fname))
+         (acl22smt (paragraph-fix acl22smt))
          ((mv channel state) (open-output-channel! fname :character state))
          ((unless channel)
           (er hard? 'SMT-write=>SMT-write-file "Can't open file ~q0 as SMT file." fname)

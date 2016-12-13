@@ -38,7 +38,7 @@
       :verify-guards nil
       :guard-debug t
       ;; looking for (typep var) where var *not* satisfying typep make term trivially true
-      (b* ((term (mbe :logic (pseudo-term-fix term) :exec term)))
+      (b* ((term (pseudo-term-fix term)))
         (cond ((not (consp term)) (mv nil term))
               ((and (equal (car term) 'if) (equal (caddr term) ''t))
                (b* (((mv decl1 term1) (extract-disjunct (cadr term)))
@@ -69,7 +69,7 @@
       :verify-guards nil
       :guard-debug t
       ;; looking for (typep var) where var *not* satisfying typep make term trivially false
-      (b* ((term (mbe :logic (pseudo-term-fix term) :exec term)))
+      (b* ((term (pseudo-term-fix term)))
         (cond ((not (consp term)) (mv nil term))
               ((and (equal (car term) 'if) (equal (cadddr term) ''nil))
                (b* (((mv decl1 term1) (extract-conjunct (cadr term)))

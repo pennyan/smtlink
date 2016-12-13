@@ -117,7 +117,7 @@
   (define decl->type-reqfix ((x hint-pair-p))
     :returns (fixed hint-pair-p)
     :enabled t
-    (b* ((x (mbe :logic (hint-pair-fix x) :exec x))
+    (b* ((x (hint-pair-fix x))
          (thm (hint-pair->thm x))
          (hints (hint-pair->hints x)))
       (make-hint-pair :thm (if (symbolp thm) thm nil)
@@ -176,7 +176,7 @@
     :measure (len formal/return-lst)
     :hints (("Goal" :in-theory (enable decl-list-fix)))
     :enabled t
-    (b* ((formal/return-lst (mbe :logic (decl-list-fix formal/return-lst) :exec formal/return-lst))
+    (b* ((formal/return-lst (decl-list-fix formal/return-lst))
          ((if (endp formal/return-lst)) nil)
          ((cons first rest) formal/return-lst)
          ((decl d) first))
@@ -187,7 +187,7 @@
     :returns (fast-fn-lst func-alistp)
     :measure (len fn-lst)
     :enabled t
-    (b* ((fn-lst (mbe :logic (func-list-fix fn-lst) :exec fn-lst))
+    (b* ((fn-lst (func-list-fix fn-lst))
          ((unless (consp fn-lst)) nil)
          ((cons first rest) fn-lst)
          ((func f) first)
