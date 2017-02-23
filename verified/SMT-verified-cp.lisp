@@ -143,7 +143,8 @@
          (G-prim (hint-pair->thm hinted-G-prim))
          (main-hint (hint-pair->hints hinted-G-prim))
          (cl0 `((hint-please ',smt-hint) ,@list-of-not-As ,G-prim))
-         (cl1 `((hint-please ',main-hint) ,@list-of-not-As (not ,G-prim) ,G)))
+         (cl1 `((hint-please ',main-hint) ,@list-of-not-As (not ,G-prim) ,G))
+         )
       `(,cl0 ,cl1 ,@aux-clauses)))
 
 
@@ -175,8 +176,12 @@
          (hinted-As (smtlink-hint->aux-hint-list smtlink-hint))
          (hinted-G-prim (smtlink-hint->expanded-clause-w/-hint smtlink-hint))
          (smt-hint (append `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state))
-                           (smtlink-hint->smt-hint smtlink-hint))))
-      (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint (disjoin cl))))
+                           (smtlink-hint->smt-hint smtlink-hint)))
+         (full (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint
+                                           (disjoin cl)))
+         ;; (- (cw "full: ~q0" full))
+         )
+      full))
 
   ;; ------------------------------------------------------------
   ;;         Prove correctness of clause processor
