@@ -90,7 +90,8 @@
     :parents (expand)
     :short "Outputs for function expand"
     ((expanded-term-lst pseudo-term-listp "List of expanded terms." :default nil)
-     (expanded-fn-lst pseudo-term-alistp "List of expanded function calls" :default nil)))
+     (expanded-fn-lst pseudo-term-alistp "List of expanded function calls,
+    needed for expand hint for proving G' -> G theorem." :default nil)))
 
   (defthm natp-of-sum-lvls-lemma
     (implies (and (consp (sym-nat-alist-fix fn-lvls)) (natp x))
