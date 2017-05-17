@@ -7,8 +7,8 @@
 
 (in-package "SMT")
 
-(include-book "verified/SMT-verified-cp")
-(include-book "verified/SMT-hint-wrapper")
+(include-book "verified/SMT-verified-cps")
+(include-book "verified/SMT-computed-hints")
 (include-book "verified/Smtlink")
 (include-book "verified/SMT-goal-generator")
 (include-book "verified/SMT-hint-interface")

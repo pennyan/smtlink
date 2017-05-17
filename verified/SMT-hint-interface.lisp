@@ -244,21 +244,18 @@
   (defconst *default-smtlink-hint*
     (make-smtlink-hint))
 
-  (defstub smt-hint () => *)
+
+  ;; (defstub smt-hint () => *)
+  (encapsulate
+    (((smt-hint) => *))
+    (local (defun smt-hint () (make-smtlink-hint)))
+    (defthm smtlink-p-of-smt-hint
+      (smtlink-hint-p (smt-hint)))
+    )
 
   (define default-smtlink-hint ()
     (change-smtlink-hint *default-smtlink-hint*))
 
   (defattach smt-hint default-smtlink-hint)
 
-
-  ;; -------------------------------------------------------------------------
-  ;;        Define a set of utilities for convenience
-
-  ;; ;; Example Usage
-  ;; (def-smt-hint my-smt-hint
-  ;;   :function ())
-
-  ;; (defmacro def-smt-hint (name &key auto-expand)
-  ;;   ())
   )

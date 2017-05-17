@@ -28,36 +28,19 @@
 (include-book "xdoc/top" :dir :system)
 (include-book "std/util/define" :dir :system)
 
+(include-book "SMT-hint-please")
 (include-book "SMT-hint-interface")
+(include-book "SMT-goal-generator")
 
-(defsection SMT-verified-clause-processor
+(defsection SMT-verified-clause-processors
   :parents (Smtlink)
-  :short "SMT verified clause processor"
-
-  ;; -----------------------------------------------------------------
-  ;;       Define the identity function.
-  ;;
-
-  ;; hint-please for SMT solver
-  (define hint-please ((hint listp))
-    (declare (ignore hint)
-             (xargs :guard t))
-    nil)
-
-  (defthm hint-please-forward
-    (implies (hint-please hint)
-             nil)
-    :rule-classes :forward-chaining)
-
-  (in-theory (disable (:d hint-please)
-                      (:e hint-please)
-                      (:t hint-please)))
+  :short "SMT verified clause processors"
 
   ;; -----------------------------------------------------------------
   ;;       Define evaluators
 
   (defevaluator ev-Smtlink-subgoals ev-lst-Smtlink-subgoals
-    ((not x) (if x y z) (hint-please hint)))
+    ((not x) (if x y z) (hint-please hint tag)))
 
   (def-join-thms ev-Smtlink-subgoals)
 
@@ -87,7 +70,7 @@
          ((cons first-hinted-A rest-hinted-As) hinted-As)
          (A (hint-pair->thm first-hinted-A))
          (A-hint (hint-pair->hints first-hinted-A))
-         (first-A-thm `((hint-please ',A-hint) ,A ,G))
+         (first-A-thm `((hint-please ',A-hint 'A-hint) ,A ,G))
          (first-not-A-clause `(not ,A))
          ((mv rest-A-thms rest-not-A-clauses)
           (preprocess-auxes rest-hinted-As G)))
@@ -142,8 +125,8 @@
          ((mv aux-clauses list-of-not-As) (preprocess-auxes hinted-As G))
          (G-prim (hint-pair->thm hinted-G-prim))
          (main-hint (hint-pair->hints hinted-G-prim))
-         (cl0 `((hint-please ',smt-hint) ,@list-of-not-As ,G-prim))
-         (cl1 `((hint-please ',main-hint) ,@list-of-not-As (not ,G-prim) ,G))
+         (cl0 `((hint-please ',smt-hint 'smt-hint) ,@list-of-not-As ,G-prim))
+         (cl1 `((hint-please ',main-hint 'main-hint) ,@list-of-not-As (not ,G-prim) ,G))
          )
       `(,cl0 ,cl1 ,@aux-clauses)))
 
@@ -172,20 +155,43 @@
     :returns (subgoal-lst pseudo-term-list-listp)
     :enabled t
     (b* (((unless (pseudo-term-listp cl)) nil)
-         ((unless (smtlink-hint-p smtlink-hint)) (list cl))
+         ((unless (smtlink-hint-p smtlink-hint)) (list (remove-hint-please cl)))
+         (cl (remove-hint-please cl))
          (hinted-As (smtlink-hint->aux-hint-list smtlink-hint))
          (hinted-G-prim (smtlink-hint->expanded-clause-w/-hint smtlink-hint))
-         (smt-hint (append `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state))
-                           (smtlink-hint->smt-hint smtlink-hint)))
+         ;; (smt-hint (append `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state))
+         ;;                   (smtlink-hint->smt-hint smtlink-hint)))
+         (smt-hint `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state)))
          (full (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint
                                            (disjoin cl)))
-         ;; (- (cw "full: ~q0" full))
+         (- (cw "full: ~q0" full))
          )
       full))
 
   ;; ------------------------------------------------------------
   ;;         Prove correctness of clause processor
   ;;
+
+  (defthm correctness-of-Smtlink-subgoals-crock
+    (implies (and (pseudo-term-listp cl)
+                  (alistp b)
+                  (ev-Smtlink-subgoals
+                   (conjoin-clauses (Smtlink-subgoals cl smtlink-hint))
+                   b))
+             (ev-Smtlink-subgoals (disjoin (remove-hint-please cl)) b))
+    :hints (("Goal"
+             :use ((:instance preprocess-auxes-corollary
+                              (hinted-As (smtlink-hint->aux-hint-list
+                                          smtlink-hint))
+                              (cl (remove-hint-please cl)))))))
+
+(defthm correctness-of-remove-hint-please-with-ev-Smtlink-subgoals
+  (implies (and (pseudo-term-listp cl)
+                (alistp b))
+           (iff (ev-Smtlink-subgoals (disjoin (remove-hint-please cl)) b)
+                (ev-Smtlink-subgoals (disjoin cl) b)))
+  :hints (("Goal"
+           :in-theory (enable hint-please remove-hint-please) )))
 
   (defthm correctness-of-Smtlink-subgoals
     (implies (and (pseudo-term-listp cl)
@@ -196,7 +202,13 @@
              (ev-Smtlink-subgoals (disjoin cl) b))
     :rule-classes :clause-processor
     :hints (("Goal"
-             :use ((:instance preprocess-auxes-corollary
-                              (hinted-As (smtlink-hint->aux-hint-list smtlink-hint)))))))
+             :use ((:instance correctness-of-Smtlink-subgoals-crock)
+                   (:instance correctness-of-remove-hint-please-with-ev-Smtlink-subgoals)))))
 
-  )
+  ;; -------------------------------------------------------------
+  (defmacro Smt-verified-cp (clause hint)
+    `(Smtlink-subgoals clause
+                       ;; A and G-prim and hints
+                       (prog2$ (cw "result: ~q0" (remove-hint-please ,clause))
+                               (Smt-goal-generator (remove-hint-please ,clause) ,hint state))))
+)
