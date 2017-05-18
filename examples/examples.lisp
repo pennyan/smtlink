@@ -40,7 +40,7 @@
 
 (defattach smt-hint my-smtlink-hint)
 
-(add-default-hints '((SMT::SMT-hint-wrapper-hint clause)))
+(add-default-hints '((SMT::SMT-process-hint clause)))
 
 ;; Section 2. A short tour
 ;; Example 1
@@ -52,7 +52,7 @@
            (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
   :hints(("Goal"
           :clause-processor
-          (SMT::Smtlink clause))))
+          (SMT::Smtlink clause nil))))
 
 (defun my-smtlink-hint-2 ()
   (declare (xargs :guard t :guard-debug t))
@@ -89,7 +89,7 @@
                (* (expt z m) (||x^2+y^2||^2 x y))))
   :hints (("Goal"
            :clause-processor
-           (SMT::Smtlink clause))))
+           (SMT::Smtlink clause nil))))
 
 ;; Buggy example
 (acl2::must-fail
@@ -100,7 +100,6 @@
            (not (equal y 0)))
   :hints(("Goal"
           :clause-processor
-          (SMT::Smtlink clause)))
+          (SMT::Smtlink clause nil)))
   :rule-classes nil)
 )
- 

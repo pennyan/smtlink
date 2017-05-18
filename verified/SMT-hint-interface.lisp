@@ -182,8 +182,9 @@
   ;; 5. int-to-rat: converts all integers to rationals.
   ;; 6. rm-file: configuration for whether to remove generated files.
   ;; 7. smt-fname: configure the name of generated SMT theorem file.
-  ;; 8. smt-hint: hints for parameter tuning of the SMT solver.
+  ;; 8. smt-params: hints for parameter tuning of the SMT solver.
   ;; 13. smt-cnf: configuration for connection to the SMT solver.
+  ;;
   ;; Internal fields:
   ;; 9. fast-functions: internal field for storing a fast version of function
   ;; definitions. Might be able to make the functions field a fast one after
@@ -208,7 +209,7 @@
      (int-to-rat booleanp :default nil)
      (rm-file booleanp :default t)
      (smt-fname stringp :default "")
-     (smt-hint listp :default nil)
+     (smt-params listp :default nil)
      (fast-functions func-alistp :default nil)
      (aux-hint-list hint-pair-listp :default nil)
      (type-decl-list decl-listp :default nil)

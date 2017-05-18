@@ -78,13 +78,56 @@
   (defprod ex-args
     :parents (expand)
     :short "Argument list for function expand"
-    ((term-lst pseudo-term-listp "List of terms to be expanded.
-      The function finishes when all of them are expanded to given level." :default nil)
+    :long "<p>@('Ex-args') stores the list of arguments passed into the
+    function @(see expand). We design this product type so that we don't have a
+    long list of arguments to write down every time there's a recursive call.
+    This document describes what each argument is about and more specifically,
+    why they exist necessarily. This document comes out because every time when
+    I read the @(see expand) function, I get confused and lost track about why I
+    designed such a argument in the first place.</p>
+
+    <p>@('Term-lst') is easy, it stores the list of terms to be expanded.
+    Recursively generated new terms are stored in this argument and gets used
+    in recursive calls. Using a list of terms allows us to use a single
+    recursive function instead of @(see mutual-recursion), even though every
+    time we call this function, we really just have one term to expand.</p>
+
+    <p>@('Fn-lst') stores a list of function definitions for use of expansion.
+    This list comes from the @(see smtlink-hint) stored in function stub @(see
+    smt-hint). Such a list initially comes from user inputs to @(see Smtlink).
+    So it can be, for example, some functions that the user wants to get
+    expanded specially.</p>
+
+    <p>@('Fn-lvls') stores a list of maximum number of times each function
+    needs to be expanded. This list doesn't take into account of functions that
+    are not specified by the user, which should oftenly be the case. In that
+    case, those functions will be expanded just once and a pair will be stored
+    into @('fn-lvls') indicating this function has already been expanded. This
+    is done by storing a level of 0 for such a function.</p>
+
+    <p>@('Wrld-fn-len') is the hardest to explain. But given some thought, I
+    found it to be necessary to have this argument. @('wrld-fn-len') represents
+    the length of current ACL2 @(see world), meaning the number of definitions
+    in total (might be more than that, I'm not completely sure about what the
+    @(see world) is composed of). This argument helps prove termination of
+    function @(see expand). See @(see expand-measure) for a discussion about
+    the measure function for proving termimation.</p>
+
+    <p>@('Expand-lst') stores all functions that are expanded in @(see expand).
+    This list gets used later for generating the @(':in-theory') hint for
+    proving that the expanded term implies the original unexpanded term.</p>"
+
+    ((term-lst pseudo-term-listp "List of terms to be expanded. The function
+    finishes when all of them are expanded to given level."
+               :default nil)
      (fn-lst func-alistp "List of function definitions to use for
       function expansion." :default nil)
-     (fn-lvls sym-nat-alistp "Levels to expand each functions to." :default nil)
-     (wrld-fn-len natp "Number of function definitions in curent world." :default 0)
-     (expand-lst pseudo-term-alistp "An alist of expanded function symbols associated with their function call" :default nil)))
+     (fn-lvls sym-nat-alistp "Levels to expand each functions to." :default
+              nil)
+     (wrld-fn-len natp "Number of function definitions in curent world."
+                  :default 0)
+     (expand-lst pseudo-term-alistp "An alist of expanded function symbols
+    associated with their function call" :default nil)))
 
   (defprod ex-outs
     :parents (expand)
@@ -125,6 +168,26 @@
   (define expand-measure ((expand-args ex-args-p))
     :returns (m nat-listp)
     :enabled t
+    :parents (expand)
+    :short "@(see acl2::Measure) function for proving termination of function
+    @(see expand)."
+
+    :long "<p>The measure is using the lexicographical order (see @(see
+    mutual-recursion)), using a list of three arguments, where the priority
+    goes from the first argument to the second, and then to the third.</p>
+
+    <p>The first argument is @('wrld-fn-len') which appears in @(see ex-args).
+    It is necessary for decreasing the measure when we are expanding a function
+    that is not in @('fn-lst') (see @(see ex-args)). The second argument is a
+    summation of @('fn-lvls') which also appears in @(see ex-args). This list
+    remembers how many levels are left for each function. Since functions not
+    in @('fn-lst') are added to @('fn-lvls') with 0 level, this argument
+    doesn't decrease in that case. This is why it's necessary to have the first
+    argument @('wrld-fn-len'). The third argment is the @(see acl2-count) of
+    current @('term-lst') (also see @(see ex-args)). This argument decreases
+    every time the recursive function @('expand') goes into expand the @(see
+    cdr) of @('term-lst').</p>"
+
     (b* ((expand-args (ex-args-fix expand-args))
          ((ex-args a) expand-args)
          (lvl-sum (sum-lvls a.fn-lvls)))

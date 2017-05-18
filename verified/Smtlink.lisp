@@ -12,17 +12,26 @@
 (include-book "SMT-hint-interface")
 (include-book "SMT-verified-cps")
 
-;; ;; --------------------------------------------------------
+(defsection Smtlink-process-user-hint
+  :parents (Smtlink)
+  :short "Functionalities for processing user hints given to Smtlink. User
+  hints will be merged with (smt-hint)."
 
-;; ;; Example:
-;; ;; (defthm ...
-;; ;;   ...
-;; ;;   :hints (("Goal"
-;; ;;            :clause-processor
-;; ;;            (SMT::smtlink clause
-;; ;;                          :hints (:functions ()
-;; ;;                                  :hypotheses
-;; ;;                                  :main-hint )))))
+;; --------------------------------------------------------
+
+;; Example:
+;; (defthm ...
+;;   ...
+;;   :hints (("Goal"
+;;            :clause-processor
+;;            (SMT::smtlink clause
+;;                          (:functions ()
+;;                           :hypotheses ()
+;;                           :main-hint ()
+;;                           :int-to-rat ()
+;;                           :smt-fname ()
+;;                           :rm-file ()
+;;                           :smt-solver-params ())))))
 
 (define smtlink-hint-syntax-p ((hint-lst t))
   :returns (syntax-good? booleanp)
@@ -82,3 +91,4 @@
 ;;   expansion and transformation.
 (defmacro Smtlink (clause hint)
   `(process-hint ,clause ,hint))
+)
