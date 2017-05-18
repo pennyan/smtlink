@@ -35,7 +35,7 @@
    *default-smtlink-hint*
    :functions nil
    :rm-file nil
-   :smt-hint nil
+   :smt-params nil
    :smt-cnf (my-smtlink-expt-config)))
 
 (defattach smt-hint my-smtlink-hint)
@@ -72,7 +72,7 @@
                      (make-hint-pair :thm '(< '0 (expt z m)))
                      (make-hint-pair :thm '(< '0 (expt z n))))
    :rm-file nil
-   :smt-hint nil
+   :smt-params nil
    :smt-cnf (my-smtlink-expt-config)
    :int-to-rat t))
 
