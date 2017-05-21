@@ -89,7 +89,15 @@
                (* (expt z m) (||x^2+y^2||^2 x y))))
   :hints (("Goal"
            :clause-processor
-           (SMT::Smtlink clause nil))))
+           (SMT::Smtlink clause
+                         '(:functions ()
+                           :hypotheses ()
+                           :main-hint ()
+                           :int-to-rat t
+                           ;; :smt-fname ""
+                           :rm-file nil
+                           :smt-solver-params nil
+                           :smt-cnf nil)))))
 
 ;; Buggy example
 (acl2::must-fail

@@ -25,18 +25,68 @@
 ;;   :hints (("Goal"
 ;;            :clause-processor
 ;;            (SMT::smtlink clause
-;;                          (:functions ()
-;;                           :hypotheses ()
-;;                           :main-hint ()
-;;                           :int-to-rat ()
-;;                           :smt-fname ()
-;;                           :rm-file ()
-;;                           :smt-solver-params ())))))
+;;                          '(:functions ()
+;;                            :hypotheses ()
+;;                            :main-hint ()
+;;                            :int-to-rat nil
+;;                            :smt-fname ""
+;;                            :rm-file t
+;;                            :smt-solver-params ()
+;;                            :smt-cnf ())))))
+
+  (define true-list-fix ((lst t))
+    :returns (true-listp)
+    (if (true-listp lst)
+        lst
+      nil))
+
+  (defconst *syntax-lst*
+    '((:functions . listp)
+      (:hypotheses . listp)
+      (:main-hint . listp)
+      (:int-to-rat . booleanp)
+      (:smt-fname . stringp)
+      (:rm-file . booleanp)
+      (:smt-solver-params . listp)
+      (:smt-cnf . listp)))
+
+  (define type-p ((x symbolp))
+    :returns (type? booleanp)
+    (or (equal x 'booleanp)
+        (equal x 'stringp)
+        (equal x 'listp)
+        (equal x 'symbolp)))
+
+  (define eval-type ((type symbolp) (content t))
+    :returns (type-correct? booleanp)
+    (cond ((equal type 'booleanp) (booleanp content))
+          ((equal type 'stringp) (stringp content))
+          ((equal type 'listp) (listp content))
+          (t (symbolp content))))
+
+  (define check-syntax ((hint-lst true-listp) (syntax-lst alistp)
+                        (used true-listp))
+    :returns (syntax-good? booleanp)
+    (b* ((hint-lst (true-list-fix hint-lst))
+         ((if (endp hint-lst)) t)
+         ((cons first rest) hint-lst)
+         ((cons second rest-of-second) rest)
+         ((if (member-equal first used))
+          (er hard? 'Smtlink=>check-syntax "Already defined ~p0.~%" first))
+         (exist? (assoc-equal first syntax-lst))
+         ((unless exist?) nil)
+         (type (cdr exist?))
+         (type-correct? (eval-type type second))
+         ((unless type-correct?) nil))
+      (check-syntax rest-of-second syntax-lst (cons first used))))
 
 (define smtlink-hint-syntax-p ((hint-lst t))
   :returns (syntax-good? booleanp)
-  :ignore-ok t
-  (if (listp hint-lst) t nil))
+  (b* (;; hint-lst should be a listp
+       ((unless (true-listp hint-lst)) nil)
+       ;; hint-lst should not exceed a length of 16 elements
+       ((unless (<= (len hint-lst) 16)) nil))
+    (check-syntax hint-lst *syntax-lst* nil)))
 
 (define smtlink-hint-syntax-fix ((hint-lst smtlink-hint-syntax-p))
   :returns (fixed-syntax smtlink-hint-syntax-p)
@@ -55,8 +105,10 @@
     :returns (subgoal-lst pseudo-term-list-listp)
     :enabled t
     (b* ((cl (pseudo-term-list-fix cl))
-         (- (cw "cl: ~q0" cl))
-         ((unless (smtlink-hint-syntax-p user-hint)) (list cl))
+         (- (cw "user-hint: ~q0" user-hint))
+         ((unless (smtlink-hint-syntax-p user-hint))
+          (er hard? 'Smtlink=>process-hint "Smtlink hint is in wrong format:
+    ~%~q0" user-hint))
 ;;         (user-hint (smtlink-hint-syntax-fix user-hint))
          (combined-hint (combine-hints user-hint (smt-hint)))
          (cp-hint `(:clause-processor (Smt-verified-cp clause ',combined-hint)))
