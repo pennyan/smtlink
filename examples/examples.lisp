@@ -7,9 +7,9 @@
 
 (in-package "SMT")
 (include-book "../top")
-(include-book "clause-processors/meta-extract-user" :dir :system)
+;; (include-book "clause-processors/meta-extract-user" :dir :system)
 (include-book "centaur/misc/tshell" :dir :system)
-(include-book "misc/eval" :dir :system)
+;; (include-book "misc/eval" :dir :system)
 
 (deftheory before-arith (current-theory :here))
 (include-book "arithmetic-5/top" :dir :system)
@@ -65,7 +65,6 @@
                                                          :type (make-hint-pair :thm 'rationalp :hints nil)))
                                :returns (list (make-decl :name 'ex
                                                          :type (make-hint-pair :thm 'rationalp :hints nil)))
-                               :body 'nil
                                :expansion-depth 0
                                :uninterpreted t))
    :hypotheses (list (make-hint-pair :thm '(< (expt z n) (expt z m)))

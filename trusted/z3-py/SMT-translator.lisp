@@ -43,12 +43,14 @@
 
   (defconst *SMT-types*
     ;;(ACL2 type .  SMT type)
-    `((rationalp . "_SMT_.isReal")
+    `((realp     . "_SMT_.isReal")
+      (rationalp . "_SMT_.isReal")
       (integerp  . "_SMT_.isInt")
       (booleanp  . "_SMT_.isBool")))
 
   (defconst *SMT-uninterpreted-types*
-    `((rationalp . "_SMT_.R")
+    `((realp     . "_SMT_.R")
+      (rationalp . "_SMT_.R")
       (integerp  . "_SMT_.Z")
       (booleanp  . "_SMT_.B")))
 
@@ -56,7 +58,8 @@
     (declare (xargs :guard t))
     :returns (is? booleanp)
     :enabled t
-    (if (or (rationalp sym) (integerp sym)) t nil))
+    (if (or (rationalp sym) (integerp sym) (realp sym))
+        t nil))
 
   (define SMT-number-fix ((num SMT-numberp))
     :returns (fixed SMT-numberp)
