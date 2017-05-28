@@ -11,6 +11,7 @@
 (include-book "std/util/define" :dir :system)
 
 (include-book "SMT-hint-interface")
+(include-book "SMT-basics")
 
 (defsection SMT-extract
   :parents (Smtlink)
@@ -20,7 +21,7 @@
   (define extract-is-decl ((expr pseudo-termp))
     :returns (is-decl? booleanp)
     (if (and (equal (len expr) 2)        ; a declaration
-             (member (car expr) (list 'booleanp 'integerp 'rationalp))
+             (member (car expr) (strip-cars *SMT-types*))
              (and (symbolp (cadr expr)) (cadr expr)))
         t
       nil))

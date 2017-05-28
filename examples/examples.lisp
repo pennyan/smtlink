@@ -19,15 +19,14 @@
 (defttag :tshell)
 (value-triple (tshell-ensure))
 
-(local
- (defun my-smtlink-expt-config ()
-   (declare (xargs :guard t))
-   (make-smtlink-config :interface-dir "/Users/penny/Work/fun/theorem_proving/smtlink/z3_interface"
-                        :SMT-files-dir "z3\_files"
-                        :SMT-module    "RewriteExpt"
-                        :SMT-class     "to_smt_w_expt"
-                        :SMT-cmd       "python"
-                        :file-format   ".py")))
+(defun my-smtlink-expt-config ()
+  (declare (xargs :guard t))
+  (make-smtlink-config :interface-dir "/Users/penny/Work/fun/theorem_proving/smtlink/z3_interface"
+                       :SMT-files-dir "z3\_files"
+                       :SMT-module    "RewriteExpt"
+                       :SMT-class     "to_smt_w_expt"
+                       :SMT-cmd       "python"
+                       :file-format   ".py"))
 
 (defun my-smtlink-hint ()
   (declare (xargs :guard t))
@@ -46,7 +45,7 @@
 ;; Example 1
 (defun x^2-y^2 (x y) (- (* x x) (* y y)))
 (defthm poly-ineq-example
-  (implies (and (rationalp x) (rationalp y)
+  (implies (and (real/rationalp x) (real/rationalp y)
                 (<= (+ (* (/ 9 8) x x) (* y y)) 1)
                 (<=  (x^2-y^2 x y) 1))
            (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
@@ -60,11 +59,11 @@
    *default-smtlink-hint*
    :functions (list (make-func :name 'expt
                                :formals (list (make-decl :name 'r
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil))
+                                                         :type (make-hint-pair :thm 'real/rationalp :hints nil))
                                               (make-decl :name 'i
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
+                                                         :type (make-hint-pair :thm 'real/rationalp :hints nil)))
                                :returns (list (make-decl :name 'ex
-                                                         :type (make-hint-pair :thm 'rationalp :hints nil)))
+                                                         :type (make-hint-pair :thm 'real/rationalp :hints nil)))
                                :expansion-depth 0
                                :uninterpreted t))
    :hypotheses (list (make-hint-pair :thm '(< (expt z n) (expt z m)))
@@ -81,7 +80,7 @@
 ;; Currently failing this theorem because we are using uninterpreted functions
 (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
 (defthm poly-of-expt-example
-  (implies (and (rationalp x) (rationalp y) (rationalp z)
+  (implies (and (real/rationalp x) (real/rationalp y) (real/rationalp z)
                 (integerp m) (integerp n)
                 (< 0 z) (< z 1) (< 0 m) (< m n))
            (<= (* 2 (expt z n) x y)
@@ -101,8 +100,8 @@
 ;; Buggy example
 (acl2::must-fail
 (defthm non-theorem
-  (implies (and (rationalp x)
-                (rationalp y)
+  (implies (and (real/rationalp x)
+                (real/rationalp y)
                 (integerp (/ x y)))
            (not (equal y 0)))
   :hints(("Goal"

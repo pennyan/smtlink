@@ -19,6 +19,8 @@
 ;; Include SMT books
 (include-book "SMT-hint-interface")
 (include-book "SMT-extractor")
+(include-book "SMT-basics")
+
 ;; To be compatible with Arithmetic books
 (include-book "ordinals/lexicographic-ordering-without-arithmetic" :dir :system)
 
@@ -336,14 +338,6 @@
       (implies (and (ex-args-p x) (assoc-equal foo (ex-args->fn-lvls x)))
                (consp (assoc-equal foo (ex-args->fn-lvls x)))))
     )
-
-  (defconst *SMT-basics*
-    (append
-     '(rationalp booleanp integerp)
-     '(binary-+ binary-* unary-/ unary--
-                equal <
-                implies if not
-                lambda )))
 
   (encapsulate
     ()
