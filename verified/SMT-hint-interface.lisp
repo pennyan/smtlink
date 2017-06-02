@@ -133,6 +133,20 @@
     :pred decl-listp
     :true-listp t)
 
+  (defalist decl-alist
+    :key-type symbol
+    :val-type decl
+    :pred decl-alistp)
+
+  (define make-alist-decl-list ((decl-lst decl-listp))
+    :returns (decl-alist decl-alistp)
+    :measure (len decl-lst)
+    (b* ((decl-lst (decl-list-fix decl-lst))
+         ((unless (consp decl-lst)) nil)
+         ((cons first rest) decl-lst)
+         ((decl d) first))
+      (cons (cons d.name d) (make-alist-decl-list rest))))
+
   (defprod func
     ((name symbolp :default nil)
      (formals decl-listp :default nil)
@@ -140,11 +154,10 @@
      (returns decl-listp :default nil)            ;; belong to auxiliary hypotheses
      (more-returns hint-pair-listp :default nil)  ;; belong to auxiliary hypotheses
      (body pseudo-termp :default nil)
-     (expansion-depth natp :default 0)
+     (expansion-depth natp :default 1)
      (uninterpreted booleanp :default nil)
      (flattened-formals symbol-listp :default nil)
      (flattened-returns symbol-listp :default nil)))
-
 
   (deflist func-list
     :elt-type func
@@ -203,19 +216,23 @@
   ;;
   (defprod smtlink-hint
     ((functions func-listp :default nil)
+     (user-functions func-alistp :default nil)
      (hypotheses hint-pair-listp :default nil)
-     (main-hint listp :default nil)
+     (main-hint true-listp :default nil)
      (let-binding let-binding-p :default (make-let-binding))
      (int-to-rat booleanp :default nil)
      (rm-file booleanp :default t)
      (smt-fname stringp :default "")
-     (smt-params listp :default nil)
+     (smt-params true-listp :default nil)
      (fast-functions func-alistp :default nil)
      (aux-hint-list hint-pair-listp :default nil)
      (type-decl-list decl-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
      (smt-cnf smtlink-config-p :default (make-smtlink-config))
      (wrld-fn-len natp :default 512)))
+
+  (defoption maybe-smtlink-hint smtlink-hint-p
+    :parents (smtlink-hint))
 
   (define flatten-formals/returns ((formal/return-lst decl-listp))
     :returns (flattened-lst symbol-listp)
