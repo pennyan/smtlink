@@ -80,6 +80,7 @@
       fty::deflist
       fty::deffixtype
       fty::defalist
+      fty::defoption
       )
     )
    ;; Things to remove
