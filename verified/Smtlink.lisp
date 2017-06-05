@@ -344,11 +344,6 @@
   :short "Recogizer for function-option-"
   (function-option-lst-syntax-p-helper term nil))
 
-;; BOZO:
-;; Look at last BOZO
-;; (define function-option-lst-syntax-fix (())
-;;   )
-
 (define function-syntax-p ((term t))
   :returns (syntax-good? booleanp)
   :short "Recognizer for function-syntax."
@@ -454,24 +449,19 @@
              (qstringp (car body-lst)))
         (cons option used))))
 
-;; BOZO:
-;; Refer to last BOZO
-;; (define smt-solver-single-cnf-fix (())
-;;   :returns ()
-;;   :short "Fixing function for smt-solver-single-cnf-fix")
-
-(define smt-solver-cnf-p ((term t) (used cnf-option-lst-p))
+(define smt-solver-cnf-p-helper ((term t) (used cnf-option-lst-p))
   :returns (syntax-good? booleanp)
-  :short "Recognizer for smt-solver-cnf."
+  :short "Helper function for smt-solver-cnf-p."
   (b* (((if (atom term)) (equal term nil))
        ((unless (and (true-listp term) (>= (len term) 2))) nil)
        ((list* first second rest) term)
        ((mv res new-used) (smt-solver-single-cnf-p (list first second) used)))
-    (and res (smt-solver-cnf-p rest new-used))))
+    (and res (smt-solver-cnf-p-helper rest new-used))))
 
-;; BOZO:
-;; Refer to last BOZO
-;; (define smt-solver-cnf-fix)
+(define smt-solver-cnf-p ((term t))
+  :returns (syntax-good? booleanp)
+  :short "Recognizer for smt-solver-cnf."
+  (smt-solver-cnf-p-helper term nil))
 
 (defconst *smtlink-options*
   '((:functions . function-lst-syntax-p)
@@ -546,7 +536,7 @@
     (qbooleanp (qbooleanp term))
     (qstringp (qstringp term))
     (smt-solver-params-p (smt-solver-params-p term))
-    (t (smt-solver-cnf-p term nil))))
+    (t (smt-solver-cnf-p term))))
 
 (define smtlink-option-syntax-p ((term t) (used smtlink-option-name-lst-p))
   :returns (mv (syntax-good? booleanp)
@@ -567,12 +557,6 @@
   :guard-debug t
   :hints (("Goal" :in-theory (enable smtlink-option-syntax-p smtlink-option-name-p
                                      eval-smtlink-option-type smtlink-option-name-lst-p))))
-
-;; (define smtlink-option-syntax-fix (option)
-;;   :guard (smtlink-option-syntax-p option nil)
-;;   :returns (fixed-option smtlink-option-syntax-p)
-;;   :short "Fixing function for smtlink-option-syntax."
-;;   )
 
 (define smtlink-hint-syntax-p-helper ((term t) (used smtlink-option-name-lst-p))
   :returns (syntax-good? booleanp)
