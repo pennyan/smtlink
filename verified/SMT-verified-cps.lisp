@@ -120,7 +120,7 @@
     :enabled t
     (b* ((hinted-As (hint-pair-list-fix hinted-As))
          (hinted-G-prim (hint-pair-fix hinted-G-prim))
-         (smt-hint (list-fix smt-hint))
+         (smt-hint (true-list-fix smt-hint))
          (G (pseudo-term-fix G))
          ((mv aux-clauses list-of-not-As) (preprocess-auxes hinted-As G))
          (G-prim (hint-pair->thm hinted-G-prim))

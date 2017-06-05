@@ -91,21 +91,35 @@
     :pred pseudo-term-alistp
     :true-listp t)
 
-  (define list-fix (x)
-    (declare (xargs :guard (listp x)))
-    :enabled t
-    (mbe :logic (if (listp x) x nil)
-         :exec x))
+  (define true-list-fix ((lst t))
+    :short "Fixing function for true-listp."
+    :returns (fixed-lst true-listp)
+    (if (true-listp lst)
+        lst
+      nil))
 
-  (deffixtype list
-    :fix list-fix
-    :pred listp
-    :equiv list-equiv
+  (deffixtype true-list
+    :fix true-list-fix
+    :pred true-listp
+    :equiv true-list-equiv
     :define t)
+
+
+  ;; (define list-fix (x)
+  ;;   (declare (xargs :guard (listp x)))
+  ;;   :enabled t
+  ;;   (mbe :logic (if (listp x) x nil)
+  ;;        :exec x))
+
+  ;; (deffixtype list
+  ;;   :fix list-fix
+  ;;   :pred listp
+  ;;   :equiv list-equiv
+  ;;   :define t)
 
   (defprod hint-pair
     ((thm pseudo-termp :default nil)       ;; a theorem statement about the variable
-     (hints listp :default nil)     ;; the hint for proving this theorem
+     (hints true-listp :default nil)     ;; the hint for proving this theorem
      )
     :verbosep t)
 
@@ -121,7 +135,7 @@
          (thm (hint-pair->thm x))
          (hints (hint-pair->hints x)))
       (make-hint-pair :thm (if (symbolp thm) thm nil)
-                      :hints (list-fix hints))))
+                      :hints (true-list-fix hints))))
 
   (defprod decl
     ((name symbolp :default nil)

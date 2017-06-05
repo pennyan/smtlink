@@ -55,13 +55,6 @@
 ;; smt-solver-params-p/fix
 ;; smtlink-hint-syntax-p/fix
 
-(define true-list-fix ((lst t))
-  :short "Fixing function for true-listp."
-  :returns (fixed-lst true-listp)
-  (if (true-listp lst)
-      lst
-    nil))
-
 (define qstringp ((term t))
   :returns (syntax-good? booleanp)
   :short "Recognizer for a quoted stringp."
@@ -147,7 +140,19 @@
            (equal (len term) 3)
            (pseudo-termp (car term))
            (equal (cadr term) ':hints)
-           (hints-syntax-p (caddr term)))))
+           (hints-syntax-p (caddr term))))
+  ///
+  (defthm true-listp-of-caddr
+    (implies
+     (and (consp term)
+          (consp (cdr term))
+          (true-listp (cddr term))
+          (equal (+ 2 (len (cddr term))) 3)
+          (pseudo-termp (car term))
+          (equal (cadr term) :hints)
+          (hints-syntax-p (caddr term)))
+     (true-listp (caddr term)))
+    :hints (("Goal" :in-theory (enable hints-syntax-p)))))
 
 (define hypothesis-syntax-fix ((term hypothesis-syntax-p))
   :returns (fixed-term hypothesis-syntax-p)
@@ -178,6 +183,19 @@
 (verify-guards hypothesis-lst-syntax-fix
   :hints (("Goal" :in-theory (enable hypothesis-syntax-fix
                                      hypothesis-lst-syntax-p hypothesis-lst-syntax-fix))))
+
+(defthm hypothesis-lst-syntax-fix-idempotent-lemma
+  (equal (hypothesis-lst-syntax-fix (hypothesis-lst-syntax-fix x))
+         (hypothesis-lst-syntax-fix x))
+  :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-fix hypothesis-syntax-fix))))
+
+(deffixtype hypothesis-lst-syntax
+  :pred  hypothesis-lst-syntax-p
+  :fix   hypothesis-lst-syntax-fix
+  :equiv hypothesis-lst-syntax-equiv
+  :define t
+  :forward t
+  :topic hypothesis-lst-syntax-p)
 
 (define smt-typep ((term t))
   :returns (valid-type? booleanp)
@@ -361,6 +379,19 @@
   (mbe :logic (if (function-syntax-p term) term nil)
        :exec term))
 
+(defthm function-syntax-fix-idempotent-lemma
+  (equal (function-syntax-fix (function-syntax-fix x))
+         (function-syntax-fix x))
+  :hints (("Goal" :in-theory (enable function-syntax-fix))))
+
+(deffixtype function-syntax
+  :pred  function-syntax-p
+  :fix   function-syntax-fix
+  :equiv function-syntax-equiv
+  :define t
+  :forward t
+  :topic function-syntax-p)
+
 (define function-lst-syntax-p ((term t))
   :returns (syntax-good? booleanp)
   :short "Recognizer for function-lst-syntax"
@@ -383,6 +414,20 @@
 (verify-guards function-lst-syntax-fix
   :hints (("Goal" :in-theory (enable function-lst-syntax-fix
   function-syntax-fix function-lst-syntax-p function-syntax-p))))
+
+(defthm function-lst-syntax-fix-idempotent-lemma
+  (equal (function-lst-syntax-fix (function-lst-syntax-fix x))
+         (function-lst-syntax-fix x))
+  :hints (("Goal" :in-theory (enable function-lst-syntax-fix))))
+
+(deffixtype function-lst-syntax
+  :pred  function-lst-syntax-p
+  :fix   function-lst-syntax-fix
+  :equiv function-lst-syntax-equiv
+  :define t
+  :forward t
+  :topic function-lst-syntax-p)
+
 
 (define smt-solver-params-p ((term t))
   :returns (syntax-good? booleanp)
@@ -565,7 +610,48 @@
        ((unless (and (true-listp term) (>= (len term) 2))) nil)
        ((list* first second rest) term)
        ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
-    (and res (smtlink-hint-syntax-p-helper rest new-used))))
+    (and res (smtlink-hint-syntax-p-helper rest new-used)))
+  ///
+  (defthm function-lst-syntax-p-constraint
+    (implies (and (smtlink-hint-syntax-p-helper user-hint nil)
+                  (consp user-hint)
+                  (consp (cdr user-hint)))
+             (or (equal (car user-hint) ':functions)
+                 (equal (car user-hint) ':hypothesis)
+                 (equal (car user-hint) ':main-hint)
+                 (equal (car user-hint) ':int-to-rat)
+                 (equal (car user-hint) ':smt-fname)
+                 (equal (car user-hint) ':rm-file)
+                 (equal (car user-hint) ':smt-solver-params)
+                 (equal (car user-hint) ':smt-solver-cnf)))
+    :hints (("Goal"
+             :in-theory (enable eval-smtlink-option-type
+                                smtlink-option-syntax-p
+                                smtlink-option-name-p))))
+
+  (defthm function-lst-syntax-p-of-option
+    (implies
+     (and (consp (cdr user-hint))
+          (smtlink-hint-syntax-p-helper user-hint nil)
+          (consp user-hint))
+     (and (implies (equal (car user-hint) ':functions)
+                   (function-lst-syntax-p (cadr user-hint)))
+          (implies (equal (car user-hint) ':hypothesis)
+                   (hypothesis-lst-syntax-p (cadr user-hint)))
+          (implies (equal (car user-hint) ':main-hint)
+                   (hints-syntax-p (cadr user-hint)))
+          (implies (equal (car user-hint) ':int-to-rat)
+                   (qbooleanp (cadr user-hint)))
+          (implies (equal (car user-hint) ':smt-fname)
+                   (qstringp (cadr user-hint)))
+          (implies (equal (car user-hint) ':rm-file)
+                   (qbooleanp (cadr user-hint)))
+          (implies (equal (car user-hint) ':smt-solver-params)
+                   (smt-solver-params-p (cadr user-hint)))
+          (implies (equal (car user-hint) ':smt-solver-cnf)
+                   (smt-solver-cnf-p (cadr user-hint)))))
+    :hints (("Goal"
+             :in-theory (enable smtlink-option-syntax-p eval-smtlink-option-type)))))
 
 (define smtlink-hint-syntax-p ((term t))
   :returns (syntax-good? booleanp)
@@ -580,74 +666,160 @@
        :exec term))
 
 ;; -------------------------------------------------------------------------
-(define merge-decl-list ((added-decls decl-listp) (master-adecls decl-alistp))
-  :returns (merged-decl-list decl-alistp)
-  :measure (len added-decls)
-  (b* ((added-decls (decl-list-fix added-decls))
-       (master-adecls (decl-alist-fix master-adecls))
-       ((unless (consp added-decls)) master-adecls)
-       ((cons first rest) added-decls)
-       ((decl d) first))
-    (merge-decl-list rest (hons-acons d.name first master-adecls))))
 
-(define merge-a-function ((fn func-p) (mfn func-p))
-  :returns (merged-fn func-p)
+(define make-merge-function ((func function-syntax-p))
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  :returns (func func-p)
+  (make-func))
+
+(define merge-functions ((content function-lst-syntax-p) (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short "Function for actually evaluate merge-functions with the argument"
+  :measure (len content)
+  :hints (("Goal" :in-theory (enable function-lst-syntax-fix)))
   :verify-guards nil
-  (b* ((fn (func-fix fn))
-       (mfn (func-fix mfn))
-       ((func f) fn)
-       ((func mf) mfn)
-       ((unless (equal f.name mf.name))
-        (prog2$ (er hard? 'Smtlink=>merge-a-function "Trying to merge two functions
-  with different function names. Check definition for ~p0 and ~p1~%" fn mfn) (make-func)))
-        (formals-alist (make-alist-decl-list mf.formals))
-       (returns-alist (make-alist-decl-list mf.returns))
-       (long-formals
-        (with-fast-alist formals-alist
-          (merge-decl-list f.formals formals-alist)))
-       (short-formals (fast-alist-clean long-formals))
-       (long-returns
-        (with-fast-alist returns-alist
-          (merge-decl-list f.returns returns-alist)))
-       (short-returns (fast-alist-clean long-returns)))
-    (change-func mfn
-                 :formals (strip-cdrs short-formals)
-                 :guard (append f.guard mf.guard)
-                 :returns (strip-cdrs short-returns)
-                 :expansion-depth f.expansion-depth
-                 :uninterpreted f.uninterpreted)))
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (function-lst-syntax-fix content))
+       ((unless (consp content)) hint)
+       ((cons first rest) content)
+       ((smtlink-hint h) hint)
+       (new-func-lst (cons (make-merge-function first) h.functions))
+       (new-hint (change-smtlink-hint hint :functions new-func-lst)))
+    (merge-functions rest new-hint)))
 
-(skip-proofs
-(verify-guards merge-a-function
+(defthm smtlink-hint-p-of-fix
+  (smtlink-hint-p (smtlink-hint-fix hint)))
+(defthm smtlink-hint->smt-cnf-fix
+  (smtlink-config-p (smtlink-hint->smt-cnf (smtlink-hint-fix hint))))
+(verify-guards merge-functions
+  :hints (("Goal" :in-theory (enable function-lst-syntax-fix function-lst-syntax-p))))
+
+
+(define make-merge-hypothesis ((hypo hypothesis-syntax-p))
+  :returns (hp hint-pair-p)
+  :short "Generate a hint-pair for hypo"
+  :verify-guards nil
+  (b* ((hypo (hypothesis-syntax-fix hypo))
+       ((cons thm (cons & rest)) hypo))
+    (make-hint-pair :thm thm
+                    :hints (car rest))))
+(verify-guards make-merge-hypothesis
+  :guard-debug t
+  :hints (("Goal" :in-theory (enable hypothesis-syntax-p hypothesis-syntax-fix))))
+
+(define merge-hypothesis ((content hypothesis-lst-syntax-p)
+                          (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short "Merge hypothesis into hint"
+  :measure (len content)
+  :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-fix)))
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (hypothesis-lst-syntax-fix content))
+       ((unless (consp content)) hint)
+       ((cons first rest) content)
+       ((smtlink-hint h) hint)
+       (new-hypo-lst (cons (make-merge-hypothesis first) h.hypotheses))
+       ;; It might be better to first generate the list of merging hypotheses
+       ;; and then append the old lst after them. Not sure which one takes less
+       ;; time, because I'm not sure about time complexity of
+       ;; change-smtlink-hint. Append might be expensive, too.
+       (new-hint (change-smtlink-hint hint :hypotheses new-hypo-lst)))
+    (merge-hypothesis rest new-hint)))
+(verify-guards merge-hypothesis
+  :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-p hypothesis-lst-syntax-fix))))
+
+(define merge-main-hint ((content hints-syntax-p)
+                         (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short ""
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (b* ((hint (smtlink-hint-fix hint)))
+    hint))
+
+(define set-int-to-rat ((content qbooleanp)
+                        (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short ""
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (b* ((hint (smtlink-hint-fix hint)))
+    hint))
+
+(define set-fname ((content qstringp) (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short ""
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (b* ((hint (smtlink-hint-fix hint)))
+    hint))
+
+(define set-rm-file ((content qbooleanp)
+                     (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short ""
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (b* ((hint (smtlink-hint-fix hint)))
+    hint))
+
+(define set-smt-solver-params ((content smt-solver-params-p)
+                               (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short ""
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (b* ((hint (smtlink-hint-fix hint)))
+    hint))
+
+(define merge-smt-solver-cnf ((content smt-solver-cnf-p)
+                              (hint smtlink-hint-p))
+  :returns (new-hint smtlink-hint-p)
+  :short ""
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (b* ((hint (smtlink-hint-fix hint)))
+    hint))
+
+(define combine-hints ((user-hint smtlink-hint-syntax-p) (hint smtlink-hint-p))
+  :returns (combined-hint smtlink-hint-p)
+  :short "Combining user-hints into smt-hint."
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (user-hint (smtlink-hint-syntax-fix user-hint))
+       ((unless (consp user-hint)) hint)
+       ((cons option (cons second rest)) user-hint)
+       (new-hint (case option
+                   (:functions (merge-functions second hint))
+                   (:hypothesis (merge-hypothesis second hint))
+                   (:main-hint (merge-main-hint second hint))
+                   (:int-to-rat (set-int-to-rat second hint))
+                   (:smt-fname (set-fname second hint))
+                   (:rm-file (set-rm-file second hint))
+                   (:smt-solver-params (set-smt-solver-params second hint))
+                   (t (merge-smt-solver-cnf second hint)))))
+    new-hint))
+
+(defthm true-listp-of-smtlink-hint-syntax-p
+  (implies (smtlink-hint-syntax-p x)
+           (true-listp x))
+  :hints (("Goal" :in-theory (enable smtlink-hint-syntax-p
+                                     smtlink-hint-syntax-p-helper))))
+(defthm crock
+  (implies (and (true-listp x) (not (consp (cdr x)))) (not (cdr x))))
+
+(verify-guards combine-hints
+  :guard-debug t
   :hints (("Goal"
-           :in-theory (enable decl-alistp))))
-)
-
-(define merge-functions ((added-funcs func-listp) (master-funcs func-alistp))
-  :returns (merged-functions func-alistp)
-  :measure (len added-funcs)
-  :hints (("Goal" :in-theory (enable func-alist-fix)))
-  :verify-guards nil
-  (b* ((added-funcs (func-alist-fix added-funcs))
-       (master-funcs (func-alist-fix master-funcs))
-       ((unless (consp added-funcs)) master-funcs)
-       ((cons first rest) added-funcs)
-       ((cons name fn) first)
-       (exist? (hons-get name master-funcs))
-       ((unless exist?)
-        (merge-functions rest (hons-acons name fn master-funcs)))
-       (mfn (cdr exist?))
-       (merged-fn (merge-a-function fn mfn)))
-    (merge-functions rest (hons-acons name merged-fn master-funcs))))
-
-
-  (define combine-hints ((user-hint smtlink-hint-syntax-p) (hint smtlink-hint-p))
-    :returns (combined-hint smtlink-hint-p)
-    :ignore-ok t
-    :irrelevant-formals-ok t
-    (b* ((hint (smtlink-hint-fix hint))
-         (user-hint (smtlink-hint-syntax-fix user-hint)))
-      hint))
+           :in-theory (enable smtlink-hint-syntax-fix smtlink-hint-syntax-p smtlink-hint-syntax-p-helper)
+           :use ((:instance true-listp-of-smtlink-hint-syntax-p (x user-hint))
+                 (:instance crock (x user-hint))
+                 (:instance function-lst-syntax-p-of-option)
+                 (:instance function-lst-syntax-p-constraint)))))
 
   (define process-hint ((cl pseudo-term-listp) (user-hint t))
     :returns (subgoal-lst pseudo-term-list-listp)
