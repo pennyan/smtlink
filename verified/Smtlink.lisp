@@ -37,7 +37,7 @@
 ;;                          :rm-file t
 ;;                          :smt-solver-params (...)
 ;;                          :smt-solver-cnf ()))))
-;;
+
 ;; Types:
 ;; qbooleanp/fix
 ;; qnatp/fix
@@ -72,9 +72,27 @@
 
 (define qstring-fix ((term qstringp))
   :short "Fixing function for a qstringp."
-  :returns (fixed-qstring qstringp)
+  :returns (fixed-term qstringp)
   (mbe :logic (if (qstringp term) term ''"")
        :exec term))
+
+(defthm qstring-fix-idempotent-lemma
+  (equal (qstring-fix (qstring-fix x))
+         (qstring-fix x))
+  :hints (("Goal" :in-theory (enable qstring-fix))))
+
+;; This one shows that it's possible to connect fixing function and
+;; the type functions together, and became useful for other defprods, etc.
+;; Since I'm currently not using defprods for others either, this is probably
+;; not that useful. However, this deffixtype shows as an example for future
+;; necessity.
+(deffixtype qstring
+  :pred  qstringp
+  :fix   qstring-fix
+  :equiv qstring-equiv
+  :define t
+  :forward t
+  :topic qstringp)
 
 (define qnatp ((term t))
   :returns (syntax-good? booleanp)
@@ -85,7 +103,7 @@
        (natp (cadr term))))
 
 (define qnat-fix ((term qnatp))
-  :returns (fixed-qnat qnatp)
+  :returns (fixed-term qnatp)
   :short "Fixing function for a qnatp."
   (mbe :logic (if (qnatp term) term ''0)
        :exec term))
@@ -99,7 +117,7 @@
        (booleanp (cadr term))))
 
 (define qboolean-fix ((term qbooleanp))
-  :returns (fixed-qboolean qbooleanp)
+  :returns (fixed-term qbooleanp)
   :short "Fixing function for a qbooleanp."
   (mbe :logic (if (qbooleanp term) term ''nil)
        :exec term))
@@ -110,7 +128,7 @@
   (true-listp term))
 
 (define hints-syntax-fix ((term hints-syntax-p))
-  :returns (fixed-hints-syntax hints-syntax-p)
+  :returns (fixed-term hints-syntax-p)
   :short "Fixing function for a hints-sytnax-p."
   (mbe :logic (if (hints-syntax-p term) term nil)
        :exec term))
@@ -132,7 +150,7 @@
            (hints-syntax-p (caddr term)))))
 
 (define hypothesis-syntax-fix ((term hypothesis-syntax-p))
-  :returns (fixed-hypothesis hypothesis-syntax-p)
+  :returns (fixed-term hypothesis-syntax-p)
   :short "Fixing function for a hypothesis-syntax-p."
   (mbe :logic (if (hypothesis-syntax-p term) term nil)
        :exec term))
@@ -146,9 +164,9 @@
          (hypothesis-lst-syntax-p rest))))
 
 (define hypothesis-lst-syntax-fix ((term hypothesis-lst-syntax-p))
-  :returns (fixed-hypothesis-lst-syntax hypothesis-lst-syntax-p
-                                        :hints (("Goal"
-                                                 :in-theory (enable hypothesis-lst-syntax-p))))
+  :returns (fixed-term hypothesis-lst-syntax-p
+                       :hints (("Goal"
+                                :in-theory (enable hypothesis-lst-syntax-p))))
   :verify-guards nil
   :short "Fixing function for a hypothesis-lst-syntax-p."
   (mbe :logic (if (consp term)
@@ -190,7 +208,7 @@
            (hints-syntax-p (cddr term)))))
 
 (define argument-syntax-fix ((term argument-syntax-p))
-  :returns (fixed-argument-syntax argument-syntax-p)
+  :returns (fixed-term argument-syntax-p)
   :short "Fixing function for argument-syntax-p."
   (mbe :logic (if (argument-syntax-p term) term nil)
        :exec term))
@@ -205,9 +223,9 @@
 
 (define argument-lst-syntax-fix ((term argument-lst-syntax-p))
   :short "Fixing function for argument-lst-syntax."
-  :returns (fixed-argument-lst-syntax argument-lst-syntax-p
-                                      :hints (("Goal"
-                                               :in-theory (enable argument-lst-syntax-p))))
+  :returns (fixed-term argument-lst-syntax-p
+                       :hints (("Goal"
+                                :in-theory (enable argument-lst-syntax-p))))
   :verify-guards nil
   (mbe :logic (if (consp term)
                   (cons (argument-syntax-fix (car term))
@@ -237,9 +255,9 @@
   (if (member-equal option-type *function-option-types*) t nil))
 
 (define function-option-type-fix ((option-type function-option-type-p))
-  :returns (fixed-function-option-type function-option-type-p
-                                       :hints (("Goal" :in-theory (enable
-  function-option-type-p ))))
+  :returns (fixed-option-type function-option-type-p
+                              :hints (("Goal" :in-theory (enable
+                                                          function-option-type-p ))))
   :short "Fixing function for function-option-type."
   (mbe :logic (if (function-option-type-p option-type) option-type 'qnatp)
        :exec option-type))
@@ -254,7 +272,7 @@
 ;; distinctive. But that's alright, since we never expect option-fix's logic
 ;; formula to ever get used. Proved guards ensure it.
 (define function-option-name-fix ((option-name function-option-name-p))
-  :returns (fixed-function-option-name function-option-name-p)
+  :returns (fixed-option-name function-option-name-p)
   :short "Fixing function for option."
   (mbe :logic (if (function-option-name-p option-name) option-name ':formals)
        :exec option-name))
@@ -268,8 +286,8 @@
          (function-option-name-lst-p rest))))
 
 (define function-option-name-lst-fix ((option-lst function-option-name-lst-p))
-  :returns (fixed-option-name-lst function-option-name-lst-p
-                                  :hints (("Goal" :in-theory (enable function-option-name-lst-p))))
+  :returns (fixed-option-lst function-option-name-lst-p
+                             :hints (("Goal" :in-theory (enable function-option-name-lst-p))))
   :short "Fixing function for option-name-lst."
   :verify-guards nil
   (mbe :logic (if (atom option-lst)
@@ -312,20 +330,24 @@
   :hints (("Goal" :in-theory (enable function-option-syntax-p function-option-name-p
                                      eval-function-option-type function-option-name-lst-p))))
 
-(define function-option-syntax-fix (())
-  :returns
-  :short "")
-
-(define function-option-lst-syntax-p ((term t) (used function-option-name-lst-p))
+(define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
   :returns (syntax-good? booleanp)
-  :short "Recognizer for function-option-lst-syntax-p."
+  :short "Helper for function-option-lst-syntax-p."
   (b* (((if (atom term)) (equal term nil))
        ((unless (and (true-listp term) (>= (len term) 2))) nil)
        ((list* first second rest) term)
        ((mv res new-used) (function-option-syntax-p (list first second) used)))
-    (and res (function-option-lst-syntax-p rest new-used))))
+    (and res (function-option-lst-syntax-p-helper rest new-used))))
 
-(define function-option-lst-syntax-fix)
+(define function-option-lst-syntax-p ((term t))
+  :returns (syntax-good? booleanp)
+  :short "Recogizer for function-option-"
+  (function-option-lst-syntax-p-helper term nil))
+
+;; BOZO:
+;; Look at last BOZO
+;; (define function-option-lst-syntax-fix (())
+;;   )
 
 (define function-syntax-p ((term t))
   :returns (syntax-good? booleanp)
@@ -336,9 +358,13 @@
     ;; It's probably possible to check existence of function?
     ;; Currently not doing such check, since it will require passing state.
     (and (symbolp fname)
-         (function-option-lst-syntax-p function-options nil))))
+         (function-option-lst-syntax-p function-options))))
 
-(define function-syntax-fix)
+(define function-syntax-fix ((term function-syntax-p))
+  :returns (fixed-term function-syntax-p)
+  :short "Fixing function for function-syntax-p"
+  (mbe :logic (if (function-syntax-p term) term nil)
+       :exec term))
 
 (define function-lst-syntax-p ((term t))
   :returns (syntax-good? booleanp)
@@ -348,14 +374,32 @@
     (and (function-syntax-p first)
          (function-lst-syntax-p rest))))
 
-(define function-lst-syntax-fix)
+(define function-lst-syntax-fix ((term function-lst-syntax-p))
+  :returns (fixed-term function-lst-syntax-p
+                       :hints (("Goal" :in-theory (enable
+                                                   function-lst-syntax-p))))
+  :short "Fixing function for function-lst-syntax-fix"
+  :verify-guards nil
+  (mbe :logic (if (consp term)
+                  (cons (function-syntax-fix (car term))
+                        (function-lst-syntax-fix (cdr term)))
+                nil)
+       :exec term))
+(verify-guards function-lst-syntax-fix
+  :hints (("Goal" :in-theory (enable function-lst-syntax-fix
+  function-syntax-fix function-lst-syntax-p function-syntax-p))))
 
 (define smt-solver-params-p ((term t))
   :returns (syntax-good? booleanp)
   :short "Recognizer for smt-solver-params."
   (true-listp term))
 
-(define smt-solver-params-fix)
+(define smt-solver-params-fix ((term smt-solver-params-p))
+  :returns (fixed-term smt-solver-params-p
+                       :hints (("Goal" :in-theory (enable smt-solver-params-p))))
+  :short "Fixing function for smt-solver-params."
+  (mbe :logic (if (smt-solver-params-p term) term (true-list-fix term))
+       :exec term))
 
 (defconst *cnf-options*
   '(:interface-dir :SMT-files-dir :SMT-module
@@ -410,7 +454,11 @@
              (qstringp (car body-lst)))
         (cons option used))))
 
-(define smt-solver-single-cnf-fix)
+;; BOZO:
+;; Refer to last BOZO
+;; (define smt-solver-single-cnf-fix (())
+;;   :returns ()
+;;   :short "Fixing function for smt-solver-single-cnf-fix")
 
 (define smt-solver-cnf-p ((term t) (used cnf-option-lst-p))
   :returns (syntax-good? booleanp)
@@ -421,7 +469,9 @@
        ((mv res new-used) (smt-solver-single-cnf-p (list first second) used)))
     (and res (smt-solver-cnf-p rest new-used))))
 
-(define smt-solver-cnf-fix)
+;; BOZO:
+;; Refer to last BOZO
+;; (define smt-solver-cnf-fix)
 
 (defconst *smtlink-options*
   '((:functions . function-lst-syntax-p)
@@ -444,7 +494,13 @@
   :short "Recoginizer for smtlink-option-type."
   (if (member-equal option-type *smtlink-option-types*) t nil))
 
-(define smtlink-option-type-fix)
+(define smtlink-option-type-fix ((opttype smtlink-option-type-p))
+  :returns (fixed-opttype smtlink-option-type-p
+                          :hints (("Goal" :in-theory (enable
+                                                      smtlink-option-type-p))))
+  :short "Fixing function for smtlink-option-type."
+  (mbe :logic (if (smtlink-option-type-p opttype) opttype 'function-lst-syntax-p)
+       :exec opttype))
 
 (define smtlink-option-name-p ((option-name t))
   :returns (syntax-good? booleanp)
@@ -512,19 +568,32 @@
   :hints (("Goal" :in-theory (enable smtlink-option-syntax-p smtlink-option-name-p
                                      eval-smtlink-option-type smtlink-option-name-lst-p))))
 
-(define smtlink-option-syntax-fix)
+;; (define smtlink-option-syntax-fix (option)
+;;   :guard (smtlink-option-syntax-p option nil)
+;;   :returns (fixed-option smtlink-option-syntax-p)
+;;   :short "Fixing function for smtlink-option-syntax."
+;;   )
 
-(define smtlink-hint-syntax-p ((term t) (used smtlink-option-name-lst-p))
+(define smtlink-hint-syntax-p-helper ((term t) (used smtlink-option-name-lst-p))
   :returns (syntax-good? booleanp)
-  :short "Recognizer for smtlink-option-lst-syntax."
+  :short "Helper function for smtlink-hint-syntax-p."
   (b* (((if (atom term)) (equal term nil))
        ((unless (and (true-listp term) (>= (len term) 2))) nil)
        ((list* first second rest) term)
        ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
-    (and res (smtlink-hint-syntax-p rest new-used))))
+    (and res (smtlink-hint-syntax-p-helper rest new-used))))
 
-(define smtlink-hint-syntax-fix)
+(define smtlink-hint-syntax-p ((term t))
+  :returns (syntax-good? booleanp)
+  :short "Recognizer for smtlink-hint-syntax."
+  (smtlink-hint-syntax-p-helper term nil))
 
+;; Strange fixing function.
+(define smtlink-hint-syntax-fix ((term smtlink-hint-syntax-p))
+  :short "Fixing function for smtlink-hint-syntax."
+  :returns (fixed-smtlink-hint-syntax smtlink-hint-syntax-p)
+  (mbe :logic (if (smtlink-hint-syntax-p term) term nil)
+       :exec term))
 
 ;; -------------------------------------------------------------------------
 (define merge-decl-list ((added-decls decl-listp) (master-adecls decl-alistp))
@@ -588,16 +657,12 @@
     (merge-functions rest (hons-acons name merged-fn master-funcs))))
 
 
-  (define combine-hints ((user-hint t) (hint smtlink-hint-p))
+  (define combine-hints ((user-hint smtlink-hint-syntax-p) (hint smtlink-hint-p))
     :returns (combined-hint smtlink-hint-p)
     :ignore-ok t
     :irrelevant-formals-ok t
     (b* ((hint (smtlink-hint-fix hint))
-         ((unless (smtlink-hint-syntax-p user-hint nil))
-          (prog2$ (cw "User provided Smtlink hint can't be applied because of
-    syntax error in the hints: ~q0" user-hint)
-                  hint))
-         )
+         (user-hint (smtlink-hint-syntax-fix user-hint)))
       hint))
 
   (define process-hint ((cl pseudo-term-listp) (user-hint t))
@@ -605,6 +670,10 @@
     :enabled t
     (b* ((cl (pseudo-term-list-fix cl))
          (- (cw "user-hint: ~q0" user-hint))
+         ((unless (smtlink-hint-syntax-p user-hint))
+          (prog2$ (cw "User provided Smtlink hint can't be applied because of
+    syntax error in the hints: ~q0Therefore proceed with out Smtlink..." user-hint)
+                  (list cl)))
          (combined-hint (combine-hints user-hint (smt-hint)))
          (cp-hint `(:clause-processor (Smt-verified-cp clause ',combined-hint)))
          (subgoal-lst (cons `(hint-please ',cp-hint 'process-hint) cl)))
