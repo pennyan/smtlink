@@ -355,12 +355,71 @@
        ((unless (and (true-listp term) (>= (len term) 2))) nil)
        ((list* first second rest) term)
        ((mv res new-used) (function-option-syntax-p (list first second) used)))
-    (and res (function-option-lst-syntax-p-helper rest new-used))))
+    (and res (function-option-lst-syntax-p-helper rest new-used)))
+  ///
+  (skip-proofs
+  (defthm function-option-lst-syntax-preserve
+    (implies (and (function-option-lst-syntax-p-helper term nil)
+                  (consp term))
+             (function-option-lst-syntax-p-helper (cddr term)
+                                                  nil))))
+
+  (defthm function-option-lst-syntax-p-constraint
+    (implies (and (function-option-lst-syntax-p-helper fun-opt-lst nil)
+                  (consp fun-opt-lst))
+             (or (equal (car fun-opt-lst) ':formals)
+                 (equal (car fun-opt-lst) ':returns)
+                 (equal (car fun-opt-lst) ':level)
+                 (equal (car fun-opt-lst) ':guard)
+                 (equal (car fun-opt-lst) ':more-returns)))
+    :hints (("Goal"
+             :in-theory (enable eval-function-option-type
+                                function-option-syntax-p
+                                function-option-name-p))))
+
+  (defthm function-option-lst-syntax-p-of-option
+    (implies
+     (and (consp (cdr fun-opt-lst))
+          (function-option-lst-syntax-p-helper fun-opt-lst nil)
+          (consp fun-opt-lst))
+     (and (implies (equal (car fun-opt-lst) ':formals)
+                   (argument-lst-syntax-p (cadr fun-opt-lst)))
+          (implies (equal (car fun-opt-lst) ':returns)
+                   (argument-lst-syntax-p (cadr fun-opt-lst)))
+          (implies (equal (car fun-opt-lst) ':level)
+                   (qnatp (cadr fun-opt-lst)))
+          (implies (equal (car fun-opt-lst) ':guard)
+                   (hypothesis-lst-syntax-p (cadr fun-opt-lst)))
+          (implies (equal (car fun-opt-lst) ':more-returns)
+                   (hypothesis-lst-syntax-p (cadr fun-opt-lst)))))
+    :hints (("Goal"
+             :in-theory (enable function-option-syntax-p
+                                eval-function-option-type))))
+  )
 
 (define function-option-lst-syntax-p ((term t))
   :returns (syntax-good? booleanp)
-  :short "Recogizer for function-option-"
+  :short "Recogizer for function-option-lst-syntax"
   (function-option-lst-syntax-p-helper term nil))
+
+(define function-option-lst-syntax-fix ((term function-option-lst-syntax-p))
+  :returns (fixed-term function-option-lst-syntax-p)
+  :short "Recogizer for function-option-lst-syntax"
+  (mbe :logic (if (function-option-lst-syntax-p term) term nil)
+       :exec term))
+
+(defthm function-option-lst-syntax-fix-idempotent-lemma
+  (equal (function-option-lst-syntax-fix (function-option-lst-syntax-fix x))
+         (function-option-lst-syntax-fix x))
+  :hints (("Goal" :in-theory (enable function-option-lst-syntax-fix))))
+
+(deffixtype function-option-lst-syntax
+  :pred  function-option-lst-syntax-p
+  :fix   function-option-lst-syntax-fix
+  :equiv function-option-lst-syntax-equiv
+  :define t
+  :forward t
+  :topic function-option-lst-syntax-p)
 
 (define function-syntax-p ((term t))
   :returns (syntax-good? booleanp)
@@ -725,15 +784,78 @@
 
 ;; -------------------------------------------------------------------------
 
-(define make-merge-function ((func function-syntax-p))
+;; (stop)
+(define make-merge-formals ((content argument-lst-syntax-p) (smt-func func-p))
+  :returns (func func-p)
+  :short "Adding user defined formals to overwrite what's already in smt-func."
   :ignore-ok t
   :irrelevant-formals-ok t
-  :returns (func func-p)
   (make-func))
+
+(define make-merge-returns ((content argument-lst-syntax-p) (smf-func func-p))
+  :returns (func func-p)
+  :short "Adding user defined returns to overwrite what's already in smt-func."
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (make-func))
+
+(define make-merge-guard ((content hypothesis-lst-syntax-p) (smt-func func-p))
+  :returns (func func-p)
+  :short "Adding user defined guard to smt-func."
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (make-func))
+
+(define make-merge-more-returns ((content hypothesis-lst-syntax-p)
+                                 (smt-func func-p))
+  :returns (func func-p)
+  :short "Adding user-defined more-return theorems."
+  :ignore-ok t
+  :irrelevant-formals-ok t
+  (make-func))
+
+(define make-merge-function-option-lst ((fun-opt-lst function-option-lst-syntax-p)
+                                        (smt-fun func-p))
+  :returns (func func-p)
+  :short "Add option information into func."
+  :measure (len fun-opt-lst)
+  :hints (("Goal" :in-theory (enable function-option-lst-syntax-fix)))
+  :verify-guards nil
+  (b* ((fun-opt-lst (function-option-lst-syntax-fix fun-opt-lst))
+       (smt-fun (func-fix smt-fun))
+       ((unless (consp fun-opt-lst)) smt-fun)
+       ((cons option (cons content rest)) fun-opt-lst)
+       (new-func (case option
+                   (:formals (make-merge-formals content smt-fun))
+                   (:returns (make-merge-returns content smt-fun))
+                   (:level (change-func smt-fun :expansion-depth (cadr content)))
+                   (:guard (make-merge-guard content smt-fun))
+                   (:more-returns (make-merge-more-returns content smt-fun)))))
+    (make-merge-function-option-lst rest new-func)))
+(verify-guards make-merge-function-option-lst
+  :hints (("Goal"
+           :in-theory (enable function-option-lst-syntax-fix
+                              function-option-lst-syntax-p
+                              function-option-lst-syntax-p-helper
+                              qnatp)
+           :use ((:instance function-option-lst-syntax-p-of-option)
+                 (:instance function-option-lst-syntax-p-constraint))))) 
+
+(define make-merge-function ((func function-syntax-p) (smt-fun func-p))
+  :returns (func func-p)
+  :short "Function for generating func-p of a single function hint."
+  :verify-guards nil
+  (b* ((func (function-syntax-fix func))
+       ((cons fun-name fun-opt-lst) func)
+       (name fun-name))
+    (make-merge-function-option-lst fun-opt-lst
+                                    (change-func smt-fun :name name))))
+(verify-guards make-merge-function
+  :hints (("Goal" :in-theory (enable function-syntax-fix function-syntax-p))))
 
 (define merge-functions ((content function-lst-syntax-p) (hint smtlink-hint-p))
   :returns (new-hint smtlink-hint-p)
-  :short "Function for actually evaluate merge-functions with the argument"
+  :short "Merging function hints into smt-hint."
   :measure (len content)
   :hints (("Goal" :in-theory (enable function-lst-syntax-fix)))
   :verify-guards nil
@@ -741,17 +863,19 @@
        (content (function-lst-syntax-fix content))
        ((unless (consp content)) hint)
        ((cons first rest) content)
+       (name (car first))
        ((smtlink-hint h) hint)
-       (new-func-lst (cons (make-merge-function first) h.functions))
+       (exist? (hons-get name h.fast-functions))
+       (smt-fun (if exist? (cdr exist?) (make-func)))
+       (new-func-lst (cons (make-merge-function first smt-fun) h.functions))
        (new-hint (change-smtlink-hint hint :functions new-func-lst)))
     (merge-functions rest new-hint)))
 
-(defthm smtlink-hint-p-of-fix
-  (smtlink-hint-p (smtlink-hint-fix hint)))
-(defthm smtlink-hint->smt-cnf-fix
-  (smtlink-config-p (smtlink-hint->smt-cnf (smtlink-hint-fix hint))))
 (verify-guards merge-functions
-  :hints (("Goal" :in-theory (enable function-lst-syntax-fix function-lst-syntax-p))))
+  :hints (("Goal" :in-theory (enable function-lst-syntax-fix
+                                     function-lst-syntax-p
+                                     function-syntax-p
+                                     function-syntax-fix))))
 
 
 (define make-merge-hypothesis ((hypo hypothesis-syntax-p))
@@ -903,8 +1027,14 @@
        (user-hint (smtlink-hint-syntax-fix user-hint))
        ((unless (consp user-hint)) hint)
        ((cons option (cons second rest)) user-hint)
+       ((smtlink-hint h) hint)
+       (fast-funcs (make-alist-fn-lst h.functions))
        (new-hint (case option
-                   (:functions (merge-functions second hint))
+                   (:functions (with-fast-alist fast-funcs
+                                 (merge-functions second
+                                                  (change-smtlink-hint
+                                                   hint
+                                                   :fast-functions fast-funcs))))
                    (:hypothesis (merge-hypothesis second hint))
                    (:main-hint (merge-main-hint second hint))
                    (:int-to-rat (set-int-to-rat second hint))

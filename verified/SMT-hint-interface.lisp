@@ -181,6 +181,7 @@
   (defalist func-alist
     :key-type symbol
     :val-type func
+    :true-listp t
     :pred func-alistp)
 
   (defprod binding
@@ -230,7 +231,6 @@
   ;;
   (defprod smtlink-hint
     ((functions func-listp :default nil)
-     (user-functions func-alistp :default nil)
      (hypotheses hint-pair-listp :default nil)
      (main-hint true-listp :default nil)
      (let-binding let-binding-p :default (make-let-binding))
