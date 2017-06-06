@@ -494,6 +494,10 @@
              (qstringp (car body-lst)))
         (cons option used))))
 
+(defthm member-equal-preserve
+  (implies (not (member-equal x (cons a lst)))
+           (not (member-equal x lst))))
+
 (define smt-solver-cnf-p-helper ((term t) (used cnf-option-lst-p))
   :returns (syntax-good? booleanp)
   :short "Helper function for smt-solver-cnf-p."
@@ -501,12 +505,57 @@
        ((unless (and (true-listp term) (>= (len term) 2))) nil)
        ((list* first second rest) term)
        ((mv res new-used) (smt-solver-single-cnf-p (list first second) used)))
-    (and res (smt-solver-cnf-p-helper rest new-used))))
+    (and res (smt-solver-cnf-p-helper rest new-used)))
+  ///
+  (defthm crock-true-listp
+    (implies (smt-solver-cnf-p-helper term nil)
+             (true-listp term)))
+
+  (defthm stringp-of-cadr
+    (implies (and (smt-solver-cnf-p-helper content nil)
+                  (consp content))
+             (stringp (cadadr content)))
+    :hints (("Goal"
+             :in-theory (enable smt-solver-single-cnf-p cnf-option-p
+                                qstringp))))
+  (skip-proofs
+  (defthm cddr-preserve
+    (implies (and (smt-solver-cnf-p-helper content nil)
+                  (consp content))
+             (smt-solver-cnf-p-helper (cddr content)
+                                      nil))
+    :hints (("Goal"
+             :in-theory (enable smt-solver-cnf-p-helper smt-solver-single-cnf-p member-equal)
+             ;; :use ((:instance member-equal-preserve
+             ;;                  (x )
+             ;;                  (a )
+             ;;                  (lst )))
+             ))))
+  )
 
 (define smt-solver-cnf-p ((term t))
   :returns (syntax-good? booleanp)
   :short "Recognizer for smt-solver-cnf."
   (smt-solver-cnf-p-helper term nil))
+
+(define smt-solver-cnf-fix ((term smt-solver-cnf-p))
+  :returns (fixed-smt-cnf smt-solver-cnf-p)
+  :short "Fixing function for smt-solver-cnf."
+  (mbe :logic (if (smt-solver-cnf-p term) term nil)
+       :exec term))
+
+(defthm smt-solver-cnf-fix-idempotent-lemma
+  (equal (smt-solver-cnf-fix (smt-solver-cnf-fix x))
+         (smt-solver-cnf-fix x))
+  :hints (("Goal" :in-theory (enable smt-solver-cnf-fix))))
+
+(deffixtype smt-solver-cnf
+  :pred  smt-solver-cnf-p
+  :fix   smt-solver-cnf-fix
+  :equiv smt-solver-cnf-equiv
+  :define t
+  :forward t
+  :topic smt-solver-cnf-p)
 
 (defconst *smtlink-options*
   '((:functions . function-lst-syntax-p)
@@ -651,7 +700,16 @@
           (implies (equal (car user-hint) ':smt-solver-cnf)
                    (smt-solver-cnf-p (cadr user-hint)))))
     :hints (("Goal"
-             :in-theory (enable smtlink-option-syntax-p eval-smtlink-option-type)))))
+             :in-theory (enable smtlink-option-syntax-p
+                                eval-smtlink-option-type))))
+
+  (skip-proofs
+  (defthm smtlink-hint-syntax-preserve
+    (implies (and (smtlink-hint-syntax-p-helper term nil)
+                  (consp term))
+             (smtlink-hint-syntax-p-helper (cddr term)
+                                           nil))))
+  )
 
 (define smtlink-hint-syntax-p ((term t))
   :returns (syntax-good? booleanp)
@@ -733,61 +791,113 @@
 (define merge-main-hint ((content hints-syntax-p)
                          (hint smtlink-hint-p))
   :returns (new-hint smtlink-hint-p)
-  :short ""
-  :ignore-ok t
-  :irrelevant-formals-ok t
-  (b* ((hint (smtlink-hint-fix hint)))
-    hint))
+  :short "Merge main-hint"
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (hints-syntax-fix content))
+       (new-hint (change-smtlink-hint hint :main-hint content)))
+    new-hint))
+(verify-guards merge-main-hint
+  :hints (("Goal"
+           :in-theory (enable hints-syntax-p))))
 
 (define set-int-to-rat ((content qbooleanp)
                         (hint smtlink-hint-p))
   :returns (new-hint smtlink-hint-p)
-  :short ""
-  :ignore-ok t
-  :irrelevant-formals-ok t
-  (b* ((hint (smtlink-hint-fix hint)))
-    hint))
+  :short "Set :int-to-rat based on user hint."
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (qboolean-fix content))
+       (new-hint (change-smtlink-hint hint :int-to-rat (cadr content))))
+    new-hint))
+
+(verify-guards set-int-to-rat
+  :hints (("Goal"
+           :in-theory (enable qbooleanp qboolean-fix))))
 
 (define set-fname ((content qstringp) (hint smtlink-hint-p))
   :returns (new-hint smtlink-hint-p)
-  :short ""
-  :ignore-ok t
-  :irrelevant-formals-ok t
-  (b* ((hint (smtlink-hint-fix hint)))
-    hint))
+  :short "Set :smt-fname."
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (qstring-fix content))
+       (new-hint (change-smtlink-hint hint :smt-fname (cadr content))))
+    new-hint))
+(verify-guards set-fname
+  :hints (("Goal"
+           :in-theory (enable qstringp qstring-fix))))
 
 (define set-rm-file ((content qbooleanp)
                      (hint smtlink-hint-p))
   :returns (new-hint smtlink-hint-p)
-  :short ""
-  :ignore-ok t
-  :irrelevant-formals-ok t
-  (b* ((hint (smtlink-hint-fix hint)))
-    hint))
+  :short "Set :rm-file"
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (qboolean-fix content))
+       (new-hint (change-smtlink-hint hint :rm-file (cadr content))))
+    new-hint))
+(verify-guards set-rm-file
+  :hints (("Goal"
+           :in-theory (enable qbooleanp qboolean-fix))))
 
 (define set-smt-solver-params ((content smt-solver-params-p)
                                (hint smtlink-hint-p))
   :returns (new-hint smtlink-hint-p)
-  :short ""
-  :ignore-ok t
-  :irrelevant-formals-ok t
-  (b* ((hint (smtlink-hint-fix hint)))
-    hint))
+  :short "Set :smt-params"
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (smt-solver-params-fix content))
+       (new-hint (change-smtlink-hint hint :smt-params content)))
+    new-hint))
+(verify-guards set-smt-solver-params
+  :hints (("Goal"
+           :in-theory (enable smt-solver-params-p smt-solver-params-fix))))
 
 (define merge-smt-solver-cnf ((content smt-solver-cnf-p)
                               (hint smtlink-hint-p))
   :returns (new-hint smtlink-hint-p)
-  :short ""
-  :ignore-ok t
-  :irrelevant-formals-ok t
-  (b* ((hint (smtlink-hint-fix hint)))
-    hint))
+  :short "Set :smt-cnf"
+  :measure (len content)
+  :hints (("Goal" :in-theory (enable smt-solver-cnf-fix)))
+  :verify-guards nil
+  (b* ((hint (smtlink-hint-fix hint))
+       (content (smt-solver-cnf-fix content))
+       ((unless (consp content)) hint)
+       ((cons option (cons str rest)) content)
+       ((smtlink-hint h) hint)
+       (new-cnf (case option
+                  (:interface-dir
+                   (change-smtlink-config h.smt-cnf
+                                          :interface-dir (cadr str)))
+                  (:SMT-files-dir
+                   (change-smtlink-config h.smt-cnf
+                                          :SMT-files-dir (cadr str)))
+                  (:SMT-module
+                   (change-smtlink-config h.smt-cnf
+                                          :SMT-module (cadr str)))
+                  (:SMT-class
+                   (change-smtlink-config h.smt-cnf
+                                          :SMT-class (cadr str)))
+                  (:SMT-cmd
+                   (change-smtlink-config h.smt-cnf
+                                          :SMT-cmd (cadr str)))
+                  (t
+                   (change-smtlink-config h.smt-cnf
+                                          :file-format (cadr str)))))
+       (new-hint (change-smtlink-hint hint :smt-cnf new-cnf)))
+    (merge-smt-solver-cnf rest new-hint)))
+
+(verify-guards merge-smt-solver-cnf
+  :guard-debug t
+  :hints (("Goal" :in-theory (enable smt-solver-cnf-fix smt-solver-cnf-p
+                                     smt-solver-cnf-p-helper)
+           :use ((:instance stringp-of-cadr)))))
 
 (define combine-hints ((user-hint smtlink-hint-syntax-p) (hint smtlink-hint-p))
   :returns (combined-hint smtlink-hint-p)
+  :hints (("Goal" :in-theory (enable smtlink-hint-syntax-fix)))
+  :measure (len user-hint)
   :short "Combining user-hints into smt-hint."
-  :ignore-ok t
-  :irrelevant-formals-ok t
   :verify-guards nil
   (b* ((hint (smtlink-hint-fix hint))
        (user-hint (smtlink-hint-syntax-fix user-hint))
@@ -802,7 +912,7 @@
                    (:rm-file (set-rm-file second hint))
                    (:smt-solver-params (set-smt-solver-params second hint))
                    (t (merge-smt-solver-cnf second hint)))))
-    new-hint))
+    (combine-hints rest new-hint)))
 
 (defthm true-listp-of-smtlink-hint-syntax-p
   (implies (smtlink-hint-syntax-p x)
@@ -819,7 +929,8 @@
            :use ((:instance true-listp-of-smtlink-hint-syntax-p (x user-hint))
                  (:instance crock (x user-hint))
                  (:instance function-lst-syntax-p-of-option)
-                 (:instance function-lst-syntax-p-constraint)))))
+                 (:instance function-lst-syntax-p-constraint)
+                 (:instance smtlink-hint-syntax-preserve)))))
 
   (define process-hint ((cl pseudo-term-listp) (user-hint t))
     :returns (subgoal-lst pseudo-term-list-listp)
