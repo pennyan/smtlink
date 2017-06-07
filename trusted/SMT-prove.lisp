@@ -45,6 +45,7 @@
                    (tshell-call cmd :print print :save save)))
                (implies lines (stringp (car lines))))))
 
+    (local (in-theory (enable string-or-symbol-p)))
     (define make-fname ((dir stringp) (fname stringp) (suffix stringp))
       :returns (full-fname stringp)
       :guard-debug t

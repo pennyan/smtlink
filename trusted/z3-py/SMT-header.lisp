@@ -14,6 +14,7 @@
   :parent (Smtlink)
   :short "SMT-header contains string definitions for the header of a Z3 file."
 
+  (local (in-theory (enable paragraphp wordp)))
   (define SMT-head ((smt-conf smtlink-config-p))
     :returns (mv (head paragraphp)
                  (import paragraphp))

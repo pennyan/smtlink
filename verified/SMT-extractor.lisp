@@ -30,6 +30,10 @@
     (implies (and (pseudo-term-listp x) (pseudo-term-listp y))
              (pseudo-term-listp (append x y))))
 
+  (local (in-theory (enable pseudo-termp pseudo-term-listp
+                            pseudo-term-fix
+                            pseudo-term-list-fix)))
+
   (defines extract
     :parents (SMT-extractor)
     :short "Functions for extracting type declarations from clause."

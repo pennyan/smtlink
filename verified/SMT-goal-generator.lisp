@@ -24,9 +24,9 @@
 ;; To be compatible with Arithmetic books
 (include-book "ordinals/lexicographic-ordering-without-arithmetic" :dir :system)
 
-(defsection SMT-goal-generator
-  :parents (Smtlink)
-  :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
+;; (defsection SMT-goal-generator
+;;   :parents (Smtlink)
+;;   :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
 
   (defalist sym-nat-alist
     :key-type symbol
@@ -51,7 +51,6 @@
     :returns (updated-fn-lvls sym-nat-alistp)
     :measure (len fn-lvls)
     :hints (("Goal" :in-theory (enable sym-nat-alist-fix)))
-    :enabled t
     (b* ((fn (symbol-fix fn))
          (fn-lvls (sym-nat-alist-fix fn-lvls))
          ((unless (consp fn-lvls)) nil)
@@ -151,7 +150,6 @@
                                                  (x (sum-lvls (cdr (sym-nat-alist-fix fn-lvls)))))))))
     :measure (len fn-lvls)
     :hints (("Goal" :in-theory (enable sym-nat-alist-fix)))
-    :enabled t
     (b* ((fn-lvls (sym-nat-alist-fix fn-lvls))
          ((unless (consp fn-lvls)) 0)
          ((cons first rest) fn-lvls)
@@ -165,11 +163,11 @@
                     (assoc-equal fn fn-lvls)
                     (not (equal (cdr (assoc-equal fn fn-lvls)) 0)))
                (< (sum-lvls (update-fn-lvls fn fn-lvls))
-                  (sum-lvls fn-lvls)))))
+                  (sum-lvls fn-lvls)))
+      :hints (("Goal" :in-theory (enable update-fn-lvls)))))
 
   (define expand-measure ((expand-args ex-args-p))
     :returns (m nat-listp)
-    :enabled t
     :parents (expand)
     :short "@(see acl2::Measure) function for proving termination of function
     @(see expand)."
@@ -339,6 +337,7 @@
                (consp (assoc-equal foo (ex-args->fn-lvls x)))))
     )
 
+  (local (in-theory (enable expand-measure)))
   (encapsulate
     ()
     (set-well-founded-relation l<)
@@ -543,7 +542,6 @@
     :returns (fn-lvls sym-nat-alistp)
     :measure (len fn-lst)
     :hints (("Goal" :in-theory (enable func-alist-fix)))
-    :enabled t
     (b* ((fn-lst (func-alist-fix fn-lst))
          ((unless (consp fn-lst)) nil)
          ((cons first rest) fn-lst)
@@ -556,7 +554,6 @@
                                  (wrld-fn-len natp)
                                  state)
     :returns (hyp-hint-lst hint-pair-listp)
-    :enabled t
     (b* (((if (endp hyp-lst)) nil)
          ((cons (hint-pair hyp) rest) hyp-lst)
          (expand-result
@@ -572,7 +569,6 @@
 
   (define lambda->actuals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
     :returns (new-actuals pseudo-term-listp)
-    :enabled t
     (b* ((formals (symbol-list-fix formals))
          (actuals (pseudo-term-list-fix actuals))
          (len-formals (len formals))
@@ -582,7 +578,6 @@
 
   (define lambda->formals-fix ((formals symbol-listp) (actuals pseudo-term-listp))
     :returns (new-formals symbol-listp)
-    :enabled t
     (b* ((formals (symbol-list-fix formals))
          (actuals (pseudo-term-list-fix actuals))
          (len-formals (len formals))
@@ -590,6 +585,7 @@
          ((if (equal len-formals len-actuals)) formals))
       nil))
 
+  (local (in-theory (enable lambda->formals-fix lambda->actuals-fix)))
   (defprod lambda-binding
     ((formals symbol-listp
               :default nil
@@ -607,7 +603,6 @@
   (define generate-lambda-bindings ((lambda-bd-lst lambda-binding-listp) (term pseudo-termp))
     :returns (new-term pseudo-termp)
     :measure (len lambda-bd-lst)
-    :enabled t
     (b* ((lambda-bd-lst (lambda-binding-list-fix lambda-bd-lst))
          (term (pseudo-term-fix term))
          ((unless (consp lambda-bd-lst)) term)
@@ -633,7 +628,6 @@
   ;;   Smtlink-hint.
   (define generate-fn-hint-pair ((hypo hint-pair-p) (args fhg-single-args-p))
     :returns (fn-hint-pair hint-pair-p)
-    :enabled t
     (b* ((hypo (hint-pair-fix hypo))
          (args (fhg-single-args-fix args))
          ((hint-pair h) hypo)
@@ -661,7 +655,6 @@
   (define generate-fn-returns-hint ((returns decl-listp) (args fhg-single-args-p))
     :returns (fn-hint-lst hint-pair-listp)
     :measure (len returns)
-    :enabled t
     (b* ((returns (decl-list-fix returns))
          (args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
@@ -677,7 +670,6 @@
   (define generate-fn-more-returns-hint ((more-returns hint-pair-listp) (args fhg-single-args-p))
     :returns (fn-hint-lst hint-pair-listp)
     :measure (len more-returns)
-    :enabled t
     (b* ((more-returns (hint-pair-list-fix more-returns))
          (args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
@@ -689,7 +681,6 @@
 
   (define generate-fn-hint ((args fhg-single-args-p))
     :returns (fn-hint-lst hint-pair-listp)
-    :enabled t
     (b* ((args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
          ((func f) a.fn)
@@ -872,7 +863,6 @@
   ;; Should this function be in this file?
   (define is-type-decl ((type pseudo-termp))
     :returns (is? booleanp)
-    :enabled t
     (b* ((type (pseudo-term-fix type))
          ((unless (consp type)) nil))
       (and (equal (len type) 2)
@@ -881,6 +871,7 @@
 
   ;; --------------------------------------------------------------------
 
+  (local (in-theory (enable is-type-decl)))
   (define structurize-type-decl-list ((type-decl-list pseudo-term-listp))
     :returns (structured-decl-list decl-listp)
     (b* ((type-decl-list (pseudo-term-list-fix type-decl-list))
@@ -985,4 +976,4 @@
     (verify-guards SMT-goal-generator)
     )
 
-)
+;; )

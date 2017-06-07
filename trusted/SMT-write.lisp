@@ -19,6 +19,7 @@
   :parent (Smtlink)
   :short "SMT-write writes out the translated string to a SMT file as configured."
 
+  (local (in-theory (enable characterp wordp)))
   (define princ$-paragraph ((par paragraphp) (channel symbolp) (state))
     (declare (xargs :guard (open-output-channel-p channel :character state)
                     :stobjs state))

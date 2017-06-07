@@ -112,12 +112,13 @@
   ;;    ...
   ;;    ((hint-please An-hint) An G)
   ;;
+  (local (in-theory (enable pseudo-term-list-listp pseudo-termp hint-pair-p
+                            hint-pair-listp true-listp)))
   (define construct-smtlink-subgoals ((hinted-As hint-pair-listp)
                                       (hinted-G-prim hint-pair-p)
-                                      (smt-hint listp)
+                                      (smt-hint true-listp)
                                       (G pseudo-termp))
     :returns (subgoals pseudo-term-list-listp)
-    :enabled t
     (b* ((hinted-As (hint-pair-list-fix hinted-As))
          (hinted-G-prim (hint-pair-fix hinted-G-prim))
          (smt-hint (true-list-fix smt-hint))
@@ -143,7 +144,6 @@
 
   ;; (define Smtlink-subgoals ((cl pseudo-term-listp) (smtlink-hint smtlink-hint-p))
   ;;   :returns (subgoal-lst pseudo-term-list-listp)
-  ;;   :enabled t
   ;;   (b* ((cl (mbe :logic (pseudo-term-list-fix cl) :exec cl))
   ;;        (smtlink-hint (mbe :logic (smtlink-hint-fix smtlink-hint) :exec smtlink-hint))
   ;;        (hinted-As (smtlink-hint->aux-hint-list smtlink-hint))
@@ -151,9 +151,11 @@
   ;;        (smt-hint (smtlink-hint->smt-hint smtlink-hint)))
   ;;     (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint (disjoin cl))))
 
+(local (in-theory (enable smtlink-hint-p smtlink-hint->aux-hint-list
+                          smtlink-hint->expanded-clause-w/-hint)))
   (define Smtlink-subgoals ((cl pseudo-term-listp) (smtlink-hint t))
     :returns (subgoal-lst pseudo-term-list-listp)
-    :enabled t
+    :guard-debug t
     (b* (((unless (pseudo-term-listp cl)) nil)
          ((unless (smtlink-hint-p smtlink-hint)) (list (remove-hint-please cl)))
          (cl (remove-hint-please cl))
@@ -172,6 +174,7 @@
   ;;         Prove correctness of clause processor
   ;;
 
+  (local (in-theory (enable Smtlink-subgoals construct-smtlink-subgoals)))
   (defthm correctness-of-Smtlink-subgoals-crock
     (implies (and (pseudo-term-listp cl)
                   (alistp b)

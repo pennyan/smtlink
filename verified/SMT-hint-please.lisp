@@ -40,7 +40,10 @@
 
   ;; Function for removing hint-please from the clause.
   (define remove-hint-please ((cl pseudo-term-listp))
-    :returns (cl-removed pseudo-term-listp)
+    :returns (cl-removed pseudo-term-listp
+                         :hints (("Goal"
+                                  :in-theory (enable pseudo-term-listp
+                                                     pseudo-term-list-fix))))
     (b* ((- (cw "cl: ~q0" cl))
          (cl (pseudo-term-list-fix cl))
          ((unless (consp cl)) cl))

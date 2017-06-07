@@ -23,16 +23,15 @@
   (define SMT-numberp (sym)
     (declare (xargs :guard t))
     :returns (is? booleanp)
-    :enabled t
     (if (or (rationalp sym) (integerp sym) (real/rationalp sym))
         t nil))
 
   (define SMT-number-fix ((num SMT-numberp))
     :returns (fixed SMT-numberp)
-    :enabled t
     (mbe :logic (if (SMT-numberp num) num 0)
          :exec num))
 
+  (local (in-theory (enable SMT-number-fix)))
   (deffixtype SMT-number
     :fix SMT-number-fix
     :pred SMT-numberp
@@ -42,7 +41,6 @@
   (define wordp (atom)
     (declare (xargs :guard t))
     :returns (word? booleanp)
-    :enabled t
     (if (or (acl2-numberp atom)
             (symbolp atom)
             (characterp atom)
@@ -52,7 +50,6 @@
 
   (define word-fix ((atom wordp))
     :returns (fixed wordp)
-    :enabled t
     (mbe :logic (if (wordp atom) atom nil)
          :exec atom)
     ///
@@ -60,6 +57,7 @@
      (fixed (equal (word-fix fixed) fixed)
             :name equal-word-fixed)))
 
+  (local (in-theory (enable word-fix)))
   (deffixtype word
     :fix word-fix
     :pred wordp
@@ -140,6 +138,7 @@
       :define t)
     )
 
+  (local (in-theory (enable SMT-numberp characterp)))
   (define translate-number ((num SMT-numberp))
     :returns (translated paragraphp :hints (("Goal" :in-theory (enable wordp paragraphp))))
     :guard-debug t
@@ -148,6 +147,7 @@
           `("_SMT_.Qx(" ,(numerator num) "," ,(denominator num) ")")))
       (list num)))
 
+  (local (in-theory (enable string-or-symbol-p)))
   (define translate-symbol ((sym symbolp))
     :returns (translated paragraphp
                          :hints (("Goal" :in-theory (enable paragraphp wordp))))
@@ -496,6 +496,7 @@
            (prove-theorem `("_SMT_.prove(theorem)" #\Newline)))
         (mv `(,theorem-assign ,prove-theorem) short-uninterpreted))))
 
+  (local (in-theory (enable paragraphp translate-type)))
   (define translate-uninterpreted-arguments ((type symbolp) (args decl-listp) (int-to-rat booleanp))
     :returns (translated paragraphp
                          :hints (("Goal" :in-theory (disable true-listp))))
@@ -510,6 +511,7 @@
       (cons `(#\, #\Space ,translated-type #\( #\))
             (translate-uninterpreted-arguments type rest int-to-rat))))
 
+  (local (in-theory (enable wordp)))
   (define translate-uninterpreted-decl ((fn func-p) (int-to-rat booleanp))
     :returns (translated paragraphp)
     (b* ((fn (mbe :logic (func-fix fn) :exec fn))

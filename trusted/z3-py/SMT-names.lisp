@@ -20,9 +20,13 @@
 
   (define character-fix (x)
     (declare (xargs :guard (characterp x)))
-    :enabled t
     (mbe :logic (if (characterp x) x (code-char 0))
          :exec x))
+
+  (defthm character-fix-idempotent-lemma
+    (equal (character-fix (character-fix x))
+           (character-fix x))
+    :hints (("Goal" :in-theory (enable character-fix))))
 
   (deffixtype character
     :fix character-fix
@@ -30,6 +34,7 @@
     :equiv character-equiv
     :define t)
 
+  (local (in-theory (enable character-fix)))
   (defalist special-char-alist
     :key-type character
     :val-type character-listp
@@ -139,20 +144,20 @@
 
   (define string-or-symbol-p (name)
     :returns (p? booleanp)
-    :enabled t
     (or (stringp name) (symbolp name)))
 
   (define string-or-symbol-fix ((x string-or-symbol-p))
-    :enabled t
     (mbe :logic (if (string-or-symbol-p x) x nil)
          :exec x))
 
+  (local (in-theory (enable string-or-symbol-fix)))
   (deffixtype string-or-symbol
     :fix string-or-symbol-fix
     :pred string-or-symbol-p
     :equiv string-or-symbol-equiv
     :define t)
 
+  (local (in-theory (enable characterp string-or-symbol-p)))
   ;; lisp-to-python-names
   (define lisp-to-python-names ((var string-or-symbol-p))
     :returns (name stringp)

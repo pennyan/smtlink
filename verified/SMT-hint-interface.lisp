@@ -24,10 +24,8 @@
   ;;    to pass in a different hint.
   ;;
 
-  (define pseudo-term-fix (x)
-    (declare (xargs :guard (pseudo-termp x)))
+  (define pseudo-term-fix ((x pseudo-termp))
     :returns (fixed pseudo-termp)
-    :enabled t
     (mbe :logic (if (pseudo-termp x) x nil)
          :exec x)
     ///
@@ -35,16 +33,21 @@
      (fixed (implies (pseudo-termp x) (equal fixed x))
             :name equal-fixed-and-x-of-pseudo-termp)))
 
+  (defthm pseudo-term-fix-idempotent-lemma
+    (equal (pseudo-term-fix (pseudo-term-fix x))
+           (pseudo-term-fix x))
+    :hints (("Goal" :in-theory (enable pseudo-term-fix))))
+
   (deffixtype pseudo-term
     :fix pseudo-term-fix
     :pred pseudo-termp
     :equiv pseudo-term-equiv
-    :define t)
+    :define t
+    :forward t
+    :topic pseudo-termp)
 
-  (define pseudo-term-list-fix (x)
-    (declare (xargs :guard (pseudo-term-listp x)))
+  (define pseudo-term-list-fix ((x pseudo-term-listp))
     :returns (new-x pseudo-term-listp)
-    :enabled t
     (mbe :logic (if (consp x)
                     (cons (pseudo-term-fix (car x))
                           (pseudo-term-list-fix (cdr x)))
@@ -54,7 +57,8 @@
     (more-returns
      (new-x (<= (acl2-count new-x) (acl2-count x))
             :name acl2-count-<=-pseudo-term-list-fix
-            :rule-classes :linear)
+            :rule-classes :linear
+            :hints (("Goal" :in-theory (enable pseudo-term-fix))))
      (new-x (implies (pseudo-term-listp x)
                      (equal new-x x))
             :name equal-pseudo-term-list-fix)
@@ -63,27 +67,37 @@
             :name len-equal-pseudo-term-list-fix
             :rule-classes :linear)))
 
+  (defthm pseudo-term-list-fix-idempotent-lemma
+    (equal (pseudo-term-list-fix (pseudo-term-list-fix x))
+           (pseudo-term-list-fix x))
+    :hints (("Goal" :in-theory (enable pseudo-term-list-fix))))
+
   (deffixtype pseudo-term-list
     :fix pseudo-term-list-fix
     :pred pseudo-term-listp
     :equiv pseudo-term-list-equiv
     :define t)
 
-  (define pseudo-term-list-list-fix (x)
-    (declare (xargs :guard (pseudo-term-list-listp x)))
+  (define pseudo-term-list-list-fix ((x pseudo-term-list-listp))
     :returns (fixed pseudo-term-list-listp)
-    :enabled t
     (mbe :logic (if (consp x)
                     (cons (pseudo-term-list-fix (car x))
                           (pseudo-term-list-list-fix (cdr x)))
                   nil)
          :exec x))
 
+  (defthm pseudo-term-list-list-fix-idempotent-lemma
+    (equal (pseudo-term-list-list-fix (pseudo-term-list-list-fix x))
+           (pseudo-term-list-list-fix x))
+    :hints (("Goal" :in-theory (enable pseudo-term-list-list-fix))))
+
   (deffixtype pseudo-term-list-list
     :fix pseudo-term-list-list-fix
     :pred pseudo-term-list-listp
     :equiv pseudo-term-list-list-equiv
-    :define t)
+    :define t
+    :forward t
+    :topic pseudo-term-list-listp)
 
   (defalist pseudo-term-alist
     :key-type pseudo-term
@@ -91,20 +105,30 @@
     :pred pseudo-term-alistp
     :true-listp t)
 
-  (define true-list-fix ((lst t))
+  (define true-list-fix ((lst true-listp))
     :short "Fixing function for true-listp."
     :returns (fixed-lst true-listp)
-    (if (true-listp lst)
-        lst
-      nil))
+    (mbe :logic (if (consp lst)
+                    (cons (car lst)
+                          (true-list-fix (cdr lst)))
+                  nil)
+         :exec lst))
+
+  (defthm true-list-fix-idempotent-lemma
+    (equal (true-list-fix (true-list-fix x))
+           (true-list-fix x))
+    :hints (("Goal" :in-theory (enable true-list-fix))))
 
   (deffixtype true-list
     :fix true-list-fix
     :pred true-listp
     :equiv true-list-equiv
-    :define t)
+    :define t
+    :forward t
+    :topic true-listp)
 
-
+  (local (in-theory (enable true-listp true-list-fix pseudo-termp
+                            pseudo-term-fix pseudo-term-listp pseudo-term-list-fix)))
   ;; (define list-fix (x)
   ;;   (declare (xargs :guard (listp x)))
   ;;   :enabled t
@@ -130,13 +154,13 @@
 
   (define decl->type-reqfix ((x hint-pair-p))
     :returns (fixed hint-pair-p)
-    :enabled t
     (b* ((x (hint-pair-fix x))
          (thm (hint-pair->thm x))
          (hints (hint-pair->hints x)))
       (make-hint-pair :thm (if (symbolp thm) thm nil)
                       :hints (true-list-fix hints))))
 
+  (local (in-theory (enable decl->type-reqfix)))
   (defprod decl
     ((name symbolp :default nil)
      (type hint-pair-p :default (make-hint-pair) :reqfix (decl->type-reqfix type)))
@@ -147,24 +171,24 @@
     :pred decl-listp
     :true-listp t)
 
-  (defalist decl-alist
-    :key-type symbol
-    :val-type decl
-    :pred decl-alistp)
+  ;; (defalist decl-alist
+  ;;   :key-type symbol
+  ;;   :val-type decl
+  ;;   :pred decl-alistp)
 
-  (define make-alist-decl-list ((decl-lst decl-listp))
-    :returns (decl-alist decl-alistp)
-    :measure (len decl-lst)
-    (b* ((decl-lst (decl-list-fix decl-lst))
-         ((unless (consp decl-lst)) nil)
-         ((cons first rest) decl-lst)
-         ((decl d) first))
-      (cons (cons d.name d) (make-alist-decl-list rest))))
+  ;; (define make-alist-decl-list ((decl-lst decl-listp))
+  ;;   :returns (decl-alist decl-alistp)
+  ;;   :measure (len decl-lst)
+  ;;   (b* ((decl-lst (decl-list-fix decl-lst))
+  ;;        ((unless (consp decl-lst)) nil)
+  ;;        ((cons first rest) decl-lst)
+  ;;        ((decl d) first))
+  ;;     (cons (cons d.name d) (make-alist-decl-list rest))))
 
   (defprod func
     ((name symbolp :default nil)
      (formals decl-listp :default nil)
-     (guard hint-pair-listp :default nil)
+     (guard hint-pair-p :default (make-hint-pair))
      (returns decl-listp :default nil)            ;; belong to auxiliary hypotheses
      (more-returns hint-pair-listp :default nil)  ;; belong to auxiliary hypotheses
      (body pseudo-termp :default nil)
@@ -252,7 +276,6 @@
     :returns (flattened-lst symbol-listp)
     :measure (len formal/return-lst)
     :hints (("Goal" :in-theory (enable decl-list-fix)))
-    :enabled t
     (b* ((formal/return-lst (decl-list-fix formal/return-lst))
          ((if (endp formal/return-lst)) nil)
          ((cons first rest) formal/return-lst)
@@ -263,7 +286,6 @@
     :short "@(call make-alist-fn-lst) makes fn-lst a fast alist"
     :returns (fast-fn-lst func-alistp)
     :measure (len fn-lst)
-    :enabled t
     (b* ((fn-lst (func-list-fix fn-lst))
          ((unless (consp fn-lst)) nil)
          ((cons first rest) fn-lst)
