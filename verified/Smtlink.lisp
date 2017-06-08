@@ -9,15 +9,16 @@
 (include-book "std/util/bstar" :dir :system)
 (include-book "std/util/define" :dir :system)
 (include-book "std/basic/inductions" :dir :system)
+(include-book "std/basic/defs" :dir :system)
 
 (include-book "SMT-hint-interface")
 (include-book "SMT-verified-cps")
 (include-book "SMT-config")
 
-(defsection Smtlink-process-user-hint
-  :parents (Smtlink)
-  :short "Functionalities for processing user hints given to Smtlink. User
-  hints will be merged with (smt-hint)."
+;; (defsection Smtlink-process-user-hint
+;;   :parents (Smtlink)
+;;   :short "Functionalities for processing user hints given to Smtlink. User
+;;   hints will be merged with (smt-hint)."
 
   ;; --------------------------------------------------------
 
@@ -30,7 +31,7 @@
   ;;                                          :level 1
   ;;                                          :guard ((> a0 0) :hints (:use ((:instance guard-lemma))))
   ;;                                          :more-returns (((> r0 0) :hints (:use ((:instance more-lemma)))))))
-  ;;                          :hypothesis (((> a b) :hints (:use ((:instance lemma)))))
+  ;;                          :hypotheses (((> a b) :hints (:use ((:instance lemma)))))
   ;;                          :main-hint (:use ((:instance thm1)))
   ;;                          :int-to-rat nil
   ;;                          :smt-fname ""
@@ -327,7 +328,7 @@
   (defconst *function-options*
     '((:formals . argument-lst-syntax-p)
       (:returns . argument-lst-syntax-p)
-      (:level . qnatp)
+      (:level . natp)
       (:guard . hypothesis-syntax-p)
       (:more-returns . hypothesis-lst-syntax-p)))
 
@@ -347,7 +348,7 @@
                                 :hints (("Goal" :in-theory (enable
                                                             function-option-type-p ))))
     :short "Fixing function for function-option-type."
-    (mbe :logic (if (function-option-type-p option-type) option-type 'qnatp)
+    (mbe :logic (if (function-option-type-p option-type) option-type 'natp)
          :exec option-type))
 
   (define function-option-name-p ((option-name t))
@@ -365,28 +366,41 @@
     (mbe :logic (if (function-option-name-p option-name) option-name ':formals)
          :exec option-name))
 
-  (define function-option-name-lst-p ((option-lst t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for option-lst."
-    (b* (((if (atom option-lst)) (equal option-lst nil))
-         ((cons first rest) option-lst))
-      (and (function-option-name-p first)
-           (function-option-name-lst-p rest))))
+(local (in-theory (enable function-option-name-fix)))
+(deffixtype function-option-name
+  :pred  function-option-name-p
+  :fix   function-option-name-fix
+  :equiv function-option-name-equiv
+  :define t
+  :forward t
+  :topic function-option-name-p)
 
-  (define function-option-name-lst-fix ((option-lst function-option-name-lst-p))
-    :returns (fixed-option-lst function-option-name-lst-p
-                               :hints (("Goal" :in-theory (enable function-option-name-lst-p))))
-    :short "Fixing function for option-name-lst."
-    :verify-guards nil
-    (mbe :logic (if (atom option-lst)
-                    nil
-                  (cons (function-option-name-fix (car option-lst))
-                        (function-option-name-lst-fix (cdr option-lst))))
-         :exec option-lst))
-  (verify-guards function-option-name-lst-fix
-    :hints (("Goal" :in-theory (enable function-option-name-fix
-                                       function-option-name-lst-fix
-                                       function-option-name-p function-option-name-lst-p))))
+(deflist function-option-name-lst
+  :elt-type function-option-name
+  :true-listp t)
+
+  ;; (define function-option-name-lst-p ((option-lst t))
+  ;;   :returns (syntax-good? booleanp)
+  ;;   :short "Recoginizer for option-lst."
+  ;;   (b* (((if (atom option-lst)) (equal option-lst nil))
+  ;;        ((cons first rest) option-lst))
+  ;;     (and (function-option-name-p first)
+  ;;          (function-option-name-lst-p rest))))
+
+  ;; (define function-option-name-lst-fix ((option-lst function-option-name-lst-p))
+  ;;   :returns (fixed-option-lst function-option-name-lst-p
+  ;;                              :hints (("Goal" :in-theory (enable function-option-name-lst-p))))
+  ;;   :short "Fixing function for option-name-lst."
+  ;;   :verify-guards nil
+  ;;   (mbe :logic (if (atom option-lst)
+  ;;                   nil
+  ;;                 (cons (function-option-name-fix (car option-lst))
+  ;;                       (function-option-name-lst-fix (cdr option-lst))))
+  ;;        :exec option-lst))
+  ;; (verify-guards function-option-name-lst-fix
+  ;;   :hints (("Goal" :in-theory (enable function-option-name-fix
+  ;;                                      function-option-name-lst-fix
+  ;;                                      function-option-name-p function-option-name-lst-p))))
 
   ;; The conditions in eval-type should go along with *function-options*
   (define eval-function-option-type ((option-type function-option-type-p) (term t))
@@ -395,7 +409,7 @@
     (b* ((option-type (function-option-type-fix option-type)))
       (case option-type
         (argument-lst-syntax-p (argument-lst-syntax-p term))
-        (qnatp (qnatp term))
+        (natp (natp term))
         (hypothesis-syntax-p (hypothesis-syntax-p term))
         (t (hypothesis-lst-syntax-p term)))))
 
@@ -407,7 +421,7 @@
     :verify-guards nil
     (b* ((used (function-option-name-lst-fix used))
          ((if (equal term nil)) (mv t used))
-         ((unless (and (true-listp term) (car term) (cadr term))) (mv nil used))
+         ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
          ((cons option body-lst) term)
          ((unless (function-option-name-p option)) (mv nil used))
          (option-type (cdr (assoc-equal option *function-options*))))
@@ -435,7 +449,7 @@
   ;; (verify-guards exist-odd-lst
   ;;   :hints (("Goal" :in-theory (enable true-list-fix))))
 
-  (define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
+(define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
     :returns (syntax-good? booleanp)
     :short "Helper for function-option-lst-syntax-p."
     (b* (((if (atom term)) (equal term nil))
@@ -445,7 +459,7 @@
       (and res (function-option-lst-syntax-p-helper rest new-used)))
     ///
     (defthm function-option-lst-syntax-p-constraint
-      (implies (and (function-option-lst-syntax-p-helper fun-opt-lst nil)
+      (implies (and (function-option-lst-syntax-p-helper fun-opt-lst any)
                     (consp fun-opt-lst))
                (or (equal (car fun-opt-lst) ':formals)
                    (equal (car fun-opt-lst) ':returns)
@@ -467,7 +481,7 @@
             (implies (equal (car fun-opt-lst) ':returns)
                      (argument-lst-syntax-p (cadr fun-opt-lst)))
             (implies (equal (car fun-opt-lst) ':level)
-                     (qnatp (cadr fun-opt-lst)))
+                     (natp (cadr fun-opt-lst)))
             (implies (equal (car fun-opt-lst) ':guard)
                      (hypothesis-syntax-p (cadr fun-opt-lst)))
             (implies (equal (car fun-opt-lst) ':more-returns)
@@ -476,15 +490,268 @@
                :in-theory (enable function-option-syntax-p
                                   eval-function-option-type))))
 
-    (skip-proofs
+    (defthm car-term-function-option-syntax-p
+      (implies (and (consp term)
+                    (function-option-lst-syntax-p-helper term used))
+               (function-option-name-p (car term)))
+      :hints (("Goal" :in-theory (enable function-option-syntax-p))))
+
+    (defthm caddr-term-function-option-syntax-p
+      (implies (and (consp (cddr term))
+                    (not (function-option-name-p (caddr term)))
+                    (function-option-lst-syntax-p-helper (cddr term) used))
+               (not (caddr term)))
+      :hints (("Goal" :in-theory (enable function-option-syntax-p))))
+    )
+
+(define list-containment ((list1 true-listp) (list2 true-listp))
+  :returns (p booleanp)
+  (b* (((unless (consp list1)) t)
+       ((unless (consp list2)) nil)
+       ((cons hd tl) list1))
+    (and (member-equal hd list2) (list-containment tl list2))))
+(defthm member-when-list-containment
+  (implies (and (true-listp list1) (true-listp list2)
+                (list-containment list1 list2)
+                (member-equal x list1))
+           (member-equal x list2))
+  :hints(("Goal" :in-theory (enable list-containment))))
+(defthm list-containment-of-cons
+  (implies (and (true-listp list1) (true-listp list2)
+                (list-containment list1 list2))
+           (list-containment (cons x list1) (cons x list2)))
+  :hints(("Goal" :in-theory (enable list-containment))))
+(defthm list-containment-of-append
+  (implies (and (true-listp list1a) (true-listp list1b)
+                (true-listp list2a) (true-listp list2b) ; or not to be?
+                (list-containment list1a list2a)
+                (list-containment list1b list2b))
+           (list-containment (append list1a list1b)
+                             (append list2a list2b)))
+  :hints(("Goal" :in-theory (enable list-containment))))
+
+(defthm lemma-1
+  (implies (and (function-option-name-lst-p used)
+                (assoc-equal opt *function-options*)
+                (eval-function-option-type (cdr (assoc-equal opt
+                                                             *function-options*))
+                                           val))
+           (iff (mv-nth 0 (function-option-syntax-p (list opt val) used))
+                (not (member-equal opt used))))
+  :hints(("Goal" :in-theory (enable function-option-syntax-p))))
+
+  (defthm lemma-2
+    (implies (and (function-option-name-lst-p used)
+                  (function-option-name-p new-opt)
+                  (mv-nth 0 (function-option-syntax-p (list opt val)
+                                                      (cons new-opt used))))
+             (mv-nth 0 (function-option-syntax-p (list opt val) used)))
+    :hints(("Goal" :in-theory (enable function-option-syntax-p))))
+
+(defthm lemma-3
+  (implies (and (function-option-name-lst-p used)
+                (mv-nth 0 (function-option-syntax-p (list opt val) used)))
+           (equal (mv-nth 1 (function-option-syntax-p (list opt val) used))
+                  (cons opt used)))
+  :hints(("goal" :in-theory (enable function-option-syntax-p))))
+
+(defthmd lemma-4
+  (implies (and (function-option-name-lst-p used-1)
+                (function-option-name-lst-p used-2)
+                (list-containment used-1 used-2)
+                (list-containment used-2 used-1))
+           (iff (mv-nth 0 (function-option-syntax-p (list opt val)
+                                                    used-1))
+                (mv-nth 0 (function-option-syntax-p (list opt val)
+                                                    used-2))))
+  :hints(("Goal" :in-theory (enable function-option-syntax-p))))
+
+(defthm lemma-5
+  (implies (function-option-name-p option) (assoc-equal option *function-options*))
+  :hints (("Goal" :in-theory (enable function-option-name-p))))
+
+(defthm lemma-6
+  (implies (and (function-option-name-lst-p used)
+                (mv-nth 0 (function-option-syntax-p (list opt val) used)))
+           (and (assoc-equal opt *function-options*)
+                (eval-function-option-type (cdr (assoc-equal opt
+                                                             *function-options*))
+                                           val)
+                (not (member-equal opt used))))
+  :hints(("Goal" :in-theory (enable function-option-syntax-p))))
+
+(defthm lemma-11
+  (implies (and (function-option-name-lst-p used)
+                (function-option-lst-syntax-p-helper term used)
+                term)
+           (and (assoc-equal (car term) *function-options*)
+                (eval-function-option-type
+                 (cdr (assoc-equal (car term) *function-options*))
+                 (cadr term))
+                (not (member-equal (car term) used))))
+  :hints(("Goal" :expand (function-option-lst-syntax-p-helper term used)
+          :in-theory (disable lemma-6)
+          :use((:instance lemma-6 (opt (car term)) (val (cadr term)) (used used))))))
+
+(defthmd lemma-12
+  (implies (and (function-option-name-lst-p used-1)
+                (function-option-name-lst-p used-2)
+                (list-containment used-1 used-2)
+                (list-containment used-2 used-1))
+           (iff (function-option-lst-syntax-p-helper term used-1)
+                (function-option-lst-syntax-p-helper term used-2)))
+  :hints(("Goal" :in-theory (enable function-option-lst-syntax-p-helper))
+         ("Subgoal *1/3"
+          :use((:instance lemma-4
+                          (used-1 used-1) (used-2 used-2)
+                          (opt (car term)) (val (cadr term))))
+          )
+         ("Subgoal *1/2" :use((:instance lemma-4
+                                         (used-1 used-1) (used-2 used-2)
+                                         (opt (car term)) (val (cadr term)))))
+         ))
+
+(defthmd lemma-13
+  (equal (list* x y z) (append (list x y ) z)))
+
+(defthmd lemma-14 (list-containment (list x y) (list y x))
+  :hints(("Goal" :in-theory (enable list-containment))))
+
+(defthmd reflexivity-of-list-containment
+  (implies (true-listp x) (list-containment x x)))
+
+(defthmd lemma-15 ;; may need a :use hint for reflexivity-of-list-containment
+  (implies (true-listp z)
+           (list-containment (append (list x y) z) (append (list y x) z)))
+  :hints(("Goal" :use((:instance lemma-14 (x x) (y y))
+                      (:instance list-containment-of-append
+                                 (list1a (list x y)) (list1b z)
+                                 (list2a (list y x)) (list2b z))
+                      (:instance reflexivity-of-list-containment (x z))))))
+
+(defthm lemma-yan
+  (implies (and (function-option-name-lst-p used-1)
+                (function-option-name-lst-p used-2)
+                (list-containment used-1 used-2)
+                (list-containment used-2 used-1)
+                (function-option-lst-syntax-p-helper term used-1))
+           (function-option-lst-syntax-p-helper term used-2))
+  :hints(("Goal" :in-theory (enable function-option-lst-syntax-p-helper)
+          :use ((:instance lemma-12)))))
+
+(defthm yan-2
+  (implies (and
+            (consp (cdr term))
+            (true-listp (cddr term))
+            (<= 2 (+ 2 (len (cddr term))))
+            (function-option-name-lst-p used)
+            (function-option-name-p new-opt)
+            (mv-nth 0
+                    (function-option-syntax-p (list (car term) (cadr term))
+                                              (cons new-opt used)))
+            (function-option-lst-syntax-p-helper (cddr term)
+                                                 (list* (car term) new-opt
+                                                        used)))
+           (function-option-name-p (car term)))
+  :hints (("Goal"
+           :in-theory (enable function-option-lst-syntax-p-helper)
+           :use ((:instance car-term-function-option-syntax-p
+                            (used (cons new-opt used)))))))
+
+(defthm yan-3
+  (implies (and
+            (consp (cdr term))
+            (true-listp (cddr term))
+            (<= 2 (+ 2 (len (cddr term))))
+            (function-option-name-lst-p used)
+            (function-option-name-p new-opt)
+            (mv-nth 0
+                    (function-option-syntax-p (list (car term) (cadr term))
+                                              (cons new-opt used)))
+            (function-option-lst-syntax-p-helper (cddr term)
+                                                 (list* (car term) new-opt
+                                                        used)))
+           (function-option-name-lst-p (list* (car term) new-opt used))))
+
+(defthm yan-4
+  (implies (and
+            (consp (cdr term))
+            (true-listp (cddr term))
+            (<= 2 (+ 2 (len (cddr term))))
+            (function-option-name-lst-p used)
+            (function-option-name-p new-opt)
+            (mv-nth 0
+                    (function-option-syntax-p (list (car term) (cadr term))
+                                              (cons new-opt used)))
+            (function-option-lst-syntax-p-helper (cddr term)
+                                                 (list* (car term) new-opt
+                                                        used)))
+           (function-option-name-lst-p (list* new-opt (car term) used))))
+
+(defthm yan-1
+  (implies
+   (and
+    (consp (cdr term))
+    (true-listp (cddr term))
+    (<= 2 (+ 2 (len (cddr term))))
+    (function-option-name-lst-p used)
+    (function-option-name-p new-opt)
+    (mv-nth 0
+            (function-option-syntax-p (list (car term) (cadr term))
+                                      (cons new-opt used)))
+    (function-option-lst-syntax-p-helper (cddr term)
+                                         (list* (car term) new-opt used)))
+   (function-option-lst-syntax-p-helper (cddr term)
+                                        (list* new-opt (car term) used)))
+  :hints (("Goal"
+           :use ((:instance lemma-3)
+                 (:instance lemma-4)
+                 (:instance lemma-yan
+                            (term (cddr term))
+                            (used-1 (list* (car term) new-opt used))
+                            (used-2 (list* new-opt (car term) used)))
+                 (:instance lemma-15 (x new-opt) (y (car term)) (z used))
+                 (:instance lemma-15 (x (car term)) (y new-opt) (z used))))))
+
+(defthm yan
+  (implies
+   (and
+    (consp (cdr term))
+    (true-listp (cddr term))
+    (<= 2 (+ 2 (len (cddr term))))
+    (not (function-option-lst-syntax-p-helper (cddr term)
+                                              (list* new-opt (car term) used)))
+    (function-option-name-lst-p used)
+    (function-option-name-p new-opt)
+    (mv-nth 0
+            (function-option-syntax-p (list (car term) (cadr term))
+                                      (cons new-opt used)))
+    (function-option-lst-syntax-p-helper (cddr term)
+                                         (list* (car term) new-opt used)))
+   (function-option-lst-syntax-p-helper (cddr term)
+                                        (cons (car term) used)))
+  :hints (("Goal" :use ((:instance yan-1)))))
+
+(defthm lemma-16
+  (implies (and (function-option-name-lst-p used)
+                (function-option-name-p new-opt)
+                (function-option-lst-syntax-p-helper term (cons new-opt used)))
+           (function-option-lst-syntax-p-helper term used))
+  :hints(("Goal"
+          :in-theory (enable function-option-lst-syntax-p-helper))))
+
      (defthm function-option-lst-syntax-preserve
        (implies (and (function-option-lst-syntax-p-helper term nil)
                      (consp term))
                 (function-option-lst-syntax-p-helper (cddr term)
                                                      nil))
        :hints (("Goal"
-                :in-theory (enable function-option-syntax-p))))
-     ))
+                :in-theory (enable function-option-lst-syntax-p-helper)
+                :use ((:instance lemma-16
+                                 (term (cddr term))
+                                 (new-opt (car term))
+                                 (used nil))))))
+
 
   (define function-option-lst-syntax-p ((term t))
     :returns (syntax-good? booleanp)
@@ -635,11 +902,12 @@
     :short "Recognizer for smt-solver-single-cnf."
     (b* ((used (cnf-option-lst-fix used))
          ((if (equal term nil)) (mv t used))
-         ((unless (and (true-listp term) (car term) (cadr term))) (mv nil used))
+         ((unless (and (true-listp term) (car term)
+                       (cadr term) (not (cddr term)))) (mv nil used))
          ((cons option body-lst) term)
          ((unless (cnf-option-p option)) (mv nil used)))
       (mv (and (not (member-equal option used))
-               (qstringp (car body-lst)))
+               (stringp (car body-lst)))
           (cons option used))))
 
   (defthm member-equal-preserve
@@ -662,10 +930,10 @@
     (defthm stringp-of-cadr
       (implies (and (smt-solver-cnf-p-helper content nil)
                     (consp content))
-               (stringp (cadadr content)))
+               (stringp (cadr content)))
       :hints (("Goal"
-               :in-theory (enable smt-solver-single-cnf-p cnf-option-p
-                                  qstringp))))
+               :in-theory (enable smt-solver-single-cnf-p))))
+
     (skip-proofs
      (defthm cddr-preserve
        (implies (and (smt-solver-cnf-p-helper content nil)
@@ -707,11 +975,11 @@
 
   (defconst *smtlink-options*
     '((:functions . function-lst-syntax-p)
-      (:hypothesis . hypothesis-lst-syntax-p)
+      (:hypotheses . hypothesis-lst-syntax-p)
       (:main-hint . hints-syntax-p)
-      (:int-to-rat . qbooleanp)
-      (:smt-fname . qstringp)
-      (:rm-file . qbooleanp)
+      (:int-to-rat . booleanp)
+      (:smt-fname . stringp)
+      (:rm-file . booleanp)
       (:smt-solver-params . smt-solver-params-p)
       (:smt-solver-cnf . smt-solver-cnf-p)))
 
@@ -775,8 +1043,8 @@
       (function-lst-syntax-p (function-lst-syntax-p term))
       (hypothesis-lst-syntax-p (hypothesis-lst-syntax-p term))
       (hints-syntax-p (hints-syntax-p term))
-      (qbooleanp (qbooleanp term))
-      (qstringp (qstringp term))
+      (booleanp (booleanp term))
+      (stringp (stringp term))
       (smt-solver-params-p (smt-solver-params-p term))
       (t (smt-solver-cnf-p term))))
 
@@ -788,10 +1056,15 @@
     :verify-guards nil
     (b* ((used (smtlink-option-name-lst-fix used))
          ((if (equal term nil)) (mv t used))
-         ((unless (and (true-listp term) (car term) (cadr term))) (mv nil used))
+         ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
          ((cons option body-lst) term)
+         (- (cw "(smtlink-option-name-p option): ~q0" (smtlink-option-name-p option)))
          ((unless (smtlink-option-name-p option)) (mv nil used))
-         (option-type (cdr (assoc-equal option *smtlink-options*))))
+         (option-type (cdr (assoc-equal option *smtlink-options*)))
+         (- (cw "option-type: ~q0" option-type))
+         (- (cw "body-lst: ~q0" body-lst))
+         (- (cw "(car body-lst): ~q0" (car body-lst)))
+         (- (cw "(eval-smtlink-option-type option-type (car body-lst)): ~q0" (eval-smtlink-option-type option-type (car body-lst)))))
       (mv (and (not (member-equal option used))
                (eval-smtlink-option-type option-type (car body-lst)))
           (cons option used))))
@@ -806,7 +1079,10 @@
     (b* (((if (atom term)) (equal term nil))
          ((unless (and (true-listp term) (>= (len term) 2))) nil)
          ((list* first second rest) term)
-         ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
+         (- (cw "first: ~q0" first))
+         (- (cw "second: ~q0" second))
+         ((mv res new-used) (smtlink-option-syntax-p (list first second) used))
+         (- (cw "res: ~q0" res)))
       (and res (smtlink-hint-syntax-p-helper rest new-used)))
     ///
     (defthm function-lst-syntax-p-constraint
@@ -814,7 +1090,7 @@
                     (consp user-hint)
                     (consp (cdr user-hint)))
                (or (equal (car user-hint) ':functions)
-                   (equal (car user-hint) ':hypothesis)
+                   (equal (car user-hint) ':hypotheses)
                    (equal (car user-hint) ':main-hint)
                    (equal (car user-hint) ':int-to-rat)
                    (equal (car user-hint) ':smt-fname)
@@ -833,16 +1109,16 @@
             (consp user-hint))
        (and (implies (equal (car user-hint) ':functions)
                      (function-lst-syntax-p (cadr user-hint)))
-            (implies (equal (car user-hint) ':hypothesis)
+            (implies (equal (car user-hint) ':hypotheses)
                      (hypothesis-lst-syntax-p (cadr user-hint)))
             (implies (equal (car user-hint) ':main-hint)
                      (hints-syntax-p (cadr user-hint)))
             (implies (equal (car user-hint) ':int-to-rat)
-                     (qbooleanp (cadr user-hint)))
+                     (booleanp (cadr user-hint)))
             (implies (equal (car user-hint) ':smt-fname)
-                     (qstringp (cadr user-hint)))
+                     (stringp (cadr user-hint)))
             (implies (equal (car user-hint) ':rm-file)
-                     (qbooleanp (cadr user-hint)))
+                     (booleanp (cadr user-hint)))
             (implies (equal (car user-hint) ':smt-solver-params)
                      (smt-solver-params-p (cadr user-hint)))
             (implies (equal (car user-hint) ':smt-solver-cnf)
@@ -1022,19 +1298,19 @@
          (new-func (case option
                      (:formals (make-merge-formals content smt-func))
                      (:returns (make-merge-returns content smt-func))
-                     (:level (change-func smt-func :expansion-depth (cadr content)))
+                     (:level (change-func smt-func :expansion-depth content))
                      (:guard (make-merge-guard content smt-func))
                      (:more-returns (make-merge-more-returns content smt-func)))))
       (make-merge-function-option-lst rest new-func)))
-  (verify-guards make-merge-function-option-lst
-    :hints (("Goal"
-             :in-theory (enable function-option-lst-syntax-fix
-                                function-option-lst-syntax-p
-                                function-option-lst-syntax-p-helper
-                                hypothesis-lst-syntax-p
-                                qnatp)
-             :use ((:instance function-option-lst-syntax-p-of-option)
-                   (:instance function-option-lst-syntax-p-constraint)))))
+(verify-guards make-merge-function-option-lst
+  :hints (("Goal"
+           :in-theory (e/d (function-option-lst-syntax-fix
+                            function-option-lst-syntax-p
+                            function-option-lst-syntax-p-helper
+                            hypothesis-lst-syntax-p) (natp))
+           :use ((:instance function-option-lst-syntax-p-of-option)
+                 (:instance function-option-lst-syntax-p-constraint (any nil)))
+           )))
 
   (define make-merge-function ((func function-syntax-p) (smt-func func-p))
     :returns (func func-p)
@@ -1121,44 +1397,28 @@
     :hints (("Goal"
              :in-theory (enable hints-syntax-p))))
 
-  (define set-int-to-rat ((content qbooleanp)
+  (define set-int-to-rat ((content booleanp)
                           (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
     :short "Set :int-to-rat based on user hint."
-    :verify-guards nil
     (b* ((hint (smtlink-hint-fix hint))
-         (content (qboolean-fix content))
-         (new-hint (change-smtlink-hint hint :int-to-rat (cadr content))))
+         (new-hint (change-smtlink-hint hint :int-to-rat content)))
       new-hint))
 
-  (verify-guards set-int-to-rat
-    :hints (("Goal"
-             :in-theory (enable qbooleanp qboolean-fix))))
-
-  (define set-fname ((content qstringp) (hint smtlink-hint-p))
+  (define set-fname ((content stringp) (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
     :short "Set :smt-fname."
-    :verify-guards nil
     (b* ((hint (smtlink-hint-fix hint))
-         (content (qstring-fix content))
-         (new-hint (change-smtlink-hint hint :smt-fname (cadr content))))
+         (new-hint (change-smtlink-hint hint :smt-fname content)))
       new-hint))
-  (verify-guards set-fname
-    :hints (("Goal"
-             :in-theory (enable qstringp qstring-fix))))
 
-  (define set-rm-file ((content qbooleanp)
+  (define set-rm-file ((content booleanp)
                        (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
     :short "Set :rm-file"
-    :verify-guards nil
     (b* ((hint (smtlink-hint-fix hint))
-         (content (qboolean-fix content))
-         (new-hint (change-smtlink-hint hint :rm-file (cadr content))))
+         (new-hint (change-smtlink-hint hint :rm-file content)))
       new-hint))
-  (verify-guards set-rm-file
-    :hints (("Goal"
-             :in-theory (enable qbooleanp qboolean-fix))))
 
   (define set-smt-solver-params ((content smt-solver-params-p)
                                  (hint smtlink-hint-p))
@@ -1188,22 +1448,22 @@
          (new-cnf (case option
                     (:interface-dir
                      (change-smtlink-config h.smt-cnf
-                                            :interface-dir (cadr str)))
+                                            :interface-dir str))
                     (:SMT-files-dir
                      (change-smtlink-config h.smt-cnf
-                                            :SMT-files-dir (cadr str)))
+                                            :SMT-files-dir str))
                     (:SMT-module
                      (change-smtlink-config h.smt-cnf
-                                            :SMT-module (cadr str)))
+                                            :SMT-module str))
                     (:SMT-class
                      (change-smtlink-config h.smt-cnf
-                                            :SMT-class (cadr str)))
+                                            :SMT-class str))
                     (:SMT-cmd
                      (change-smtlink-config h.smt-cnf
-                                            :SMT-cmd (cadr str)))
+                                            :SMT-cmd str))
                     (t
                      (change-smtlink-config h.smt-cnf
-                                            :file-format (cadr str)))))
+                                            :file-format str))))
          (new-hint (change-smtlink-hint hint :smt-cnf new-cnf)))
       (merge-smt-solver-cnf rest new-hint)))
 
@@ -1231,7 +1491,7 @@
                                                     (change-smtlink-hint
                                                      hint
                                                      :fast-functions fast-funcs))))
-                     (:hypothesis (merge-hypothesis second hint))
+                     (:hypotheses (merge-hypothesis second hint))
                      (:main-hint (merge-main-hint second hint))
                      (:int-to-rat (set-int-to-rat second hint))
                      (:smt-fname (set-fname second hint))
@@ -1300,4 +1560,4 @@
   ;;   expansion and transformation.
   (defmacro Smtlink (clause hint)
     `(process-hint ,clause ,hint))
-  )
+;;  )

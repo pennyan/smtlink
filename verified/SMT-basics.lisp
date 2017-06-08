@@ -14,7 +14,7 @@
 
   (defconst *SMT-basics*
     (append
-     '(rationalp realp real/rationalp booleanp integerp)
+     '(rationalp realp booleanp integerp)
      '(binary-+ binary-* unary-/ unary--
                 equal <
                 implies if not
@@ -46,14 +46,12 @@
     ;;(ACL2 type      .  SMT type)
     `((realp          . "_SMT_.isReal")
       (rationalp      . "_SMT_.isReal")
-      (real/rationalp . "_SMT_.isReal")
       (integerp       . "_SMT_.isInt")
       (booleanp       . "_SMT_.isBool")))
 
   (defconst *SMT-uninterpreted-types*
     `((realp          . "_SMT_.R")
       (rationalp      . "_SMT_.R")
-      (real/rationalp . "_SMT_.R")
       (integerp       . "_SMT_.Z")
       (booleanp       . "_SMT_.B")))
 )

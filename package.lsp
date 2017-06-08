@@ -55,6 +55,7 @@
       with-fast-alists
       formals
       strip-cadrs
+      bfix
 
       read-string
 

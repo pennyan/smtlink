@@ -91,11 +91,11 @@
                          '(:functions ()
                            :hypotheses ()
                            :main-hint ()
-                           :int-to-rat t
-                           ;; :smt-fname ""
+                           :smt-fname ""
+                           :int-to-rat nil
                            :rm-file nil
                            :smt-solver-params nil
-                           :smt-cnf nil)))))
+                           :smt-solver-cnf nil)))))
 
 ;; Buggy example
 (acl2::must-fail

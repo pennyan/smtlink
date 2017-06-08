@@ -5,4 +5,4 @@
 ;; See the LICENSE file distributed with this software
 
 (include-book "../portcullis")
-; cert-flags: ? t :ttags :all
+; cert-flags: ? t :ttags :all :skip-proofs-okp t
