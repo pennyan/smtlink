@@ -52,6 +52,7 @@
   (defconst *SMT-uninterpreted-types*
     `((realp          . "_SMT_.R")
       (rationalp      . "_SMT_.R")
+      (real/rationalp . "_SMT_.R")
       (integerp       . "_SMT_.Z")
       (booleanp       . "_SMT_.B")))
 )

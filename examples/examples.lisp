@@ -32,7 +32,7 @@
   (declare (xargs :guard t))
   (change-smtlink-hint
    *default-smtlink-hint*
-   :functions nil
+   :functions (list (make-func :name 'expt :uninterpreted t))
    :rm-file nil
    :smt-params nil
    :smt-cnf (my-smtlink-expt-config)))
@@ -53,29 +53,6 @@
           :clause-processor
           (SMT::Smtlink clause nil))))
 
-(defun my-smtlink-hint-2 ()
-  (declare (xargs :guard t :guard-debug t))
-  (change-smtlink-hint
-   *default-smtlink-hint*
-   :functions (list (make-func :name 'expt
-                               :formals (list (make-decl :name 'r
-                                                         :type (make-hint-pair :thm 'real/rationalp :hints nil))
-                                              (make-decl :name 'i
-                                                         :type (make-hint-pair :thm 'real/rationalp :hints nil)))
-                               :returns (list (make-decl :name 'ex
-                                                         :type (make-hint-pair :thm 'real/rationalp :hints nil)))
-                               :expansion-depth 0
-                               :uninterpreted t))
-   :hypotheses (list (make-hint-pair :thm '(< (expt z n) (expt z m)))
-                     (make-hint-pair :thm '(< '0 (expt z m)))
-                     (make-hint-pair :thm '(< '0 (expt z n))))
-   :rm-file nil
-   :smt-params nil
-   :smt-cnf (my-smtlink-expt-config)
-   :int-to-rat t))
-
-(defattach smt-hint my-smtlink-hint-2)
-
 ;; Example 2
 ;; Currently failing this theorem because we are using uninterpreted functions
 (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
@@ -88,11 +65,16 @@
   :hints (("Goal"
            :clause-processor
            (SMT::Smtlink clause
-                         '(:functions ()
-                           :hypotheses ()
-                           :main-hint ()
+                         '(:functions ((expt :formals ((r rationalp)
+                                                       (i rationalp))
+                                             :returns ((ex rationalp))
+                                             :level 0))
+                           :hypotheses (((< (expt z n) (expt z m)))
+                                        ((< '0 (expt z m)))
+                                        ((< '0 (expt z n))))
+                           :main-hint nil
                            :smt-fname ""
-                           :int-to-rat nil
+                           :int-to-rat t
                            :rm-file nil
                            :smt-solver-params nil
                            :smt-solver-cnf nil)))))
