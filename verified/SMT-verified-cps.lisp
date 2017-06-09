@@ -166,7 +166,6 @@
          (smt-hint `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state)))
          (full (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint
                                            (disjoin cl)))
-         (- (cw "full: ~q0" full))
          )
       full))
 
@@ -212,6 +211,5 @@
   (defmacro Smt-verified-cp (clause hint)
     `(Smtlink-subgoals clause
                        ;; A and G-prim and hints
-                       (prog2$ (cw "result: ~q0" (remove-hint-please ,clause))
-                               (Smt-goal-generator (remove-hint-please ,clause) ,hint state))))
+                       (Smt-goal-generator (remove-hint-please ,clause) ,hint state)))
 )

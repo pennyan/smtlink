@@ -92,7 +92,7 @@
                            :hypotheses ()
                            :main-hint ()
                            :smt-fname ""
-                           :int-to-rat nil
+                           :int-to-rat t
                            :rm-file nil
                            :smt-solver-params nil
                            :smt-solver-cnf nil)))))

@@ -44,8 +44,7 @@
                          :hints (("Goal"
                                   :in-theory (enable pseudo-term-listp
                                                      pseudo-term-list-fix))))
-    (b* ((- (cw "cl: ~q0" cl))
-         (cl (pseudo-term-list-fix cl))
+    (b* ((cl (pseudo-term-list-fix cl))
          ((unless (consp cl)) cl))
       (case-match cl
         ((('hint-please & &) . term) term)

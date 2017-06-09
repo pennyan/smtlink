@@ -245,7 +245,7 @@
     :returns (valid-type? booleanp)
     :short "Types allowed in Smtlink."
     (if (member-equal term
-                      ' (rationalp realp rational/realp booleanp integerp))
+                      ' (rationalp realp real/rationalp booleanp integerp))
         t nil))
 
   (define argument-syntax-p ((term t))
@@ -1058,13 +1058,8 @@
          ((if (equal term nil)) (mv t used))
          ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
          ((cons option body-lst) term)
-         (- (cw "(smtlink-option-name-p option): ~q0" (smtlink-option-name-p option)))
          ((unless (smtlink-option-name-p option)) (mv nil used))
-         (option-type (cdr (assoc-equal option *smtlink-options*)))
-         (- (cw "option-type: ~q0" option-type))
-         (- (cw "body-lst: ~q0" body-lst))
-         (- (cw "(car body-lst): ~q0" (car body-lst)))
-         (- (cw "(eval-smtlink-option-type option-type (car body-lst)): ~q0" (eval-smtlink-option-type option-type (car body-lst)))))
+         (option-type (cdr (assoc-equal option *smtlink-options*))))
       (mv (and (not (member-equal option used))
                (eval-smtlink-option-type option-type (car body-lst)))
           (cons option used))))
@@ -1079,10 +1074,7 @@
     (b* (((if (atom term)) (equal term nil))
          ((unless (and (true-listp term) (>= (len term) 2))) nil)
          ((list* first second rest) term)
-         (- (cw "first: ~q0" first))
-         (- (cw "second: ~q0" second))
-         ((mv res new-used) (smtlink-option-syntax-p (list first second) used))
-         (- (cw "res: ~q0" res)))
+         ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
       (and res (smtlink-hint-syntax-p-helper rest new-used)))
     ///
     (defthm function-lst-syntax-p-constraint
