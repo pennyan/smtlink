@@ -1219,7 +1219,7 @@
          (new-returns (cons (make-decl :name argname
                                        :type (make-hint-pair :thm type
                                                              :hints hints))
-                            f.returnss))
+                            f.returns))
          (new-func (change-func f :returns new-returns)))
       (make-merge-returns-helper rest new-func)))
 
