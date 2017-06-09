@@ -264,6 +264,7 @@
      (smt-params true-listp :default nil)
      (fast-functions func-alistp :default nil)
      (aux-hint-list hint-pair-listp :default nil)
+     (aux-thm-list hint-pair-listp :default nil)
      (type-decl-list decl-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
      (smt-cnf smtlink-config-p :default (make-smtlink-config))
