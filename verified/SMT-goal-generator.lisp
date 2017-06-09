@@ -688,9 +688,18 @@
           (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint "Function call ~q0 still exists in term but it's not declared as an uninterpreted function." f.name)
                   a.fn-hint-acc))
          (fn-hint-acc-1 nil
-                        ;; Disabling returns hint for now. See comments about
-                        ;; basic functions in SMT-translator.lisp.
-                        ;;(generate-fn-returns-hint f.returns a)
+                        ;; Currently not using returns theorems and not proving
+                        ;; returns theorems. Might be a soundness bug, if the
+                        ;; used specifies something bogus about the return type
+                        ;; of an uninterpreted function.
+                        ;; ATTENTION!!!
+                        ;; The reason for not supporting it now is because we
+                        ;; can't support type predicates as conclusions. There
+                        ;; will be soundness issue when translating from ACL2
+                        ;; to Z3 if we allow type predicates to appear in
+                        ;; conclusion.
+                        ;;
+                        ;; (generate-fn-returns-hint f.returns a)
                         ))
       (generate-fn-more-returns-hint f.more-returns (change-fhg-single-args a :fn-hint-acc fn-hint-acc-1))))
 
@@ -845,7 +854,8 @@
          (fn-hint-acc-1 (generate-fn-hint (make-fhg-single-args :fn f
                                                                 :actuals fn-actuals
                                                                 :fn-hint-acc a.fn-hint-acc
-                                                                :lambda-acc a.lambda-acc)))
+                                                                :lambda-acc
+                                                                a.lambda-acc)))
          (fn-hint-acc-2
           (generate-fn-hint-lst (change-fhg-args a
                                                  :term-lst fn-actuals

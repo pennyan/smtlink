@@ -260,7 +260,8 @@
                 `(,(translate-symbol fn-call) #\( ,(map-translated-actuals translated-actuals) #\) )))
             (mv (cons translated-fn-call translated-rest)
                 (cons fn-call uninterpreted-1))))
-         ;; If fn-call is not an uninterpreted function, then it has to be a basic function
+         ;; If fn-call is not an uninterpreted function, then it has to be a
+         ;; basic function
          ((mv fn nargs) (translate-function fn-call))
          ((if (zp nargs))
           (mv (cons `( ,fn #\( #\) ) translated-rest) uninterpreted-rest))

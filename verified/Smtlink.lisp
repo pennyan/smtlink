@@ -204,7 +204,9 @@
     :returns (syntax-good? booleanp)
     :short "Recognizer for hypothesis-lst-syntax."
     (b* (((if (atom term)) (equal term nil))
-         ((cons first rest) term))
+         ((cons first rest) term)
+         (- (cw "hypo first: ~q0" first))
+         (- (cw "(hypothesis-syntax-p first): ~q0" (hypothesis-syntax-p first))))
       (and (hypothesis-syntax-p first)
            (hypothesis-lst-syntax-p rest)))
     ///
@@ -455,7 +457,12 @@
     (b* (((if (atom term)) (equal term nil))
          ((unless (and (true-listp term) (>= (len term) 2))) nil)
          ((list* first second rest) term)
-         ((mv res new-used) (function-option-syntax-p (list first second) used)))
+         (- (cw "first: ~q0" first))
+         (- (cw "second: ~q0" second))
+         ((mv res new-used) (function-option-syntax-p (list first second)
+                                                      used))
+         (- (cw "res: ~q0" res))
+         (- (cw "booleanp? ~q0" (booleanp second))))
       (and res (function-option-lst-syntax-p-helper rest new-used)))
     ///
     (defthm function-option-lst-syntax-p-constraint
@@ -782,7 +789,9 @@
     :short "Recognizer for function-syntax."
     (b* (((unless (true-listp term)) nil)
          ((unless (consp term)) t)
-         ((cons fname function-options) term))
+         ((cons fname function-options) term)
+         (- (cw "(symbolp fname): ~q0" (symbolp fname)))
+         (- (cw "(function-option-lst-syntax-p function-options): ~q0" (function-option-lst-syntax-p function-options))))
       ;; It's probably possible to check existence of function?
       ;; Currently not doing such check, since it will require passing state.
       (and (symbolp fname)
@@ -1059,7 +1068,9 @@
          ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
          ((cons option body-lst) term)
          ((unless (smtlink-option-name-p option)) (mv nil used))
-         (option-type (cdr (assoc-equal option *smtlink-options*))))
+         (option-type (cdr (assoc-equal option *smtlink-options*)))
+         (- (cw "option-type: ~q0" option-type))
+         (- (cw "(eval-smtlink-option-type option-type (car body-lst)): ~q0" (eval-smtlink-option-type option-type (car body-lst)))))
       (mv (and (not (member-equal option used))
                (eval-smtlink-option-type option-type (car body-lst)))
           (cons option used))))
@@ -1074,6 +1085,8 @@
     (b* (((if (atom term)) (equal term nil))
          ((unless (and (true-listp term) (>= (len term) 2))) nil)
          ((list* first second rest) term)
+         (- (cw "first: ~q0" first))
+         (- (cw "second: ~q0" second))
          ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
       (and res (smtlink-hint-syntax-p-helper rest new-used)))
     ///
@@ -1203,11 +1216,11 @@
          ((unless (consp content)) smt-func)
          ((cons first rest) content)
          ((cons argname (cons type (cons & hints))) first)
-         (new-formals (cons (make-decl :name argname
+         (new-returns (cons (make-decl :name argname
                                        :type (make-hint-pair :thm type
                                                              :hints hints))
-                            f.formals))
-         (new-func (change-func f :returns new-formals)))
+                            f.returnss))
+         (new-func (change-func f :returns new-returns)))
       (make-merge-returns-helper rest new-func)))
 
   (verify-guards make-merge-returns-helper
@@ -1224,7 +1237,7 @@
     :short "Adding user defined returns to overwrite what's already in smt-func."
     (b* ((new-func (make-merge-returns-helper content smt-func))
          ((func f) new-func))
-      (change-func f :formals (remove-duplicate-from-decl-list f.formals nil))))
+      (change-func f :returns (remove-duplicate-from-decl-list f.returns nil))))
 
   (define make-merge-guard ((content hypothesis-syntax-p) (smt-func func-p))
     :returns (func func-p)
@@ -1515,10 +1528,11 @@
     (b* ((cl (pseudo-term-list-fix cl))
          (- (cw "user-hint: ~q0" user-hint))
          ((unless (smtlink-hint-syntax-p user-hint))
-          (prog2$ (cw "User provided Smtlink hint can't be applied because of
-    syntax error in the hints: ~q0Therefore proceed with out Smtlink..." user-hint)
+          (prog2$ (cw "User provided Smtlink hint can't be applied because of ~
+    syntax error in the hints: ~q0Therefore proceed without Smtlink...~%" user-hint)
                   (list cl)))
          (combined-hint (combine-hints user-hint (smt-hint)))
+         (- (cw "comined-hint: ~q0" combined-hint))
          (cp-hint `(:clause-processor (Smt-verified-cp clause ',combined-hint)))
          (subgoal-lst (cons `(hint-please ',cp-hint 'process-hint) cl)))
       (list subgoal-lst)))
