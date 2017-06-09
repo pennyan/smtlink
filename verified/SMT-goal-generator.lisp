@@ -614,7 +614,8 @@
   (defprod fhg-single-args
     ((fn func-p :default nil)
      (actuals pseudo-term-listp :default nil)
-     (fn-hint-acc hint-pair-listp :default nil)
+     (fn-returns-hint-acc hint-pair-listp :default nil)
+     (fn-more-returns-hint-acc hint-pair-listp :default nil)
      (lambda-acc lambda-binding-listp :default nil)))
 
   (defthm symbol-listp-of-append-of-symbol-listp
@@ -658,14 +659,14 @@
     (b* ((returns (decl-list-fix returns))
          (args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
-         ((unless (consp returns)) a.fn-hint-acc)
+         ((unless (consp returns)) a.fn-returns-hint-acc)
          ((cons first rest) returns)
          ((decl d) first)
          ((hint-pair h) d.type)
          (hypo (change-hint-pair h :thm `(,h.thm ,d.name)))
          (first-hint-pair (generate-fn-hint-pair hypo args)))
       (generate-fn-returns-hint rest
-                                (change-fhg-single-args a :fn-hint-acc (cons first-hint-pair a.fn-hint-acc)))))
+                                (change-fhg-single-args a :fn-returns-hint-acc (cons first-hint-pair a.fn-returns-hint-acc)))))
 
   (define generate-fn-more-returns-hint ((more-returns hint-pair-listp) (args fhg-single-args-p))
     :returns (fn-hint-lst hint-pair-listp)
@@ -673,42 +674,33 @@
     (b* ((more-returns (hint-pair-list-fix more-returns))
          (args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
-         ((unless (consp more-returns)) a.fn-hint-acc)
+         ((unless (consp more-returns)) a.fn-more-returns-hint-acc)
          ((cons first rest) more-returns)
          (first-hint-pair (generate-fn-hint-pair first args)))
       (generate-fn-more-returns-hint rest
-                                     (change-fhg-single-args a :fn-hint-acc (cons first-hint-pair a.fn-hint-acc)))))
+                                     (change-fhg-single-args a
+                                                             :fn-more-returns-hint-acc
+                                                             (cons first-hint-pair a.fn-more-returns-hint-acc)))))
 
   (define generate-fn-hint ((args fhg-single-args-p))
-    :returns (fn-hint-lst hint-pair-listp)
+    :returns (fn-hint-lst fhg-single-args-p)
     (b* ((args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
          ((func f) a.fn)
          ((unless f.uninterpreted)
           (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint "Function call ~q0 still exists in term but it's not declared as an uninterpreted function." f.name)
-                  a.fn-hint-acc))
-         (fn-hint-acc-1 nil
-                        ;; Currently not using returns theorems and not proving
-                        ;; returns theorems. Might be a soundness bug, if the
-                        ;; used specifies something bogus about the return type
-                        ;; of an uninterpreted function.
-                        ;; ATTENTION!!!
-                        ;; The reason for not supporting it now is because we
-                        ;; can't support type predicates as conclusions. There
-                        ;; will be soundness issue when translating from ACL2
-                        ;; to Z3 if we allow type predicates to appear in
-                        ;; conclusion.
-                        ;;
-                        ;; (generate-fn-returns-hint f.returns a)
-                        ))
-      (generate-fn-more-returns-hint f.more-returns (change-fhg-single-args a :fn-hint-acc fn-hint-acc-1))))
+                  a)))
+      (change-fhg-single-args a
+                              :fn-returns-hint-acc (generate-fn-returns-hint f.returns a)
+                              :fn-more-returns-hint-acc (generate-fn-more-returns-hint f.more-returns a))))
 
 
   ;; function hypotheses generation arguments
   (defprod fhg-args
     ((term-lst pseudo-term-listp :default nil)
      (fn-lst func-alistp :default nil)
-     (fn-hint-acc hint-pair-listp :default nil)
+     (fn-returns-hint-acc hint-pair-listp :default nil)
+     (fn-more-returns-hint-acc hint-pair-listp :default nil)
      (lambda-acc lambda-binding-listp :default nil)))
 
 
@@ -799,13 +791,13 @@
   ;;
   (define generate-fn-hint-lst ((args fhg-args-p))
     :short "@(call generate-fn-hint-lst) generate auxiliary hypotheses from function expansion"
-    :returns (fn-hint-lst hint-pair-listp)
+    :returns (fn-hint-lst fhg-args-p)
     :measure (acl2-count (fhg-args->term-lst args))
     :verify-guards nil
     (b* ((args (fhg-args-fix args))
          ;; Syntactic sugar for easy field access, e.g. a.term-lst
          ((fhg-args a) args)
-         ((unless (consp a.term-lst)) a.fn-hint-acc)
+         ((unless (consp a.term-lst)) a)
          ((cons term rest) a.term-lst)
          ;; If first term is an symbolp, return the symbol
          ;; then recurse on the rest of the list
@@ -823,21 +815,19 @@
                (lambda-body (lambda-body fn-call))
                (lambda-actuals fn-actuals)
                (lambda-bd (make-lambda-binding :formals lambda-formals :actuals lambda-actuals))
-               ((unless (mbt (lambda-binding-p lambda-bd))) a.fn-hint-acc)
-               (fn-hint-acc-1
+               ((unless (mbt (lambda-binding-p lambda-bd))) a)
+               (a-1
                 (generate-fn-hint-lst (change-fhg-args a
                                                        :term-lst (list lambda-body)
                                                        :lambda-acc (cons lambda-bd a.lambda-acc))))
-               (fn-hint-acc-2
-                (generate-fn-hint-lst (change-fhg-args a
-                                                       :term-lst lambda-actuals
-                                                       :fn-hint-acc fn-hint-acc-1))))
-            (generate-fn-hint-lst (change-fhg-args a
-                                                   :term-lst rest
-                                                   :fn-hint-acc fn-hint-acc-2))))
+               (a-2
+                (generate-fn-hint-lst (change-fhg-args a-1
+                                                       :term-lst lambda-actuals))))
+            (generate-fn-hint-lst (change-fhg-args a-2
+                                                   :term-lst rest))))
 
          ;; If fn-call is neither a lambda expression nor a function call
-         ((unless (mbt (symbolp fn-call))) a.fn-hint-acc)
+         ((unless (mbt (symbolp fn-call))) a)
          ;; Try finding function call from fn-lst
          (fn (hons-get fn-call a.fn-lst))
          ;; If fn-call doesn't exist in fn-lst, it can be a basic function,
@@ -845,25 +835,29 @@
          ;; Otherwise it can be a function that's forgotten to be added to fn-lst.
          ;; The translator will fail to translate it and report an error.
          ((unless fn)
-          (b* ((fn-hint-acc-1 (generate-fn-hint-lst (change-fhg-args a :term-lst fn-actuals))))
-            (generate-fn-hint-lst (change-fhg-args a :term-lst rest :fn-hint-acc fn-hint-acc-1))))
+          (b* ((a-1 (generate-fn-hint-lst (change-fhg-args a :term-lst fn-actuals))))
+            (generate-fn-hint-lst (change-fhg-args a-1 :term-lst rest))))
 
          ;; Now fn is a function in fn-lst,
          ;;   we need to generate returns and more-returns hypotheses for them
          ((func f) (cdr fn))
-         (fn-hint-acc-1 (generate-fn-hint (make-fhg-single-args :fn f
-                                                                :actuals fn-actuals
-                                                                :fn-hint-acc a.fn-hint-acc
-                                                                :lambda-acc
-                                                                a.lambda-acc)))
-         (fn-hint-acc-2
-          (generate-fn-hint-lst (change-fhg-args a
-                                                 :term-lst fn-actuals
-                                                 :fn-hint-acc fn-hint-acc-1)))
+         (as-1 (generate-fn-hint (make-fhg-single-args :fn f
+                                                       :actuals fn-actuals
+                                                       :fn-returns-hint-acc a.fn-returns-hint-acc
+                                                       :fn-more-returns-hint-acc
+                                                       a.fn-more-returns-hint-acc
+                                                       :lambda-acc
+                                                       a.lambda-acc)))
+         ((fhg-single-args as-1) as-1)
+         (a-1 (change-fhg-args a
+                               :fn-returns-hint-acc as-1.fn-returns-hint-acc
+                               :fn-more-returns-hint-acc as-1.fn-more-returns-hint-acc))
+         (a-2
+          (generate-fn-hint-lst (change-fhg-args a-1
+                                                 :term-lst fn-actuals)))
          )
-      (generate-fn-hint-lst (change-fhg-args a
-                                             :term-lst rest
-                                             :fn-hint-acc fn-hint-acc-2))))
+      (generate-fn-hint-lst (change-fhg-args a-2
+                                             :term-lst rest))))
 
   (verify-guards generate-fn-hint-lst)
 
@@ -904,7 +898,8 @@
 
   (encapsulate ()
     (local (in-theory (enable pseudo-term-listp-of-expand
-                              hint-pair-listp-of-generate-fn-hint-lst
+                              hint-pair-listp-of-fhg-args->fn-more-returns-hint-acc
+                              hint-pair-listp-of-fhg-args->fn-returns-hint-acc
                               hint-pair-listp-of-generate-hyp-hint-lst)))
 
     (local (defthm pseudo-termp-of-disjoin-of-pseudo-term-listp
@@ -948,18 +943,24 @@
            (G-prim (car e.expanded-term-lst))
 
            ;; Generate auxiliary hypotheses from function expansion
-           (fn-hint-lst (with-fast-alist fn-lst (generate-fn-hint-lst (make-fhg-args
-                                                                       :term-lst (list G-prim)
-                                                                       :fn-lst fn-lst
-                                                                       :fn-hint-acc nil
-                                                                       :lambda-acc nil))))
+           (args (with-fast-alist fn-lst (generate-fn-hint-lst (make-fhg-args
+                                                                :term-lst (list G-prim)
+                                                                :fn-lst fn-lst
+                                                                :fn-returns-hint-acc
+                                                                nil
+                                                                :fn-more-returns-hint-acc nil
+                                                                :lambda-acc
+                                                                nil))))
+           ((fhg-args a) args)
+           (fn-returns-hint-lst a.fn-returns-hint-acc)
+           (fn-more-returns-hint-lst a.fn-more-returns-hint-acc)
 
            ;; Generate auxiliary hypotheses for type extraction
            ((mv type-decl-list G-prim-without-type) (SMT-extract G-prim))
            (structured-decl-list (structurize-type-decl-list type-decl-list))
 
            ;; Combine all auxiliary hypotheses
-           (total-aux-hint-lst `(,@fn-hint-lst ,@hyp-hint-lst))
+           (total-aux-hint-lst `(,@hyp-hint-lst ,@fn-more-returns-hint-lst))
 
            ;; Combine expanded main clause and its hint
            (fncall-lst (strip-cars e.expanded-fn-lst))
@@ -979,6 +980,11 @@
             (change-smtlink-hint hints
                                  :fast-functions fn-lst
                                  :aux-hint-list total-aux-hint-lst
+                                 ;; These aux theorems needs to be proved, but
+                                 ;; donot belong to hypothesis.
+                                 :aux-thm-list fn-returns-hint-lst
+                                 ;; These type-decl theorems needs to be
+                                 ;; proved, too, but also, donot belong to hypothesis
                                  :type-decl-list structured-decl-list
                                  :expanded-clause-w/-hint expanded-clause-w/-hint
                                  )))
