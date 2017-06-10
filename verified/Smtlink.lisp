@@ -368,18 +368,19 @@
     (mbe :logic (if (function-option-name-p option-name) option-name ':formals)
          :exec option-name))
 
-(local (in-theory (enable function-option-name-fix)))
-(deffixtype function-option-name
-  :pred  function-option-name-p
-  :fix   function-option-name-fix
-  :equiv function-option-name-equiv
-  :define t
-  :forward t
-  :topic function-option-name-p)
+(encapsulate ()
+  (local (in-theory (enable function-option-name-fix)))
+  (deffixtype function-option-name
+    :pred  function-option-name-p
+    :fix   function-option-name-fix
+    :equiv function-option-name-equiv
+    :define t
+    :forward t
+    :topic function-option-name-p)
 
 (deflist function-option-name-lst
   :elt-type function-option-name
-  :true-listp t)
+  :true-listp t))
 
   ;; (define function-option-name-lst-p ((option-lst t))
   ;;   :returns (syntax-good? booleanp)
@@ -552,25 +553,17 @@
                          (function-option-name-lst-p used-2))))
   :rule-classes(:congruence))
 
-(failed-here)
-(defthm lemma-1
+(defthm function-option-name-fix-preserve-member
   (implies (member x used :test 'equal)
            (member (function-option-name-fix x)
                    (function-option-name-lst-fix used) :test 'equal)))
-(defthm lemma-2
-  (implies (and (subsetp used-1 used-2 :test 'equal)
-                (consp used-1))
-           (member (function-option-name-fix (car used-1))
-                   (function-option-name-lst-fix used-2)))
-  :hints(("Goal" :in-theory (enable function-option-name-lst-fix))))
 
-(defthm lemma-3
+(defthm function-option-name-lst-fix-preserve-subsetp
   (implies (subsetp used-1 used-2 :test 'equal)
            (subsetp (function-option-name-lst-fix used-1)
                     (function-option-name-lst-fix used-2)
                     :test 'equal))
-  :hints(("Goal" :in-theory (e/d (function-option-name-lst-fix
-                                  function-option-name-fix) ))))
+  :hints(("Goal" :in-theory (e/d (subsetp-equal)))))
 
 (defthm function-option-syntax-p--monotonicity
   (implies (and (equal (true-listp used-1) (true-listp used-2))
@@ -583,17 +576,11 @@
 (defthm function-option-syntax-p--congruence
   (implies (and (function-option-name-lst-p used-1)
                 (function-option-name-lst-p used-2)
-                (acl2::set-equiv used-1 used-2)
-                (assoc-equal opt *function-options*)
-                ;; (eval-function-option-type (cdr (assoc-equal opt
-                ;;                                              *function-options*))
-                ;;                            val)
-                )
-           (implies (acl2::set-equiv used-1 used-2)
-                    (equal (mv-nth 0 (function-option-syntax-p (list opt val)
-                                                               used-1))
-                           (mv-nth 0 (function-option-syntax-p (list opt val)
-                                                               used-2)))))
+                (acl2::set-equiv used-1 used-2))
+           (equal (mv-nth 0 (function-option-syntax-p (list opt val)
+                                                      used-1))
+                  (mv-nth 0 (function-option-syntax-p (list opt val)
+                                                      used-2))))
   :hints(("Goal" :in-theory (disable function-option-syntax-p--monotonicity
                                      booleanp-of-function-option-syntax-p.syntax-good?)
           :use((:instance function-option-syntax-p--monotonicity
@@ -605,7 +592,7 @@
                (:instance booleanp-of-function-option-syntax-p.syntax-good?
                           (used used-2) (term (list opt val)))))))
 
-  (Defthm lemma-2
+  (defthm lemma-2
     (implies (and (function-option-name-lst-p used)
                   (function-option-name-p new-opt)
                   (mv-nth 0 (function-option-syntax-p (list opt val)
@@ -1608,6 +1595,7 @@
 
   (def-join-thms ev-process-hint)
 
+(encapsulate ()
   (local (in-theory (enable process-hint)))
   (defthm correctness-of-process-hint
     (implies (and (pseudo-term-listp cl)
@@ -1616,7 +1604,7 @@
                    (conjoin-clauses (process-hint cl hint))
                    b))
              (ev-process-hint (disjoin cl) b))
-    :rule-classes :clause-processor)
+    :rule-classes :clause-processor))
 
   ;; Smtlink is a macro that generates a clause processor hint. This clause
   ;;   processor hint generates a clause, with which a new smt-hint is attached.
