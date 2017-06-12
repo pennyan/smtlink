@@ -368,150 +368,6 @@
     (mbe :logic (if (function-option-name-p option-name) option-name ':formals)
          :exec option-name))
 
-(encapsulate ()
-  (local (in-theory (enable function-option-name-fix)))
-  (deffixtype function-option-name
-    :pred  function-option-name-p
-    :fix   function-option-name-fix
-    :equiv function-option-name-equiv
-    :define t
-    :forward t
-    :topic function-option-name-p)
-
-(deflist function-option-name-lst
-  :elt-type function-option-name
-  :true-listp t))
-
-  ;; (define function-option-name-lst-p ((option-lst t))
-  ;;   :returns (syntax-good? booleanp)
-  ;;   :short "Recoginizer for option-lst."
-  ;;   (b* (((if (atom option-lst)) (equal option-lst nil))
-  ;;        ((cons first rest) option-lst))
-  ;;     (and (function-option-name-p first)
-  ;;          (function-option-name-lst-p rest))))
-
-  ;; (define function-option-name-lst-fix ((option-lst function-option-name-lst-p))
-  ;;   :returns (fixed-option-lst function-option-name-lst-p
-  ;;                              :hints (("Goal" :in-theory (enable function-option-name-lst-p))))
-  ;;   :short "Fixing function for option-name-lst."
-  ;;   :verify-guards nil
-  ;;   (mbe :logic (if (atom option-lst)
-  ;;                   nil
-  ;;                 (cons (function-option-name-fix (car option-lst))
-  ;;                       (function-option-name-lst-fix (cdr option-lst))))
-  ;;        :exec option-lst))
-  ;; (verify-guards function-option-name-lst-fix
-  ;;   :hints (("Goal" :in-theory (enable function-option-name-fix
-  ;;                                      function-option-name-lst-fix
-  ;;                                      function-option-name-p function-option-name-lst-p))))
-
-  ;; The conditions in eval-type should go along with *function-options*
-  (define eval-function-option-type ((option-type function-option-type-p) (term t))
-    :returns (type-correct? booleanp)
-    :short "Evaluating types for function option body."
-    (b* ((option-type (function-option-type-fix option-type)))
-      (case option-type
-        (argument-lst-syntax-p (argument-lst-syntax-p term))
-        (natp (natp term))
-        (hypothesis-syntax-p (hypothesis-syntax-p term))
-        (t (hypothesis-lst-syntax-p term)))))
-
-  (define function-option-syntax-p ((term t) (used function-option-name-lst-p))
-    :returns (mv (syntax-good? booleanp)
-                 (used? function-option-name-lst-p
-                        :hints (("Goal" :in-theory (enable function-option-name-lst-p function-option-name-p)))))
-    :short "Recoginizer for function-option-syntax."
-    :verify-guards nil
-    (b* ((used (function-option-name-lst-fix used))
-         ((if (equal term nil)) (mv t used))
-         ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
-         ((cons option body-lst) term)
-         ((unless (function-option-name-p option)) (mv nil used))
-         (option-type (cdr (assoc-equal option *function-options*))))
-      (mv (and (not (member-equal option used))
-               (eval-function-option-type option-type (car body-lst)))
-          (cons option used))))
-  (verify-guards function-option-syntax-p
-    :guard-debug t
-    :hints (("Goal" :in-theory (enable function-option-syntax-p function-option-name-p
-                                       eval-function-option-type function-option-name-lst-p))))
-
-  ;; (define exist-odd-lst ((key symbolp) (lst t))
-  ;;   :returns (exist? booleanp)
-  ;;   :short "Test if key exist in lst on the odd positions (with position staring
-  ;; from 1)"
-  ;;   :measure (len lst)
-  ;;   :hints (("Goal" :in-theory (enable true-list-fix)))
-  ;;   :verify-guards nil
-  ;;   (b* ((key (symbol-fix key))
-  ;;        ((if (equal lst nil)) nil)
-  ;;        ((unless (and (true-listp lst) (>= (len lst) 2))) nil)
-  ;;        ((list* first & rest) lst)
-  ;;        ((if (equal first key)) t))
-  ;;     (exist-odd-lst key rest)))
-  ;; (verify-guards exist-odd-lst
-  ;;   :hints (("Goal" :in-theory (enable true-list-fix))))
-
-(define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
-    :returns (syntax-good? booleanp)
-    :short "Helper for function-option-lst-syntax-p."
-    (b* (((if (atom term)) (equal term nil))
-         ((unless (and (true-listp term) (>= (len term) 2))) nil)
-         ((list* first second rest) term)
-         (- (cw "first: ~q0" first))
-         (- (cw "second: ~q0" second))
-         ((mv res new-used) (function-option-syntax-p (list first second)
-                                                      used))
-         (- (cw "res: ~q0" res))
-         (- (cw "booleanp? ~q0" (booleanp second))))
-      (and res (function-option-lst-syntax-p-helper rest new-used)))
-    ///
-    (defthm function-option-lst-syntax-p-constraint
-      (implies (and (function-option-lst-syntax-p-helper fun-opt-lst any)
-                    (consp fun-opt-lst))
-               (or (equal (car fun-opt-lst) ':formals)
-                   (equal (car fun-opt-lst) ':returns)
-                   (equal (car fun-opt-lst) ':level)
-                   (equal (car fun-opt-lst) ':guard)
-                   (equal (car fun-opt-lst) ':more-returns)))
-      :hints (("Goal"
-               :in-theory (enable eval-function-option-type
-                                  function-option-syntax-p
-                                  function-option-name-p))))
-
-    (defthm function-option-lst-syntax-p-of-option
-      (implies
-       (and (consp (cdr fun-opt-lst))
-            (function-option-lst-syntax-p-helper fun-opt-lst nil)
-            (consp fun-opt-lst))
-       (and (implies (equal (car fun-opt-lst) ':formals)
-                     (argument-lst-syntax-p (cadr fun-opt-lst)))
-            (implies (equal (car fun-opt-lst) ':returns)
-                     (argument-lst-syntax-p (cadr fun-opt-lst)))
-            (implies (equal (car fun-opt-lst) ':level)
-                     (natp (cadr fun-opt-lst)))
-            (implies (equal (car fun-opt-lst) ':guard)
-                     (hypothesis-syntax-p (cadr fun-opt-lst)))
-            (implies (equal (car fun-opt-lst) ':more-returns)
-                     (hypothesis-lst-syntax-p (cadr fun-opt-lst)))))
-      :hints (("Goal"
-               :in-theory (enable function-option-syntax-p
-                                  eval-function-option-type))))
-
-    (defthm car-term-function-option-syntax-p
-      (implies (and (consp term)
-                    (function-option-lst-syntax-p-helper term used))
-               (function-option-name-p (car term)))
-      :hints (("Goal" :in-theory (enable function-option-syntax-p))))
-
-    (defthm caddr-term-function-option-syntax-p
-      (implies (and (consp (cddr term))
-                    (not (function-option-name-p (caddr term)))
-                    (function-option-lst-syntax-p-helper (cddr term) used))
-               (not (caddr term)))
-      :hints (("Goal" :in-theory (enable function-option-syntax-p))))
-    )
-
 (define true-set-equiv ((list1 true-listp) (list2 true-listp))
   :returns (p booleanp)
   (if (equal (true-listp list1) (true-listp list2))
@@ -532,280 +388,200 @@
 (defequiv true-set-equiv
   :hints (("Goal" :in-theory (enable true-set-equiv))))
 
-(defthm function-option-name-lst-p-and-member
-  (implies (and (member x used)
-                (not (function-option-name-p x)))
-           (not (function-option-name-lst-p used)))
-  :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
 
-(defthm function-option-name-lst-p--monotonicity
-  (implies (and (equal (true-listp used-1) (true-listp used-2))
-                (subsetp used-1 used-2 :test 'equal)
-                (function-option-name-lst-p used-2))
-           (function-option-name-lst-p used-1))
-  :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
+(defsection function-option-name-lst
+  (encapsulate ()
+    (local (in-theory (enable function-option-name-fix)))
+    (deffixtype function-option-name
+      :pred  function-option-name-p
+      :fix   function-option-name-fix
+      :equiv function-option-name-equiv
+      :define t
+      :forward t
+      :topic function-option-name-p)
 
-(defthm function-option-name-lst-p--congruence
-  (implies (true-set-equiv used-1 used-2)
-           (equal (function-option-name-lst-p used-1)
-                  (function-option-name-lst-p used-2)))
-  :hints(("Goal" :cases ((function-option-name-lst-p used-1)
-                         (function-option-name-lst-p used-2))))
-  :rule-classes(:congruence))
+    (deflist function-option-name-lst
+      :elt-type function-option-name
+      :true-listp t))
 
-(defthm function-option-name-fix-preserve-member
-  (implies (member x used :test 'equal)
-           (member (function-option-name-fix x)
-                   (function-option-name-lst-fix used) :test 'equal)))
+  (defthm function-option-name-fix-preserves-member
+    (implies (member x used :test 'equal)
+             (member (function-option-name-fix x)
+                     (function-option-name-lst-fix used) :test 'equal)))
 
-(defthm function-option-name-lst-fix-preserve-subsetp
-  (implies (subsetp used-1 used-2 :test 'equal)
-           (subsetp (function-option-name-lst-fix used-1)
-                    (function-option-name-lst-fix used-2)
-                    :test 'equal))
-  :hints(("Goal" :in-theory (e/d (subsetp-equal)))))
+  (defthm function-option-name-lst-fix-preserves-subsetp
+    (implies (subsetp used-1 used-2 :test 'equal)
+             (subsetp (function-option-name-lst-fix used-1)
+                      (function-option-name-lst-fix used-2)
+                      :test 'equal))
+    :hints(("Goal" :in-theory (e/d (subsetp-equal)))))
 
-(defthm function-option-syntax-p--monotonicity
-  (implies (and (equal (true-listp used-1) (true-listp used-2))
-                (subsetp used-1 used-2 :test 'equal)
-                (mv-nth 0 (function-option-syntax-p (list opt val) used-2)))
-           (mv-nth 0 (function-option-syntax-p (list opt val) used-1)))
-  :hints(("Goal" :in-theory (enable function-option-syntax-p))))
+  (defthm function-option-name-lst-fix-preserves-set-equiv
+    (implies (acl2::set-equiv used-1 used-2)
+             (acl2::set-equiv
+              (function-option-name-lst-fix used-1)
+              (function-option-name-lst-fix used-2)))
+    :hints (("Goal" :in-theory (enable acl2::set-equiv)))
+    :rule-classes(:congruence))
+
+  (defthm function-option-name-lst-p-and-member
+    (implies (and (member x used)
+                  (not (function-option-name-p x)))
+             (not (function-option-name-lst-p used)))
+    :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
+
+  (defthm function-option-name-lst-p--monotonicity
+    (implies (and (equal (true-listp used-1) (true-listp used-2))
+                  (subsetp used-1 used-2 :test 'equal)
+                  (function-option-name-lst-p used-2))
+             (function-option-name-lst-p used-1))
+    :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
+
+  (defthm function-option-name-lst-p--congruence
+    (implies (true-set-equiv used-1 used-2)
+             (equal (function-option-name-lst-p used-1)
+                    (function-option-name-lst-p used-2)))
+    :hints(("Goal" :cases ((function-option-name-lst-p used-1)
+                           (function-option-name-lst-p used-2))))
+    :rule-classes(:congruence)))
 
 
-(defthm function-option-syntax-p--congruence
-  (implies (and (function-option-name-lst-p used-1)
-                (function-option-name-lst-p used-2)
-                (acl2::set-equiv used-1 used-2))
-           (equal (mv-nth 0 (function-option-syntax-p (list opt val)
-                                                      used-1))
-                  (mv-nth 0 (function-option-syntax-p (list opt val)
-                                                      used-2))))
-  :hints(("Goal" :in-theory (disable function-option-syntax-p--monotonicity
-                                     booleanp-of-function-option-syntax-p.syntax-good?)
-          :use((:instance function-option-syntax-p--monotonicity
-                          (used-1 used-1) (used-2 used-2) (opt opt) (val val))
-               (:instance function-option-syntax-p--monotonicity
-                          (used-1 used-2) (used-2 used-1) (opt opt) (val val))
-               (:instance booleanp-of-function-option-syntax-p.syntax-good?
-                          (used used-1) (term (list opt val)))
-               (:instance booleanp-of-function-option-syntax-p.syntax-good?
-                          (used used-2) (term (list opt val)))))))
+  ;; The conditions in eval-type should go along with *function-options*
+  (define eval-function-option-type ((option-type function-option-type-p) (term t))
+    :returns (type-correct? booleanp)
+    :short "Evaluating types for function option body."
+    (b* ((option-type (function-option-type-fix option-type)))
+      (case option-type
+        (argument-lst-syntax-p (argument-lst-syntax-p term))
+        (natp (natp term))
+        (hypothesis-syntax-p (hypothesis-syntax-p term))
+        (t (hypothesis-lst-syntax-p term)))))
 
-  (defthm lemma-2
+(define function-option-syntax-p ((term t) (used function-option-name-lst-p))
+  :guard-hints (("Goal"
+                 :in-theory (enable function-option-syntax-p function-option-name-p
+                                     eval-function-option-type function-option-name-lst-p)))
+    :returns (mv (ok booleanp)
+                 (new-used function-option-name-lst-p
+                           :hints (("Goal" :in-theory (enable function-option-name-lst-p function-option-name-p)))))
+    :short "Recoginizer for function-option-syntax."
+    (b* ((used (function-option-name-lst-fix used))
+         ((if (equal term nil)) (mv t used))
+         ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
+         ((cons option body-lst) term)
+         ((unless (function-option-name-p option)) (mv nil used))
+         (option-type (cdr (assoc-equal option *function-options*))))
+      (mv (and (not (member-equal option used))
+               (eval-function-option-type option-type (car body-lst)))
+          (cons option used)))
+    ///
+    (more-returns
+     (ok (implies (and (subsetp used-1 used :test 'equal) ok)
+                  (mv-nth 0 (function-option-syntax-p term used-1)))
+         :name function-option-syntax-p--monotonicity.ok
+         )     
+     (ok (implies (acl2::set-equiv used-1 used)
+                  (equal (mv-nth 0 (function-option-syntax-p term used-1))
+                         ok))
+         :name function-option-syntax-p--ok-congruence.ok
+         :hints(("Goal"
+                 :in-theory (disable function-option-syntax-p
+                                     function-option-syntax-p--monotonicity.ok
+                                     booleanp-of-function-option-syntax-p.ok)
+                 :use((:instance function-option-syntax-p--monotonicity.ok
+                                 (used-1 used-1) (used used) (term term))
+                      (:instance function-option-syntax-p--monotonicity.ok
+                                 (used-1 used) (used used-1) (term term))
+                      (:instance booleanp-of-function-option-syntax-p.ok
+                                 (used used-1) (term term))
+                      (:instance booleanp-of-function-option-syntax-p.ok
+                                 (used used) (term term)))))
+         :rule-classes (:congruence))
+     (new-used (implies (and (subsetp used-1 used :test 'equal) ok)
+                        (subsetp
+                         (mv-nth 1 (function-option-syntax-p term used-1))
+                         new-used
+                         :test 'equal))
+               :name function-option-syntax-p--monotonicity.new-used)
+     (new-used (implies (and term ok)
+                        (equal new-used
+                               (cons (car term) (function-option-name-lst-fix used))))
+               :name function-option-syntax-p--new-used-when-ok)))
+
+
+(define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
+    :returns (ok booleanp)
+    :short "Helper for function-option-lst-syntax-p."
+    (b* (((unless (true-listp term)) nil)
+         ((unless term) t)
+         ((unless (cdr term)) nil)
+         ((list* first second rest) term)
+         ((mv res new-used) (function-option-syntax-p (list first second)
+                                                      used)))
+      (and res (function-option-lst-syntax-p-helper rest new-used)))
+    ///
+    ;; These seem like they should be more-returns theorems, but
+    ;; when I try that, ACL2 fails miserably.
+    (defthm function-option-lst-syntax-p-helper--monotonicity
+      (implies (and (subsetp used-1 used :test 'equal)
+                    (function-option-lst-syntax-p-helper term used))
+               (function-option-lst-syntax-p-helper term used-1)))
+
+    (defthm function-option-lst-syntax-p-helper--congruence
+      (b* ((ok (function-option-lst-syntax-p-helper term used)))
+        (implies (acl2::set-equiv used-1 used)
+                 (equal (function-option-lst-syntax-p-helper term used-1) ok)))
+      :rule-classes(:congruence))
+
+    ;; (more-returns
+    ;;  (ok
+    ;;   (implies (and (subsetp used-1 used :test 'equal) ok)
+    ;;            (function-option-lst-syntax-p-helper term used-1))
+    ;;   :name function-option-lst-syntax-p-helper--monotonicity))
+
+    ;; (more-returns
+    ;;  (ok
+    ;;    (implies (acl2::set-equiv used-1 used)
+    ;;             (equal (function-option-lst-syntax-p-helper term used-1) ok))
+    ;;    :rule-classes(:congruence)
+    ;;    :name function-option-lst-syntax-p-helper--congruence)
+
+    (defthm function-option-lst-syntax-p-helper--head
+      (implies (and (function-option-lst-syntax-p-helper term used) term)
+               (and (<= 2 (len term))
+                    (function-option-syntax-p (list (car term) (cadr term)) used))))
+    )
+
+(encapsulate ()
+  (defthm lemma-16
     (implies (and (function-option-name-lst-p used)
                   (function-option-name-p new-opt)
-                  (mv-nth 0 (function-option-syntax-p (list opt val)
-                                                      (cons new-opt used))))
-             (mv-nth 0 (function-option-syntax-p (list opt val) used)))
-    :hints(("Goal" :in-theory (enable function-option-syntax-p
-                                     ))))
+                  (function-option-lst-syntax-p-helper term (cons new-opt used)))
+             (function-option-lst-syntax-p-helper term used))
+    :hints(("Goal"
+            :in-theory (disable
+                        function-option-lst-syntax-p-helper--monotonicity)
+            :use((:instance function-option-lst-syntax-p-helper--monotonicity
+                            (used-1 used) (used (cons new-opt used))
+                            (term term))))))
 
-(defthm lemma-3
-  (implies (and (function-option-name-lst-p used)
-                (mv-nth 0 (function-option-syntax-p (list opt val) used)))
-           (equal (mv-nth 1 (function-option-syntax-p (list opt val) used))
-                  (cons opt used)))
-  :hints(("goal" :in-theory (enable function-option-syntax-p))))
-
-(defthmd lemma-4
-  (implies (and (function-option-name-lst-p used-1)
-                (function-option-name-lst-p used-2)
-                (list-containment used-1 used-2)
-                (list-containment used-2 used-1))
-           (iff (mv-nth 0 (function-option-syntax-p (list opt val)
-                                                    used-1))
-                (mv-nth 0 (function-option-syntax-p (list opt val)
-                                                    used-2))))
-  :hints(("Goal" :in-theory (enable function-option-syntax-p))))
-
-(defthm lemma-5
-  (implies (function-option-name-p option) (assoc-equal option *function-options*))
-  :hints (("Goal" :in-theory (enable function-option-name-p))))
-
-(defthm lemma-6
-  (implies (and (function-option-name-lst-p used)
-                (mv-nth 0 (function-option-syntax-p (list opt val) used)))
-           (and (assoc-equal opt *function-options*)
-                (eval-function-option-type (cdr (assoc-equal opt
-                                                             *function-options*))
-                                           val)
-                (not (member-equal opt used))))
-  :hints(("Goal" :in-theory (enable function-option-syntax-p))))
-
-(defthm lemma-11
-  (implies (and (function-option-name-lst-p used)
-                (function-option-lst-syntax-p-helper term used)
-                term)
-           (and (assoc-equal (car term) *function-options*)
-                (eval-function-option-type
-                 (cdr (assoc-equal (car term) *function-options*))
-                 (cadr term))
-                (not (member-equal (car term) used))))
-  :hints(("Goal" :expand (function-option-lst-syntax-p-helper term used)
-          :in-theory (disable lemma-6)
-          :use((:instance lemma-6 (opt (car term)) (val (cadr term)) (used used))))))
-
-(defthmd lemma-12
-  (implies (and (function-option-name-lst-p used-1)
-                (function-option-name-lst-p used-2)
-                (list-containment used-1 used-2)
-                (list-containment used-2 used-1))
-           (iff (function-option-lst-syntax-p-helper term used-1)
-                (function-option-lst-syntax-p-helper term used-2)))
-  :hints(("Goal" :in-theory (enable function-option-lst-syntax-p-helper))
-         ("Subgoal *1/3"
-          :use((:instance lemma-4
-                          (used-1 used-1) (used-2 used-2)
-                          (opt (car term)) (val (cadr term))))
-          )
-         ("Subgoal *1/2" :use((:instance lemma-4
-                                         (used-1 used-1) (used-2 used-2)
-                                         (opt (car term)) (val (cadr term)))))
-         ))
-
-(defthmd lemma-13
-  (equal (list* x y z) (append (list x y ) z)))
-
-(defthmd lemma-14 (list-containment (list x y) (list y x))
-  :hints(("Goal" :in-theory (enable list-containment))))
-
-(defthmd reflexivity-of-list-containment
-  (implies (true-listp x) (list-containment x x)))
-
-(defthmd lemma-15 ;; may need a :use hint for reflexivity-of-list-containment
-  (implies (true-listp z)
-           (list-containment (append (list x y) z) (append (list y x) z)))
-  :hints(("Goal" :use((:instance lemma-14 (x x) (y y))
-                      (:instance list-containment-of-append
-                                 (list1a (list x y)) (list1b z)
-                                 (list2a (list y x)) (list2b z))
-                      (:instance reflexivity-of-list-containment (x z))))))
-
-(defthm lemma-yan
-  (implies (and (function-option-name-lst-p used-1)
-                (function-option-name-lst-p used-2)
-                (list-containment used-1 used-2)
-                (list-containment used-2 used-1)
-                (function-option-lst-syntax-p-helper term used-1))
-           (function-option-lst-syntax-p-helper term used-2))
-  :hints(("Goal" :in-theory (enable function-option-lst-syntax-p-helper)
-          :use ((:instance lemma-12)))))
-
-(defthm yan-2
-  (implies (and
-            (consp (cdr term))
-            (true-listp (cddr term))
-            (<= 2 (+ 2 (len (cddr term))))
-            (function-option-name-lst-p used)
-            (function-option-name-p new-opt)
-            (mv-nth 0
-                    (function-option-syntax-p (list (car term) (cadr term))
-                                              (cons new-opt used)))
-            (function-option-lst-syntax-p-helper (cddr term)
-                                                 (list* (car term) new-opt
-                                                        used)))
-           (function-option-name-p (car term)))
-  :hints (("Goal"
-           :in-theory (enable function-option-lst-syntax-p-helper)
-           :use ((:instance car-term-function-option-syntax-p
-                            (used (cons new-opt used)))))))
-
-(defthm yan-3
-  (implies (and
-            (consp (cdr term))
-            (true-listp (cddr term))
-            (<= 2 (+ 2 (len (cddr term))))
-            (function-option-name-lst-p used)
-            (function-option-name-p new-opt)
-            (mv-nth 0
-                    (function-option-syntax-p (list (car term) (cadr term))
-                                              (cons new-opt used)))
-            (function-option-lst-syntax-p-helper (cddr term)
-                                                 (list* (car term) new-opt
-                                                        used)))
-           (function-option-name-lst-p (list* (car term) new-opt used))))
-
-(defthm yan-4
-  (implies (and
-            (consp (cdr term))
-            (true-listp (cddr term))
-            (<= 2 (+ 2 (len (cddr term))))
-            (function-option-name-lst-p used)
-            (function-option-name-p new-opt)
-            (mv-nth 0
-                    (function-option-syntax-p (list (car term) (cadr term))
-                                              (cons new-opt used)))
-            (function-option-lst-syntax-p-helper (cddr term)
-                                                 (list* (car term) new-opt
-                                                        used)))
-           (function-option-name-lst-p (list* new-opt (car term) used))))
-
-(defthm yan-1
-  (implies
-   (and
-    (consp (cdr term))
-    (true-listp (cddr term))
-    (<= 2 (+ 2 (len (cddr term))))
-    (function-option-name-lst-p used)
-    (function-option-name-p new-opt)
-    (mv-nth 0
-            (function-option-syntax-p (list (car term) (cadr term))
-                                      (cons new-opt used)))
-    (function-option-lst-syntax-p-helper (cddr term)
-                                         (list* (car term) new-opt used)))
-   (function-option-lst-syntax-p-helper (cddr term)
-                                        (list* new-opt (car term) used)))
-  :hints (("Goal"
-           :use ((:instance lemma-3)
-                 (:instance lemma-4)
-                 (:instance lemma-yan
-                            (term (cddr term))
-                            (used-1 (list* (car term) new-opt used))
-                            (used-2 (list* new-opt (car term) used)))
-                 (:instance lemma-15 (x new-opt) (y (car term)) (z used))
-                 (:instance lemma-15 (x (car term)) (y new-opt) (z used))))))
-
-(defthm yan
-  (implies
-   (and
-    (consp (cdr term))
-    (true-listp (cddr term))
-    (<= 2 (+ 2 (len (cddr term))))
-    (not (function-option-lst-syntax-p-helper (cddr term)
-                                              (list* new-opt (car term) used)))
-    (function-option-name-lst-p used)
-    (function-option-name-p new-opt)
-    (mv-nth 0
-            (function-option-syntax-p (list (car term) (cadr term))
-                                      (cons new-opt used)))
-    (function-option-lst-syntax-p-helper (cddr term)
-                                         (list* (car term) new-opt used)))
-   (function-option-lst-syntax-p-helper (cddr term)
-                                        (cons (car term) used)))
-  :hints (("Goal" :use ((:instance yan-1)))))
-
-(defthm lemma-16
-  (implies (and (function-option-name-lst-p used)
-                (function-option-name-p new-opt)
-                (function-option-lst-syntax-p-helper term (cons new-opt used)))
-           (function-option-lst-syntax-p-helper term used))
-  :hints(("Goal"
-          :in-theory (enable function-option-lst-syntax-p-helper))))
-
-     (defthm function-option-lst-syntax-preserve
-       (implies (and (function-option-lst-syntax-p-helper term nil)
-                     (consp term))
-                (function-option-lst-syntax-p-helper (cddr term)
-                                                     nil))
-       :hints (("Goal"
-                :in-theory (enable function-option-lst-syntax-p-helper)
-                :use ((:instance lemma-16
-                                 (term (cddr term))
-                                 (new-opt (car term))
-                                 (used nil))))))
+  (defthm function-option-lst-syntax-preserve
+    (implies (and (function-option-lst-syntax-p-helper term nil)
+                  (consp term))
+             (function-option-lst-syntax-p-helper (cddr term)
+                                                  nil))
+    :hints (("Goal"
+             :in-theory (disable lemma-16)
+             :expand ((function-option-lst-syntax-p-helper term nil)
+                      (function-option-syntax-p (list (car term) (cadr term))
+                                                nil))
+             :use ((:instance lemma-16
+                              (term (cddr term))
+                              (new-opt (car term))
+                              (used nil)))))))
 
 
+(defsection silly-section
   (define function-option-lst-syntax-p ((term t))
     :returns (syntax-good? booleanp)
     :short "Recogizer for function-option-lst-syntax"
@@ -1331,8 +1107,20 @@
                                        hypothesis-lst-syntax-fix
                                        hypothesis-syntax-p
                                        hypothesis-syntax-fix))))
+  )
 
-  ;; BOZO:
+
+(working-here)
+(defthm function-option-lst-syntax-p-implies-everything-you-want
+  (implies (and (function-option-lst-syntax-p term) term)
+           (and (function-option-syntax-p (list (car term) (cadr term)) nil)))
+  :hints(("Goal"
+          :expand((function-option-lst-syntax-p term)
+                  (function-option-lst-syntax-p-helper term nil))
+          :use ((:instance function-option-lst-syntax-p-helper--monotonicity
+                           (term (cddr term)))))))
+
+  ;; Bozo:
   ;; This implementation is potentially slow because of the threading of smt-func
   ;; all the way while at the same time updating it.
   (define make-merge-function-option-lst ((fun-opt-lst function-option-lst-syntax-p)
@@ -1357,10 +1145,12 @@
   :hints (("Goal"
            :in-theory (e/d (function-option-lst-syntax-fix
                             function-option-lst-syntax-p
-                            function-option-lst-syntax-p-helper
-                            hypothesis-lst-syntax-p) (natp))
-           :use ((:instance function-option-lst-syntax-p-of-option)
-                 (:instance function-option-lst-syntax-p-constraint (any nil)))
+                            function-option-syntax-p
+                            hypothesis-lst-syntax-p)
+                           (function-option-lst-syntax-p-helper--head
+                            natp))
+           :expand ((function-option-syntax-p (list (car fun-opt-lst) (cadr
+                                                                       fun-opt-lst)) nil))
            )))
 
   (define make-merge-function ((func function-syntax-p) (smt-func func-p))
