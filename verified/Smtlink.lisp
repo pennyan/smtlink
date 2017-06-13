@@ -132,11 +132,7 @@
     (b* (((if (atom term)) (equal term nil))
          ((cons first rest) term))
       (and (hypothesis-syntax-p first)
-           (hypothesis-lst-syntax-p rest)))
-    ///
-    (defthm true-listp-of-hypothesis-lst-syntax
-      (implies (hypothesis-lst-syntax-p x)
-               (true-listp x))))
+           (hypothesis-lst-syntax-p rest))))
 
   (define hypothesis-lst-syntax-fix ((term hypothesis-lst-syntax-p))
     :returns (fixed-term hypothesis-lst-syntax-p
@@ -425,7 +421,6 @@
                                  (cons (car term) (function-option-name-lst-fix used))))
                  :name function-option-syntax-p--new-used-when-ok)))
 
-
     (define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
       :returns (ok booleanp)
       :short "Helper for function-option-lst-syntax-p."
@@ -499,7 +494,6 @@
                                     (new-opt (car term))
                                     (used nil)))))))
       )
-
 
     (define function-option-lst-syntax-p ((term t))
       :returns (syntax-good? booleanp)
@@ -578,7 +572,9 @@
                                  (hypothesis-syntax-p val))
                         (implies (equal option-type 'hypothesis-lst-syntax-p)
                                  (hypothesis-lst-syntax-p val)))))
-        :hints(("Goal" :use((:instance lemma2 (term (list (car term) (cadr term))))))))
+        :hints(("Goal"
+                :in-theory (disable lemma2)
+                :use((:instance lemma2 (term (list (car term) (cadr term))))))))
       )
 
     (define function-syntax-p ((term t))
@@ -638,6 +634,26 @@
         :define t
         :forward t
         :topic function-lst-syntax-p))
+
+    (in-theory (disable ;; set-equiv-if-true-set-equiv
+                        ;; subsetp-if-true-set-equiv
+                        ;; true-set-equiv-is-for-true-lists
+                        function-option-name-fix-preserves-member
+                        function-option-name-lst-fix-preserves-subsetp
+                        function-option-name-lst-fix-preserves-set-equiv
+                        function-option-name-lst-p-and-member
+                        function-option-name-lst-p--monotonicity
+                        function-option-name-lst-p--congruence
+                        function-option-syntax-p--monotonicity.ok
+                        function-option-syntax-p--ok-congruence.ok
+                        function-option-syntax-p--monotonicity.new-used
+                        function-option-syntax-p--new-used-when-ok
+                        function-option-lst-syntax-p-helper--monotonicity
+                        function-option-lst-syntax-p-helper--congruence
+                        function-option-lst-syntax-p-helper--head
+                        function-option-lst-syntax-p-helper-preserve
+                        function-option-lst-syntax-fix-when-function-option-lst-syntaxp
+                        ))
     )
 
   (defsection smt-solver-params
@@ -794,6 +810,9 @@
         :define t
         :forward t
         :topic smt-solver-cnf-p))
+
+    (in-theory (disable ;; smt-solver-cnf-p-helper-preserve
+                        stringp-of-cadr-of-smt-solver-cnf-p-helper))
     )
 
   (defsection smtlink-hint-syntax
@@ -976,9 +995,9 @@
         (b* ((ok (smtlink-hint-syntax-p-helper term used)))
           (implies (acl2::set-equiv used-1 used)
                    (equal (smtlink-hint-syntax-p-helper term used-1) ok)))
-        :rule-classes(:congruence)))
+        :rule-classes(:congruence))
 
-    (encapsulate ()
+      (encapsulate ()
         (local
          (defthm lemma-16
            (implies (and (smtlink-option-name-lst-p used)
@@ -1006,7 +1025,7 @@
                    :use ((:instance lemma-16
                                     (term (cddr term))
                                     (new-opt (car term))
-                                    (used nil)))))))
+                                    (used nil))))))))
 
     (define smtlink-hint-syntax-p ((term t))
       :returns (syntax-good? booleanp)
@@ -1087,7 +1106,9 @@
                                  (smt-solver-params-p val))
                         (implies (equal option-type 'smt-solver-cnf-p)
                                  (smt-solver-cnf-p val)))))
-        :hints(("Goal" :use((:instance lemma2 (term (list (car term) (cadr term))))))))
+        :hints(("Goal"
+                :in-theory (disable lemma2)
+                :use((:instance lemma2 (term (list (car term) (cadr term))))))))
       )
 
     (encapsulate ()
@@ -1099,6 +1120,26 @@
         :define t
         :forward t
         :topic smtlink-hint-syntax-p))
+
+    (in-theory (disable smtlink-option-name-fix-preserves-member
+                        smtlink-option-name-lst-fix-preserves-subsetp
+                        smtlink-option-name-lst-fix-preserves-set-equiv
+                        smtlink-option-name-lst-p-and-member
+                        smtlink-option-name-lst-p--monotonicity
+                        smtlink-option-name-lst-p--congruence
+
+                        smtlink-option-syntax-p--monotonicity.ok
+                        smtlink-option-syntax-p--ok-congruence.ok
+                        smtlink-option-syntax-p--monotonicity.new-used
+                        smtlink-option-syntax-p--new-used-when-ok
+
+                        smtlink-hint-syntax-p-helper--monotonicity
+                        smtlink-hint-syntax-p-helper--congruence
+
+                        smtlink-hint-syntax-p-helper-preserve
+
+                        smtlink-hint-syntax-fix-when-smtlink-hint-syntax-p
+                        ))
     )
 
   ;; -------------------------------------------------------------------------
@@ -1350,8 +1391,9 @@
     :short "Set :smt-cnf"
     :measure (len content)
     :hints (("Goal" :in-theory (enable smt-solver-cnf-fix)))
-    :guard-hints (("Goal" :in-theory (enable smt-solver-cnf-fix smt-solver-cnf-p
-                                             smt-solver-cnf-p-helper)
+    :guard-hints (("Goal" :in-theory (e/d (smt-solver-cnf-fix smt-solver-cnf-p
+                                                              smt-solver-cnf-p-helper)
+                                          (stringp-of-cadr-of-smt-solver-cnf-p-helper))
                    :use ((:instance stringp-of-cadr-of-smt-solver-cnf-p-helper))
                    ))
     (b* ((hint (smtlink-hint-fix hint))
