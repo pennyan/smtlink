@@ -40,9 +40,6 @@
   ;;                          :smt-solver-cnf ()))))
 
   ;; Types:
-  ;; qbooleanp/fix
-  ;; qnatp/fix
-  ;; qstringp/fix
   ;; hints-syntax-p/fix
   ;; hypothesis-syntax-p/fix
   ;; hypothesis-lst-syntax-p/fix
@@ -56,107 +53,38 @@
   ;; smt-solver-params-p/fix
   ;; smtlink-hint-syntax-p/fix
 
-  (define qstringp ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for a quoted stringp."
-    (and (true-listp term)
-         (car term) (cadr term) (not (cddr term))
-         (equal (car term) 'quote)
-         (stringp (cadr term))))
+  (defsection hints-syntax
+    :parents (Smtlink-process-user-hint)
 
-  (define qstring-fix ((term qstringp))
-    :short "Fixing function for a qstringp."
-    :returns (fixed-term qstringp)
-    (mbe :logic (if (qstringp term) term ''"")
-         :exec term))
+    (define hints-syntax-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for hints-syntax."
+      (true-listp term))
 
-  (defthm qstring-fix-idempotent-lemma
-    (equal (qstring-fix (qstring-fix x))
-           (qstring-fix x))
-    :hints (("Goal" :in-theory (enable qstring-fix))))
+    (define hints-syntax-fix ((term hints-syntax-p))
+      :returns (fixed-term hints-syntax-p)
+      :short "Fixing function for a hints-sytnax-p."
+      (mbe :logic (if (hints-syntax-p term) term nil)
+           :exec term))
 
-  ;; This one shows that it's possible to connect fixing function and
-  ;; the type functions together, and became useful for other defprods, etc.
-  ;; Since I'm currently not using defprods for others either, this is probably
-  ;; not that useful. However, this deffixtype shows as an example for future
-  ;; necessity.
-  (deffixtype qstring
-    :pred  qstringp
-    :fix   qstring-fix
-    :equiv qstring-equiv
-    :define t
-    :forward t
-    :topic qstringp)
+    (encapsulate ()
+      (local (in-theory (enable hints-syntax-fix)))
+      (deffixtype hints-syntax
+        :pred  hints-syntax-p
+        :fix   hints-syntax-fix
+        :equiv hints-syntax-equiv
+        :define t
+        :forward t
+        :topic hints-syntax-p))
+    )
 
-  (define qnatp ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for a quoted qnatp."
-    (and (true-listp term)
-         (car term) (cadr term) (not (cddr term))
-         (equal (car term) 'quote)
-         (natp (cadr term))))
+  (defsection hypothesis-lst-syntax
+    :parents (Smtlink-process-user-hint)
 
-  (define qnat-fix ((term qnatp))
-    :returns (fixed-term qnatp)
-    :short "Fixing function for a qnatp."
-    (mbe :logic (if (qnatp term) term ''0)
-         :exec term))
-
-  (defthm qnat-fix-idempotent-lemma
-    (equal (qnat-fix (qnat-fix x))
-           (qnat-fix x))
-    :hints (("Goal" :in-theory (enable qnat-fix))))
-
-  (deffixtype qnat
-    :pred  qnatp
-    :fix   qnat-fix
-    :equiv qnat-equiv
-    :define t
-    :forward t
-    :topic qnatp)
-
-  (define qbooleanp ((term t))
-    :short "Recognizer for a quoted booleanp."
-    :returns (syntax-good? booleanp)
-    (and (true-listp term)
-         (car term)
-         (equal (car term) 'quote)
-         (booleanp (cadr term))))
-
-  (define qboolean-fix ((term qbooleanp))
-    :returns (fixed-term qbooleanp)
-    :short "Fixing function for a qbooleanp."
-    (mbe :logic (if (qbooleanp term) term ''nil)
-         :exec term))
-
-  (defthm qboolean-fix-idempotent-lemma
-    (equal (qboolean-fix (qboolean-fix x))
-           (qboolean-fix x))
-    :hints (("Goal" :in-theory (enable qboolean-fix))))
-
-  (deffixtype qboolean
-    :pred  qbooleanp
-    :fix   qboolean-fix
-    :equiv qboolean-equiv
-    :define t
-    :forward t
-    :topic qbooleanp)
-
-  (define hints-syntax-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for hints-syntax."
-    (true-listp term))
-
-  (define hints-syntax-fix ((term hints-syntax-p))
-    :returns (fixed-term hints-syntax-p)
-    :short "Fixing function for a hints-sytnax-p."
-    (mbe :logic (if (hints-syntax-p term) term nil)
-         :exec term))
-
-  (define hypothesis-syntax-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for hypothesis-syntax."
-    (or (and (atom term)
+    (define hypothesis-syntax-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for hypothesis-syntax."
+      (or (and (atom term)
              (equal term nil))
         ;; Without hints
         (and (true-listp term)
@@ -187,26 +115,22 @@
     (mbe :logic (if (hypothesis-syntax-p term) term nil)
          :exec term))
 
-  (defthm hypothesis-syntax-fix-idempotent-lemma
-    (equal (hypothesis-syntax-fix (hypothesis-syntax-fix x))
-           (hypothesis-syntax-fix x))
-    :hints (("Goal" :in-theory (enable hypothesis-syntax-fix))))
-
-  (deffixtype hypothesis-syntax
-    :pred  hypothesis-syntax-p
-    :fix   hypothesis-syntax-fix
-    :equiv hypothesis-syntax-equiv
-    :define t
-    :forward t
-    :topic hypothesis-syntax-p)
+  (encapsulate ()
+    (local (in-theory (enable hypothesis-syntax-fix)))
+    (deffixtype hypothesis-syntax
+      :pred  hypothesis-syntax-p
+      :fix   hypothesis-syntax-fix
+      :equiv hypothesis-syntax-equiv
+      :define t
+      :forward t
+      :topic hypothesis-syntax-p)
+    )
 
   (define hypothesis-lst-syntax-p ((term t))
     :returns (syntax-good? booleanp)
     :short "Recognizer for hypothesis-lst-syntax."
     (b* (((if (atom term)) (equal term nil))
-         ((cons first rest) term)
-         (- (cw "hypo first: ~q0" first))
-         (- (cw "(hypothesis-syntax-p first): ~q0" (hypothesis-syntax-p first))))
+         ((cons first rest) term))
       (and (hypothesis-syntax-p first)
            (hypothesis-lst-syntax-p rest)))
     ///
@@ -218,7 +142,8 @@
     :returns (fixed-term hypothesis-lst-syntax-p
                          :hints (("Goal"
                                   :in-theory (enable hypothesis-lst-syntax-p))))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable hypothesis-syntax-fix
+                                             hypothesis-lst-syntax-p hypothesis-lst-syntax-fix)))
     :short "Fixing function for a hypothesis-lst-syntax-p."
     (mbe :logic (if (consp term)
                     (cons (hypothesis-syntax-fix (car term))
@@ -226,767 +151,912 @@
                   nil)
          :exec term))
 
-  (verify-guards hypothesis-lst-syntax-fix
-    :hints (("Goal" :in-theory (enable hypothesis-syntax-fix
-                                       hypothesis-lst-syntax-p hypothesis-lst-syntax-fix))))
-
-  (defthm hypothesis-lst-syntax-fix-idempotent-lemma
-    (equal (hypothesis-lst-syntax-fix (hypothesis-lst-syntax-fix x))
-           (hypothesis-lst-syntax-fix x))
-    :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-fix hypothesis-syntax-fix))))
-
-  (deffixtype hypothesis-lst-syntax
-    :pred  hypothesis-lst-syntax-p
-    :fix   hypothesis-lst-syntax-fix
-    :equiv hypothesis-lst-syntax-equiv
-    :define t
-    :forward t
-    :topic hypothesis-lst-syntax-p)
-
-  (define smt-typep ((term t))
-    :returns (valid-type? booleanp)
-    :short "Types allowed in Smtlink."
-    (if (member-equal term
-                      ' (rationalp realp real/rationalp booleanp integerp))
-        t nil))
-
-  (define argument-syntax-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for argument-syntax."
-    (or (and (atom term)
-             (equal term nil))
-        ;; Just the name
-        (and (true-listp term)
-             (car term) (not (cdr term))
-             (symbolp (car term)))
-        ;; The name and the type/guard
-        (and (true-listp term)
-             (car term) (cadr term) (not (cddr term))
-             (smt-typep (car term))
-             (symbolp (cadr term)))
-        ;; The name, the type and the :hints
-        (and (true-listp term)
-             (car term) (cadr term) (not (cdddr term)) 
-             (symbolp (car term))
-             (smt-typep (cadr term))
-             (hints-syntax-p (cddr term)))))
-
-  (define argument-syntax-fix ((term argument-syntax-p))
-    :returns (fixed-term argument-syntax-p)
-    :short "Fixing function for argument-syntax-p."
-    (mbe :logic (if (argument-syntax-p term) term nil)
-         :exec term))
-
-  (define argument-lst-syntax-p ((term t))
-    :short "Recognizer for argument-lst-syntax."
-    :returns (syntax-good? booleanp)
-    (b* (((if (atom term)) (equal term nil))
-         ((cons first rest) term))
-      (and (argument-syntax-p first)
-           (argument-lst-syntax-p rest))))
-
-  (defthm argument-syntax-fix-idempotent-lemma
-    (equal (argument-syntax-fix (argument-syntax-fix x))
-           (argument-syntax-fix x))
-    :hints (("Goal" :in-theory (enable argument-syntax-fix))))
-
-  (deffixtype argument-syntax
-    :pred  argument-syntax-p
-    :fix   argument-syntax-fix
-    :equiv argument-syntax-equiv
-    :define t
-    :forward t
-    :topic argument-syntax-p)
-
-
-  (define argument-lst-syntax-fix ((term argument-lst-syntax-p))
-    :short "Fixing function for argument-lst-syntax."
-    :returns (fixed-term argument-lst-syntax-p
-                         :hints (("Goal"
-                                  :in-theory (enable argument-lst-syntax-p))))
-    :verify-guards nil
-    (mbe :logic (if (consp term)
-                    (cons (argument-syntax-fix (car term))
-                          (argument-lst-syntax-fix (cdr term)))
-                  nil)
-         :exec term))
-  (verify-guards argument-lst-syntax-fix
-    :hints (("Goal"
-             :in-theory (enable argument-lst-syntax-fix argument-syntax-fix argument-lst-syntax-p))))
-
-  (defthm argument-lst-syntax-fix-idempotent-lemma
-    (equal (argument-lst-syntax-fix (argument-lst-syntax-fix x))
-           (argument-lst-syntax-fix x))
-    :hints (("Goal" :in-theory (enable argument-lst-syntax-fix argument-syntax-fix))))
-
-  (deffixtype argument-lst-syntax
-    :pred  argument-lst-syntax-p
-    :fix   argument-lst-syntax-fix
-    :equiv argument-lst-syntax-equiv
-    :define t
-    :forward t
-    :topic argument-lst-syntax-p)
-
-  (defconst *function-options*
-    '((:formals . argument-lst-syntax-p)
-      (:returns . argument-lst-syntax-p)
-      (:level . natp)
-      (:guard . hypothesis-syntax-p)
-      (:more-returns . hypothesis-lst-syntax-p)))
-
-  (defconst *function-option-names*
-    (strip-cars *function-options*))
-
-  (defconst *function-option-types*
-    (remove-duplicates-equal (strip-cdrs *function-options*)))
-
-  (define function-option-type-p ((option-type t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for function-option-type."
-    (if (member-equal option-type *function-option-types*) t nil))
-
-  (define function-option-type-fix ((option-type function-option-type-p))
-    :returns (fixed-option-type function-option-type-p
-                                :hints (("Goal" :in-theory (enable
-                                                            function-option-type-p ))))
-    :short "Fixing function for function-option-type."
-    (mbe :logic (if (function-option-type-p option-type) option-type 'natp)
-         :exec option-type))
-
-  (define function-option-name-p ((option-name t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for an function-option-name."
-    (if (member-equal option-name *function-option-names*) t nil))
-
-  ;; This default value ':formals will generate a list of options with
-  ;; the same value. This violates the constraint that options should be
-  ;; distinctive. But that's alright, since we never expect option-fix's logic
-  ;; formula to ever get used. Proved guards ensure it.
-  (define function-option-name-fix ((option-name function-option-name-p))
-    :returns (fixed-option-name function-option-name-p)
-    :short "Fixing function for option."
-    (mbe :logic (if (function-option-name-p option-name) option-name ':formals)
-         :exec option-name))
-
-(define true-set-equiv ((list1 true-listp) (list2 true-listp))
-  :returns (p booleanp)
-  (if (equal (true-listp list1) (true-listp list2))
-      (acl2::set-equiv list1 list2)
-    nil)
-  ///
-  (more-returns
-   (p (implies p (acl2::set-equiv list1 list2))
-      :name set-equiv-if-true-set-equiv)
-   (p (implies p
-               (and (subsetp list1 list2 :test 'equal)
-                    (subsetp list2 list1 :test 'equal)))
-      :name subsetp-if-true-set-equiv)
-   (p (implies p (equal (true-listp list1) (true-listp list2)))
-      :name true-set-equiv-is-for-true-lists)))
-
-
-(defequiv true-set-equiv
-  :hints (("Goal" :in-theory (enable true-set-equiv))))
-
-
-(defsection function-option-name-lst
   (encapsulate ()
-    (local (in-theory (enable function-option-name-fix)))
-    (deffixtype function-option-name
-      :pred  function-option-name-p
-      :fix   function-option-name-fix
-      :equiv function-option-name-equiv
+    (local (in-theory (enable hypothesis-lst-syntax-fix)))
+    (deffixtype hypothesis-lst-syntax
+      :pred  hypothesis-lst-syntax-p
+      :fix   hypothesis-lst-syntax-fix
+      :equiv hypothesis-lst-syntax-equiv
       :define t
       :forward t
-      :topic function-option-name-p)
+      :topic hypothesis-lst-syntax-p))
+  )
 
-    (deflist function-option-name-lst
-      :elt-type function-option-name
-      :true-listp t))
+  (defsection argument-lst-syntax
+    :parents (Smtlink-process-user-hint)
 
-  (defthm function-option-name-fix-preserves-member
-    (implies (member x used :test 'equal)
-             (member (function-option-name-fix x)
-                     (function-option-name-lst-fix used) :test 'equal)))
+    (define smt-typep ((term t))
+      :returns (valid-type? booleanp)
+      :short "Types allowed in Smtlink."
+      (if (assoc-equal term *SMT-uninterpreted-types*)
+          t nil))
 
-  (defthm function-option-name-lst-fix-preserves-subsetp
-    (implies (subsetp used-1 used-2 :test 'equal)
-             (subsetp (function-option-name-lst-fix used-1)
-                      (function-option-name-lst-fix used-2)
-                      :test 'equal))
-    :hints(("Goal" :in-theory (e/d (subsetp-equal)))))
+    (define argument-syntax-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for argument-syntax."
+      (or (and (atom term)
+               (equal term nil))
+          ;; Just the name
+          (and (true-listp term)
+               (car term) (not (cdr term))
+               (symbolp (car term)))
+          ;; The name and the type/guard
+          (and (true-listp term)
+               (car term) (cadr term) (not (cddr term))
+               (smt-typep (car term))
+               (symbolp (cadr term)))
+          ;; The name, the type and the :hints
+          (and (true-listp term)
+               (car term) (cadr term) (not (cdddr term)) 
+               (symbolp (car term))
+               (smt-typep (cadr term))
+               (hints-syntax-p (cddr term)))))
 
-  (defthm function-option-name-lst-fix-preserves-set-equiv
-    (implies (acl2::set-equiv used-1 used-2)
-             (acl2::set-equiv
-              (function-option-name-lst-fix used-1)
-              (function-option-name-lst-fix used-2)))
-    :hints (("Goal" :in-theory (enable acl2::set-equiv)))
-    :rule-classes(:congruence))
+    (define argument-syntax-fix ((term argument-syntax-p))
+      :returns (fixed-term argument-syntax-p)
+      :short "Fixing function for argument-syntax-p."
+      (mbe :logic (if (argument-syntax-p term) term nil)
+           :exec term))
 
-  (defthm function-option-name-lst-p-and-member
-    (implies (and (member x used)
-                  (not (function-option-name-p x)))
-             (not (function-option-name-lst-p used)))
-    :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
+    (encapsulate ()
+      (local (in-theory (enable argument-syntax-fix)))
+      (deffixtype argument-syntax
+        :pred  argument-syntax-p
+        :fix   argument-syntax-fix
+        :equiv argument-syntax-equiv
+        :define t
+        :forward t
+        :topic argument-syntax-p))
 
-  (defthm function-option-name-lst-p--monotonicity
-    (implies (and (equal (true-listp used-1) (true-listp used-2))
-                  (subsetp used-1 used-2 :test 'equal)
-                  (function-option-name-lst-p used-2))
-             (function-option-name-lst-p used-1))
-    :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
+    (define argument-lst-syntax-p ((term t))
+      :short "Recognizer for argument-lst-syntax."
+      :returns (syntax-good? booleanp)
+      (b* (((if (atom term)) (equal term nil))
+           ((cons first rest) term))
+        (and (argument-syntax-p first)
+             (argument-lst-syntax-p rest))))
 
-  (defthm function-option-name-lst-p--congruence
-    (implies (true-set-equiv used-1 used-2)
-             (equal (function-option-name-lst-p used-1)
-                    (function-option-name-lst-p used-2)))
-    :hints(("Goal" :cases ((function-option-name-lst-p used-1)
-                           (function-option-name-lst-p used-2))))
-    :rule-classes(:congruence)))
+    (define argument-lst-syntax-fix ((term argument-lst-syntax-p))
+      :short "Fixing function for argument-lst-syntax."
+      :returns (fixed-term argument-lst-syntax-p
+                           :hints (("Goal"
+                                    :in-theory (enable argument-lst-syntax-p))))
+      :guard-hints (("Goal"
+                     :in-theory (enable argument-lst-syntax-fix argument-syntax-fix argument-lst-syntax-p)))
+      (mbe :logic (if (consp term)
+                      (cons (argument-syntax-fix (car term))
+                            (argument-lst-syntax-fix (cdr term)))
+                    nil)
+           :exec term))
 
-
-  ;; The conditions in eval-type should go along with *function-options*
-  (define eval-function-option-type ((option-type function-option-type-p) (term t))
-    :returns (type-correct? booleanp)
-    :short "Evaluating types for function option body."
-    (b* ((option-type (function-option-type-fix option-type)))
-      (case option-type
-        (argument-lst-syntax-p (argument-lst-syntax-p term))
-        (natp (natp term))
-        (hypothesis-syntax-p (hypothesis-syntax-p term))
-        (t (hypothesis-lst-syntax-p term)))))
-
-(define function-option-syntax-p ((term t) (used function-option-name-lst-p))
-  :guard-hints (("Goal"
-                 :in-theory (enable function-option-syntax-p function-option-name-p
-                                     eval-function-option-type function-option-name-lst-p)))
-    :returns (mv (ok booleanp)
-                 (new-used function-option-name-lst-p
-                           :hints (("Goal" :in-theory (enable function-option-name-lst-p function-option-name-p)))))
-    :short "Recoginizer for function-option-syntax."
-    (b* ((used (function-option-name-lst-fix used))
-         ((unless (true-listp term)) (mv nil used))
-         ((unless (consp term)) (mv t used))
-         ((unless (and (car term) (cdr term) (not (cddr term)))) (mv nil used))
-         ((cons option body-lst) term)
-         ((unless (function-option-name-p option)) (mv nil used))
-         (option-type (cdr (assoc-equal option *function-options*))))
-      (mv (and (not (member-equal option used))
-               (eval-function-option-type option-type (car body-lst)))
-          (cons option used)))
-    ///
-    (more-returns
-     (ok (implies (and (subsetp used-1 used :test 'equal) ok)
-                  (mv-nth 0 (function-option-syntax-p term used-1)))
-         :name function-option-syntax-p--monotonicity.ok
-         )
-     (ok (implies (acl2::set-equiv used-1 used)
-                  (equal (mv-nth 0 (function-option-syntax-p term used-1))
-                         ok))
-         :name function-option-syntax-p--ok-congruence.ok
-         :hints(("Goal"
-                 :in-theory (disable function-option-syntax-p
-                                     function-option-syntax-p--monotonicity.ok
-                                     booleanp-of-function-option-syntax-p.ok)
-                 :use((:instance function-option-syntax-p--monotonicity.ok
-                                 (used-1 used-1) (used used) (term term))
-                      (:instance function-option-syntax-p--monotonicity.ok
-                                 (used-1 used) (used used-1) (term term))
-                      (:instance booleanp-of-function-option-syntax-p.ok
-                                 (used used-1) (term term))
-                      (:instance booleanp-of-function-option-syntax-p.ok
-                                 (used used) (term term)))))
-         :rule-classes (:congruence))
-     (new-used (implies (and (subsetp used-1 used :test 'equal) ok)
-                        (subsetp
-                         (mv-nth 1 (function-option-syntax-p term used-1))
-                         new-used
-                         :test 'equal))
-               :name function-option-syntax-p--monotonicity.new-used)
-     (new-used (implies (and term ok)
-                        (equal new-used
-                               (cons (car term) (function-option-name-lst-fix used))))
-               :name function-option-syntax-p--new-used-when-ok)))
-
-
-(define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
-    :returns (ok booleanp)
-    :short "Helper for function-option-lst-syntax-p."
-    (b* (((unless (true-listp term)) nil)
-         ((unless term) t)
-         ((unless (cdr term)) nil)
-         ((list* first second rest) term)
-         ((mv res new-used) (function-option-syntax-p (list first second)
-                                                      used)))
-      (and res (function-option-lst-syntax-p-helper rest new-used)))
-    ///
-    ;; These seem like they should be more-returns theorems, but
-    ;; when I try that, ACL2 fails miserably.
-    (defthm function-option-lst-syntax-p-helper--monotonicity
-      (implies (and (subsetp used-1 used :test 'equal)
-                    (function-option-lst-syntax-p-helper term used))
-               (function-option-lst-syntax-p-helper term used-1)))
-
-    (defthm function-option-lst-syntax-p-helper--congruence
-      (b* ((ok (function-option-lst-syntax-p-helper term used)))
-        (implies (acl2::set-equiv used-1 used)
-                 (equal (function-option-lst-syntax-p-helper term used-1) ok)))
-      :rule-classes(:congruence))
-
-    ;; (more-returns
-    ;;  (ok
-    ;;   (implies (and (subsetp used-1 used :test 'equal) ok)
-    ;;            (function-option-lst-syntax-p-helper term used-1))
-    ;;   :name function-option-lst-syntax-p-helper--monotonicity))
-
-    ;; (more-returns
-    ;;  (ok
-    ;;    (implies (acl2::set-equiv used-1 used)
-    ;;             (equal (function-option-lst-syntax-p-helper term used-1) ok))
-    ;;    :rule-classes(:congruence)
-    ;;    :name function-option-lst-syntax-p-helper--congruence)
-
-    (defthm function-option-lst-syntax-p-helper--head
-      (implies (and (function-option-lst-syntax-p-helper term used) term)
-               (and (<= 2 (len term))
-                    (function-option-syntax-p (list (car term) (cadr term)) used))))
+    (encapsulate ()
+      (local (in-theory (enable argument-lst-syntax-fix)))
+      (deffixtype argument-lst-syntax
+        :pred  argument-lst-syntax-p
+        :fix   argument-lst-syntax-fix
+        :equiv argument-lst-syntax-equiv
+        :define t
+        :forward t
+        :topic argument-lst-syntax-p))
     )
 
-(encapsulate ()
-  (defthm lemma-16
-    (implies (and (function-option-name-lst-p used)
-                  (function-option-name-p new-opt)
-                  (function-option-lst-syntax-p-helper term (cons new-opt used)))
-             (function-option-lst-syntax-p-helper term used))
-    :hints(("Goal"
-            :in-theory (disable
-                        function-option-lst-syntax-p-helper--monotonicity)
-            :use((:instance function-option-lst-syntax-p-helper--monotonicity
-                            (used-1 used) (used (cons new-opt used))
-                            (term term))))))
+  (defsection function-syntax
+    :parents (Smtlink-process-user-hint)
 
-  (defthm function-option-lst-syntax-preserve
-    (implies (and (function-option-lst-syntax-p-helper term nil)
-                  (consp term))
-             (function-option-lst-syntax-p-helper (cddr term)
-                                                  nil))
-    :hints (("Goal"
-             :in-theory (disable lemma-16)
-             :expand ((function-option-lst-syntax-p-helper term nil)
+    (defconst *function-options*
+      '((:formals . argument-lst-syntax-p)
+        (:returns . argument-lst-syntax-p)
+        (:level . natp)
+        (:guard . hypothesis-syntax-p)
+        (:more-returns . hypothesis-lst-syntax-p)))
+
+    (defconst *function-option-names*
+      (strip-cars *function-options*))
+
+    (defconst *function-option-types*
+      (remove-duplicates-equal (strip-cdrs *function-options*)))
+
+    (define function-option-type-p ((option-type t))
+      :returns (syntax-good? booleanp)
+      :short "Recoginizer for function-option-type."
+      (if (member-equal option-type *function-option-types*) t nil))
+
+    (define function-option-type-fix ((option-type function-option-type-p))
+      :returns (fixed-option-type function-option-type-p
+                                  :hints (("Goal" :in-theory (enable
+                                                              function-option-type-p ))))
+      :short "Fixing function for function-option-type."
+      (mbe :logic (if (function-option-type-p option-type) option-type 'natp)
+           :exec option-type))
+
+    (define function-option-name-p ((option-name t))
+      :returns (syntax-good? booleanp)
+      :short "Recoginizer for an function-option-name."
+      (if (member-equal option-name *function-option-names*) t nil))
+
+    ;; This default value ':formals will generate a list of options with
+    ;; the same value. This violates the constraint that options should be
+    ;; distinctive. But that's alright, since we never expect option-fix's logic
+    ;; formula to ever get used. Proved guards ensure it.
+    (define function-option-name-fix ((option-name function-option-name-p))
+      :returns (fixed-option-name function-option-name-p)
+      :short "Fixing function for option."
+      (mbe :logic (if (function-option-name-p option-name) option-name ':formals)
+           :exec option-name))
+
+    (define true-set-equiv ((list1 true-listp) (list2 true-listp))
+      :returns (p booleanp)
+      (if (equal (true-listp list1) (true-listp list2))
+          (acl2::set-equiv list1 list2)
+        nil)
+      ///
+      (more-returns
+       (p (implies p (acl2::set-equiv list1 list2))
+          :name set-equiv-if-true-set-equiv)
+       (p (implies p
+                   (and (subsetp list1 list2 :test 'equal)
+                        (subsetp list2 list1 :test 'equal)))
+          :name subsetp-if-true-set-equiv)
+       (p (implies p (equal (true-listp list1) (true-listp list2)))
+          :name true-set-equiv-is-for-true-lists)))
+
+    (defequiv true-set-equiv
+      :hints (("Goal" :in-theory (enable true-set-equiv))))
+
+    (defsection function-option-name-lst
+      :parents (function-syntax)
+
+      (encapsulate ()
+        (local (in-theory (enable function-option-name-fix)))
+        (deffixtype function-option-name
+          :pred  function-option-name-p
+          :fix   function-option-name-fix
+          :equiv function-option-name-equiv
+          :define t
+          :forward t
+          :topic function-option-name-p)
+
+        (deflist function-option-name-lst
+          :elt-type function-option-name
+          :true-listp t))
+
+      (defthm function-option-name-fix-preserves-member
+        (implies (member x used :test 'equal)
+                 (member (function-option-name-fix x)
+                         (function-option-name-lst-fix used) :test 'equal)))
+
+      (defthm function-option-name-lst-fix-preserves-subsetp
+        (implies (subsetp used-1 used-2 :test 'equal)
+                 (subsetp (function-option-name-lst-fix used-1)
+                          (function-option-name-lst-fix used-2)
+                          :test 'equal))
+        :hints(("Goal" :in-theory (e/d (subsetp-equal)))))
+
+      (defthm function-option-name-lst-fix-preserves-set-equiv
+        (implies (acl2::set-equiv used-1 used-2)
+                 (acl2::set-equiv
+                  (function-option-name-lst-fix used-1)
+                  (function-option-name-lst-fix used-2)))
+        :hints (("Goal" :in-theory (enable acl2::set-equiv)))
+        :rule-classes(:congruence))
+
+      (defthm function-option-name-lst-p-and-member
+        (implies (and (member x used)
+                      (not (function-option-name-p x)))
+                 (not (function-option-name-lst-p used)))
+        :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
+
+      (defthm function-option-name-lst-p--monotonicity
+        (implies (and (equal (true-listp used-1) (true-listp used-2))
+                      (subsetp used-1 used-2 :test 'equal)
+                      (function-option-name-lst-p used-2))
+                 (function-option-name-lst-p used-1))
+        :hints(("Goal" :in-theory (enable function-option-name-lst-p))))
+
+      (defthm function-option-name-lst-p--congruence
+        (implies (true-set-equiv used-1 used-2)
+                 (equal (function-option-name-lst-p used-1)
+                        (function-option-name-lst-p used-2)))
+        :hints(("Goal" :cases ((function-option-name-lst-p used-1)
+                               (function-option-name-lst-p used-2))))
+        :rule-classes(:congruence)))
+
+
+    ;; The conditions in eval-type should go along with *function-options*
+    (define eval-function-option-type ((option-type function-option-type-p) (term t))
+      :returns (type-correct? booleanp)
+      :short "Evaluating types for function option body."
+      (b* ((option-type (function-option-type-fix option-type)))
+        (case option-type
+          (argument-lst-syntax-p (argument-lst-syntax-p term))
+          (natp (natp term))
+          (hypothesis-syntax-p (hypothesis-syntax-p term))
+          (t (hypothesis-lst-syntax-p term)))))
+
+    (define function-option-syntax-p ((term t) (used function-option-name-lst-p))
+      :guard-hints (("Goal"
+                     :in-theory (enable function-option-syntax-p function-option-name-p
+                                        eval-function-option-type function-option-name-lst-p)))
+      :returns (mv (ok booleanp)
+                   (new-used function-option-name-lst-p
+                             :hints (("Goal" :in-theory (enable function-option-name-lst-p function-option-name-p)))))
+      :short "Recoginizer for function-option-syntax."
+      (b* ((used (function-option-name-lst-fix used))
+           ((unless (true-listp term)) (mv nil used))
+           ((unless (consp term)) (mv t used))
+           ((unless (and (car term) (cdr term) (not (cddr term)))) (mv nil used))
+           ((cons option body-lst) term)
+           ((unless (function-option-name-p option)) (mv nil used))
+           (option-type (cdr (assoc-equal option *function-options*))))
+        (mv (and (not (member-equal option used))
+                 (eval-function-option-type option-type (car body-lst)))
+            (cons option used)))
+      ///
+      (more-returns
+       (ok (implies (and (subsetp used-1 used :test 'equal) ok)
+                    (mv-nth 0 (function-option-syntax-p term used-1)))
+           :name function-option-syntax-p--monotonicity.ok
+           )
+       (ok (implies (acl2::set-equiv used-1 used)
+                    (equal (mv-nth 0 (function-option-syntax-p term used-1))
+                           ok))
+           :name function-option-syntax-p--ok-congruence.ok
+           :hints(("Goal"
+                   :in-theory (disable function-option-syntax-p
+                                       function-option-syntax-p--monotonicity.ok
+                                       booleanp-of-function-option-syntax-p.ok)
+                   :use((:instance function-option-syntax-p--monotonicity.ok
+                                   (used-1 used-1) (used used) (term term))
+                        (:instance function-option-syntax-p--monotonicity.ok
+                                   (used-1 used) (used used-1) (term term))
+                        (:instance booleanp-of-function-option-syntax-p.ok
+                                   (used used-1) (term term))
+                        (:instance booleanp-of-function-option-syntax-p.ok
+                                   (used used) (term term)))))
+           :rule-classes (:congruence))
+       (new-used (implies (and (subsetp used-1 used :test 'equal) ok)
+                          (subsetp
+                           (mv-nth 1 (function-option-syntax-p term used-1))
+                           new-used
+                           :test 'equal))
+                 :name function-option-syntax-p--monotonicity.new-used)
+       (new-used (implies (and term ok)
+                          (equal new-used
+                                 (cons (car term) (function-option-name-lst-fix used))))
+                 :name function-option-syntax-p--new-used-when-ok)))
+
+
+    (define function-option-lst-syntax-p-helper ((term t) (used function-option-name-lst-p))
+      :returns (ok booleanp)
+      :short "Helper for function-option-lst-syntax-p."
+      (b* (((unless (true-listp term)) nil)
+           ((unless term) t)
+           ((unless (cdr term)) nil)
+           ((list* first second rest) term)
+           ((mv res new-used) (function-option-syntax-p (list first second)
+                                                        used)))
+        (and res (function-option-lst-syntax-p-helper rest new-used)))
+      ///
+      ;; These seem like they should be more-returns theorems, but
+      ;; when I try that, ACL2 fails miserably.
+      (defthm function-option-lst-syntax-p-helper--monotonicity
+        (implies (and (subsetp used-1 used :test 'equal)
+                      (function-option-lst-syntax-p-helper term used))
+                 (function-option-lst-syntax-p-helper term used-1)))
+
+      (defthm function-option-lst-syntax-p-helper--congruence
+        (b* ((ok (function-option-lst-syntax-p-helper term used)))
+          (implies (acl2::set-equiv used-1 used)
+                   (equal (function-option-lst-syntax-p-helper term used-1) ok)))
+        :rule-classes(:congruence))
+
+      ;; (more-returns
+      ;;  (ok
+      ;;   (implies (and (subsetp used-1 used :test 'equal) ok)
+      ;;            (function-option-lst-syntax-p-helper term used-1))
+      ;;   :name function-option-lst-syntax-p-helper--monotonicity))
+
+      ;; (more-returns
+      ;;  (ok
+      ;;    (implies (acl2::set-equiv used-1 used)
+      ;;             (equal (function-option-lst-syntax-p-helper term used-1) ok))
+      ;;    :rule-classes(:congruence)
+      ;;    :name function-option-lst-syntax-p-helper--congruence)
+
+      (defthm function-option-lst-syntax-p-helper--head
+        (implies (and (function-option-lst-syntax-p-helper term used) term)
+                 (and (<= 2 (len term))
                       (function-option-syntax-p (list (car term) (cadr term))
-                                                nil))
-             :use ((:instance lemma-16
-                              (term (cddr term))
-                              (new-opt (car term))
-                              (used nil)))))))
+                                                used))))
+
+      (encapsulate ()
+        (local
+         (defthm lemma-16
+           (implies (and (function-option-name-lst-p used)
+                         (function-option-name-p new-opt)
+                         (function-option-lst-syntax-p-helper term (cons new-opt used)))
+                    (function-option-lst-syntax-p-helper term used))
+           :hints(("Goal"
+                   :in-theory (disable
+                               function-option-lst-syntax-p-helper--monotonicity)
+                   :use((:instance function-option-lst-syntax-p-helper--monotonicity
+                                   (used-1 used) (used (cons new-opt used))
+                                  (term term))))))
+         )
+
+        (defthm function-option-lst-syntax-p-helper-preserve
+          (implies (and (function-option-lst-syntax-p-helper term nil)
+                        (consp term))
+                   (function-option-lst-syntax-p-helper (cddr term)
+                                                        nil))
+          :hints (("Goal"
+                   :in-theory (disable lemma-16)
+                   :expand ((function-option-lst-syntax-p-helper term nil)
+                            (function-option-syntax-p (list (car term) (cadr term))
+                                                      nil))
+                   :use ((:instance lemma-16
+                                    (term (cddr term))
+                                    (new-opt (car term))
+                                    (used nil)))))))
+      )
 
 
-(defsection silly-section
-  (define function-option-lst-syntax-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recogizer for function-option-lst-syntax"
-    (function-option-lst-syntax-p-helper term nil))
+    (define function-option-lst-syntax-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recogizer for function-option-lst-syntax"
+      (function-option-lst-syntax-p-helper term nil))
 
-  (define function-option-lst-syntax-fix ((term function-option-lst-syntax-p))
-    :returns (fixed-term function-option-lst-syntax-p)
-    :short "Recogizer for function-option-lst-syntax"
-    (mbe :logic (if (function-option-lst-syntax-p term) term nil)
-         :exec term))
+    (define function-option-lst-syntax-fix ((term function-option-lst-syntax-p))
+      :returns (fixed-term function-option-lst-syntax-p)
+      :short "Recogizer for function-option-lst-syntax"
+      (mbe :logic (if (function-option-lst-syntax-p term) term nil)
+           :exec term)
+      ///
+      (more-returns
+       (fixed-term
+        (implies (function-option-lst-syntax-p term)
+                 (equal fixed-term term))
+        :hints(("Goal" :expand (function-option-lst-syntax-fix term)))
+        :name
+        function-option-lst-syntax-fix-when-function-option-lst-syntaxp)))
 
-  (defthm function-option-lst-syntax-fix-idempotent-lemma
-    (equal (function-option-lst-syntax-fix (function-option-lst-syntax-fix x))
-           (function-option-lst-syntax-fix x))
-    :hints (("Goal" :in-theory (enable function-option-lst-syntax-fix))))
+    (encapsulate ()
+      (local (in-theory (enable function-option-lst-syntax-fix)))
 
-  (deffixtype function-option-lst-syntax
-    :pred  function-option-lst-syntax-p
-    :fix   function-option-lst-syntax-fix
-    :equiv function-option-lst-syntax-equiv
-    :define t
-    :forward t
-    :topic function-option-lst-syntax-p)
+      (deffixtype function-option-lst-syntax
+        :pred  function-option-lst-syntax-p
+        :fix   function-option-lst-syntax-fix
+        :equiv function-option-lst-syntax-equiv
+        :define t
+        :forward t
+        :topic function-option-lst-syntax-p))
 
-  (define function-syntax-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for function-syntax."
-    (b* (((unless (true-listp term)) nil)
-         ((unless (consp term)) t)
-         ((cons fname function-options) term)
-         (- (cw "(symbolp fname): ~q0" (symbolp fname)))
-         (- (cw "(function-option-lst-syntax-p function-options): ~q0" (function-option-lst-syntax-p function-options))))
-      ;; It's probably possible to check existence of function?
-      ;; Currently not doing such check, since it will require passing state.
-      (and (symbolp fname)
-           (function-option-lst-syntax-p function-options))))
+    (encapsulate ()
+      (local (defthm lemma1
+               (implies (and (function-option-lst-syntax-p term) term)
+                        (and (mv-nth 0 (function-option-syntax-p
+                                        (list (car term) (cadr term)) nil))
+                             (consp (cdr term))
+                             (function-option-lst-syntax-p (cddr term))
+                             (true-listp term)))
+               :hints(("Goal"
+                       :expand((function-option-lst-syntax-p term)
+                               (function-option-lst-syntax-p-helper term nil)
+                               (function-option-lst-syntax-p (cddr term)))))))
 
-  (define function-syntax-fix ((term function-syntax-p))
-    :returns (fixed-term function-syntax-p)
-    :short "Fixing function for function-syntax-p"
-    (mbe :logic (if (function-syntax-p term) term nil)
-         :exec term))
+      (local (defthmd lemma2
+               (implies (and (mv-nth 0 (function-option-syntax-p term nil)) term)
+                        (and (member-equal (car term) *function-option-names*)
+                             (or (and (equal (cdr (assoc-equal (car term) *function-options*)) 'argument-lst-syntax-p)
+                                      (argument-lst-syntax-p (cadr term)))
+                                 (and (equal (cdr (assoc-equal (car term) *function-options*)) 'natp)
+                                      (natp (cadr term)))
+                                 (and (equal (cdr (assoc-equal (car term) *function-options*)) 'hypothesis-syntax-p)
+                                      (hypothesis-syntax-p (cadr term)))
+                                 (and (equal (cdr (assoc-equal (car term) *function-options*)) 'hypothesis-lst-syntax-p)
+                                      (hypothesis-lst-syntax-p (cadr term))))))
+               :hints(("Goal" :expand((function-option-syntax-p term nil)
+                                      (:free (option-type) (eval-function-option-type
+                                                            option-type (cadr term)))
+                                      (function-option-name-p (car term)))))))
 
-  (defthm function-syntax-fix-idempotent-lemma
-    (equal (function-syntax-fix (function-syntax-fix x))
-           (function-syntax-fix x))
-    :hints (("Goal" :in-theory (enable function-syntax-fix))))
+      (defthm everything-about-function-option-lst-syntax-p
+        (implies (and (function-option-lst-syntax-p term) term)
+                 (let* ((opt (car term)) (val (cadr term)) (rest (cddr term))
+                        (option-type (cdr (assoc-equal opt *function-options*))))
+                   (and (true-listp term)
+                        (consp (cdr term))
+                        (equal (function-option-lst-syntax-fix term) term)
+                        (function-option-lst-syntax-p rest)
+                        (member-equal opt *function-option-names*)
+                        (member-equal option-type *function-option-types*)
+                        (implies (equal option-type 'argument-lst-syntax-p)
+                                 (argument-lst-syntax-p val))
+                        (implies (equal option-type 'natp)
+                                 (and (integerp val) (<= 0 val)))
+                        (implies (equal option-type 'hypothesis-syntax-p)
+                                 (hypothesis-syntax-p val))
+                        (implies (equal option-type 'hypothesis-lst-syntax-p)
+                                 (hypothesis-lst-syntax-p val)))))
+        :hints(("Goal" :use((:instance lemma2 (term (list (car term) (cadr term))))))))
+      )
 
-  (deffixtype function-syntax
-    :pred  function-syntax-p
-    :fix   function-syntax-fix
-    :equiv function-syntax-equiv
-    :define t
-    :forward t
-    :topic function-syntax-p)
+    (define function-syntax-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for function-syntax."
+      (b* (((unless (true-listp term)) nil)
+           ((unless (consp term)) t)
+           ((cons fname function-options) term))
+        ;; It's probably possible to check existence of function?
+        ;; Currently not doing such check, since it will require passing state.
+        (and (symbolp fname)
+             (function-option-lst-syntax-p function-options))))
 
-  (define function-lst-syntax-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for function-lst-syntax"
-    (b* (((if (atom term)) (equal term nil))
-         ((cons first rest) term))
-      (and (function-syntax-p first)
-           (function-lst-syntax-p rest))))
+    (define function-syntax-fix ((term function-syntax-p))
+      :returns (fixed-term function-syntax-p)
+      :short "Fixing function for function-syntax-p"
+      (mbe :logic (if (function-syntax-p term) term nil)
+           :exec term))
 
-  (define function-lst-syntax-fix ((term function-lst-syntax-p))
-    :returns (fixed-term function-lst-syntax-p
-                         :hints (("Goal" :in-theory (enable
-                                                     function-lst-syntax-p))))
-    :short "Fixing function for function-lst-syntax-fix"
-    :verify-guards nil
-    (mbe :logic (if (consp term)
-                    (cons (function-syntax-fix (car term))
-                          (function-lst-syntax-fix (cdr term)))
-                  nil)
-         :exec term))
-  (verify-guards function-lst-syntax-fix
-    :hints (("Goal" :in-theory (enable function-lst-syntax-fix
-                                       function-syntax-fix function-lst-syntax-p function-syntax-p))))
+    (encapsulate ()
+      (local (in-theory (enable function-syntax-fix)))
+      (deffixtype function-syntax
+        :pred  function-syntax-p
+        :fix   function-syntax-fix
+        :equiv function-syntax-equiv
+        :define t
+        :forward t
+        :topic function-syntax-p))
 
-  (defthm function-lst-syntax-fix-idempotent-lemma
-    (equal (function-lst-syntax-fix (function-lst-syntax-fix x))
-           (function-lst-syntax-fix x))
-    :hints (("Goal" :in-theory (enable function-lst-syntax-fix))))
+    (define function-lst-syntax-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for function-lst-syntax"
+      (b* (((if (atom term)) (equal term nil))
+           ((cons first rest) term))
+        (and (function-syntax-p first)
+             (function-lst-syntax-p rest))))
 
-  (deffixtype function-lst-syntax
-    :pred  function-lst-syntax-p
-    :fix   function-lst-syntax-fix
-    :equiv function-lst-syntax-equiv
-    :define t
-    :forward t
-    :topic function-lst-syntax-p)
+    (define function-lst-syntax-fix ((term function-lst-syntax-p))
+      :returns (fixed-term function-lst-syntax-p
+                           :hints (("Goal" :in-theory (enable
+                                                       function-lst-syntax-p))))
+      :short "Fixing function for function-lst-syntax-fix"
+      :guard-hints (("Goal" :in-theory (enable function-lst-syntax-fix
+                                               function-syntax-fix function-lst-syntax-p function-syntax-p)))
+      (mbe :logic (if (consp term)
+                      (cons (function-syntax-fix (car term))
+                            (function-lst-syntax-fix (cdr term)))
+                    nil)
+           :exec term))
 
-
-  (define smt-solver-params-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for smt-solver-params."
-    (true-listp term))
-
-  (define smt-solver-params-fix ((term smt-solver-params-p))
-    :returns (fixed-term smt-solver-params-p
-                         :hints (("Goal" :in-theory (enable smt-solver-params-p))))
-    :short "Fixing function for smt-solver-params."
-    (mbe :logic (if (smt-solver-params-p term) term (true-list-fix term))
-         :exec term))
-
-  (defconst *cnf-options*
-    '(:interface-dir :SMT-files-dir :SMT-module
-                     :SMT-class :SMT-cmd :file-format))
-
-  (define cnf-option-p ((option t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for cnf-option."
-    (if (member-equal option *cnf-options*) t nil))
-
-  (define cnf-option-fix ((option cnf-option-p))
-    :returns (fixed-cnf-option cnf-option-p)
-    :short "Fixing function for cnf-option."
-    (mbe :logic (if (cnf-option-p option) option ':interface-dir)
-         :exec option))
-
-  (define cnf-option-lst-p ((option-lst t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for cnf-option-lst."
-    (b* (((if (atom option-lst)) (equal option-lst nil))
-         ((cons first rest) option-lst))
-      (and (cnf-option-p first)
-           (cnf-option-lst-p rest))))
-
-  (define cnf-option-lst-fix ((option-lst cnf-option-lst-p))
-    :returns (fixed-option-lst cnf-option-lst-p
-                               :hints (("Goal" :in-theory (enable cnf-option-lst-p))))
-    :short "Fixing function for cnf-option-lst."
-    :verify-guards nil
-    (mbe :logic (if (atom option-lst)
-                    nil
-                  (cons (cnf-option-fix (car option-lst))
-                        (cnf-option-lst-fix (cdr option-lst))))
-         :exec option-lst))
-  (verify-guards cnf-option-lst-fix
-    :hints (("Goal" :in-theory (enable cnf-option-fix
-                                       cnf-option-lst-fix
-                                       cnf-option-p cnf-option-lst-p))))
-
-
-  (define smt-solver-single-cnf-p ((term t) (used cnf-option-lst-p))
-    :returns (mv (syntax-good? booleanp)
-                 (new-used cnf-option-lst-p
-                           :hints (("Goal" :in-theory (enable cnf-option-lst-p cnf-option-p)))))
-    :short "Recognizer for smt-solver-single-cnf."
-    (b* ((used (cnf-option-lst-fix used))
-         ((if (equal term nil)) (mv t used))
-         ((unless (and (true-listp term) (car term)
-                       (cadr term) (not (cddr term)))) (mv nil used))
-         ((cons option body-lst) term)
-         ((unless (cnf-option-p option)) (mv nil used)))
-      (mv (and (not (member-equal option used))
-               (stringp (car body-lst)))
-          (cons option used))))
-
-  (defthm member-equal-preserve
-    (implies (not (member-equal x (cons a lst)))
-             (not (member-equal x lst))))
-
-  (define smt-solver-cnf-p-helper ((term t) (used cnf-option-lst-p))
-    :returns (syntax-good? booleanp)
-    :short "Helper function for smt-solver-cnf-p."
-    (b* (((if (atom term)) (equal term nil))
-         ((unless (and (true-listp term) (>= (len term) 2))) nil)
-         ((list* first second rest) term)
-         ((mv res new-used) (smt-solver-single-cnf-p (list first second) used)))
-      (and res (smt-solver-cnf-p-helper rest new-used)))
-    ///
-    (defthm crock-true-listp
-      (implies (smt-solver-cnf-p-helper term nil)
-               (true-listp term)))
-
-    (defthm stringp-of-cadr
-      (implies (and (smt-solver-cnf-p-helper content nil)
-                    (consp content))
-               (stringp (cadr content)))
-      :hints (("Goal"
-               :in-theory (enable smt-solver-single-cnf-p))))
-
-    (skip-proofs
-     (defthm cddr-preserve
-       (implies (and (smt-solver-cnf-p-helper content nil)
-                     (consp content))
-                (smt-solver-cnf-p-helper (cddr content)
-                                         nil))
-       :hints (("Goal"
-                :in-theory (enable smt-solver-cnf-p-helper smt-solver-single-cnf-p member-equal)
-                ;; :use ((:instance member-equal-preserve
-                ;;                  (x )
-                ;;                  (a )
-                ;;                  (lst )))
-                ))))
+    (encapsulate ()
+      (local (in-theory (enable function-lst-syntax-fix)))
+      (deffixtype function-lst-syntax
+        :pred  function-lst-syntax-p
+        :fix   function-lst-syntax-fix
+        :equiv function-lst-syntax-equiv
+        :define t
+        :forward t
+        :topic function-lst-syntax-p))
     )
 
-  (define smt-solver-cnf-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for smt-solver-cnf."
-    (smt-solver-cnf-p-helper term nil))
+  (defsection smt-solver-params
+    :parents (Smtlink-process-user-hint)
 
-  (define smt-solver-cnf-fix ((term smt-solver-cnf-p))
-    :returns (fixed-smt-cnf smt-solver-cnf-p)
-    :short "Fixing function for smt-solver-cnf."
-    (mbe :logic (if (smt-solver-cnf-p term) term nil)
-         :exec term))
+    (define smt-solver-params-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for smt-solver-params."
+      (true-listp term))
 
-  (defthm smt-solver-cnf-fix-idempotent-lemma
-    (equal (smt-solver-cnf-fix (smt-solver-cnf-fix x))
-           (smt-solver-cnf-fix x))
-    :hints (("Goal" :in-theory (enable smt-solver-cnf-fix))))
+    (define smt-solver-params-fix ((term smt-solver-params-p))
+      :returns (fixed-term smt-solver-params-p
+                           :hints (("Goal" :in-theory (enable smt-solver-params-p))))
+      :short "Fixing function for smt-solver-params."
+      (mbe :logic (if (smt-solver-params-p term) term (true-list-fix term))
+           :exec term))
 
-  (deffixtype smt-solver-cnf
-    :pred  smt-solver-cnf-p
-    :fix   smt-solver-cnf-fix
-    :equiv smt-solver-cnf-equiv
-    :define t
-    :forward t
-    :topic smt-solver-cnf-p)
-
-  (defconst *smtlink-options*
-    '((:functions . function-lst-syntax-p)
-      (:hypotheses . hypothesis-lst-syntax-p)
-      (:main-hint . hints-syntax-p)
-      (:int-to-rat . booleanp)
-      (:smt-fname . stringp)
-      (:rm-file . booleanp)
-      (:smt-solver-params . smt-solver-params-p)
-      (:smt-solver-cnf . smt-solver-cnf-p)))
-
-  (defconst *smtlink-option-names*
-    (strip-cars *smtlink-options*))
-
-  (defconst *smtlink-option-types*
-    (remove-duplicates-equal (strip-cdrs *smtlink-options*)))
-
-  (define smtlink-option-type-p ((option-type t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for smtlink-option-type."
-    (if (member-equal option-type *smtlink-option-types*) t nil))
-
-  (define smtlink-option-type-fix ((opttype smtlink-option-type-p))
-    :returns (fixed-opttype smtlink-option-type-p
-                            :hints (("Goal" :in-theory (enable
-                                                        smtlink-option-type-p))))
-    :short "Fixing function for smtlink-option-type."
-    (mbe :logic (if (smtlink-option-type-p opttype) opttype 'function-lst-syntax-p)
-         :exec opttype))
-
-  (define smtlink-option-name-p ((option-name t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for an smtlink-option-name."
-    (if (member-equal option-name *smtlink-option-names*) t nil))
-
-  (define smtlink-option-name-fix ((option smtlink-option-name-p))
-    :returns (fixed-smtlink-option-name smtlink-option-name-p)
-    :short "Fixing function for smtlink-option-name."
-    (mbe :logic (if (smtlink-option-name-p option) option ':functions)
-         :exec option))
-
-  (define smtlink-option-name-lst-p ((option-lst t))
-    :returns (syntax-good? booleanp)
-    :short "Recoginizer for smtlink-option-name-lst."
-    (b* (((if (atom option-lst)) (equal option-lst nil))
-         ((cons first rest) option-lst))
-      (and (smtlink-option-name-p first)
-           (smtlink-option-name-lst-p rest))))
-
-  (define smtlink-option-name-lst-fix ((option-lst smtlink-option-name-lst-p))
-    :returns (fixed-option-name-lst smtlink-option-name-lst-p
-                                    :hints (("Goal" :in-theory (enable smtlink-option-name-lst-p))))
-    :short "Fixing function for option-name-lst."
-    :verify-guards nil
-    (mbe :logic (if (atom option-lst)
-                    nil
-                  (cons (smtlink-option-name-fix (car option-lst))
-                        (smtlink-option-name-lst-fix (cdr option-lst))))
-         :exec option-lst))
-  (verify-guards smtlink-option-name-lst-fix
-    :hints (("Goal" :in-theory (enable smtlink-option-name-fix
-                                       smtlink-option-name-lst-fix
-                                       smtlink-option-name-p smtlink-option-name-lst-p))))
-
-  (define eval-smtlink-option-type ((option-type smtlink-option-type-p) (term t))
-    :returns (type-correct? booleanp)
-    :short "Evaluating types for smtlink option body."
-    (case option-type
-      (function-lst-syntax-p (function-lst-syntax-p term))
-      (hypothesis-lst-syntax-p (hypothesis-lst-syntax-p term))
-      (hints-syntax-p (hints-syntax-p term))
-      (booleanp (booleanp term))
-      (stringp (stringp term))
-      (smt-solver-params-p (smt-solver-params-p term))
-      (t (smt-solver-cnf-p term))))
-
-  (define smtlink-option-syntax-p ((term t) (used smtlink-option-name-lst-p))
-    :returns (mv (syntax-good? booleanp)
-                 (used? smtlink-option-name-lst-p
-                        :hints (("Goal" :in-theory (enable smtlink-option-name-lst-p smtlink-option-name-p)))))
-    :short "Recoginizer for smtlink-option-syntax."
-    :verify-guards nil
-    (b* ((used (smtlink-option-name-lst-fix used))
-         ((if (equal term nil)) (mv t used))
-         ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
-         ((cons option body-lst) term)
-         ((unless (smtlink-option-name-p option)) (mv nil used))
-         (option-type (cdr (assoc-equal option *smtlink-options*)))
-         (- (cw "option-type: ~q0" option-type))
-         (- (cw "(eval-smtlink-option-type option-type (car body-lst)): ~q0" (eval-smtlink-option-type option-type (car body-lst)))))
-      (mv (and (not (member-equal option used))
-               (eval-smtlink-option-type option-type (car body-lst)))
-          (cons option used))))
-  (verify-guards smtlink-option-syntax-p
-    :guard-debug t
-    :hints (("Goal" :in-theory (enable smtlink-option-syntax-p smtlink-option-name-p
-                                       eval-smtlink-option-type smtlink-option-name-lst-p))))
-
-  (define smtlink-hint-syntax-p-helper ((term t) (used smtlink-option-name-lst-p))
-    :returns (syntax-good? booleanp)
-    :short "Helper function for smtlink-hint-syntax-p."
-    (b* (((if (atom term)) (equal term nil))
-         ((unless (and (true-listp term) (>= (len term) 2))) nil)
-         ((list* first second rest) term)
-         (- (cw "first: ~q0" first))
-         (- (cw "second: ~q0" second))
-         ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
-      (and res (smtlink-hint-syntax-p-helper rest new-used)))
-    ///
-    (defthm function-lst-syntax-p-constraint
-      (implies (and (smtlink-hint-syntax-p-helper user-hint nil)
-                    (consp user-hint)
-                    (consp (cdr user-hint)))
-               (or (equal (car user-hint) ':functions)
-                   (equal (car user-hint) ':hypotheses)
-                   (equal (car user-hint) ':main-hint)
-                   (equal (car user-hint) ':int-to-rat)
-                   (equal (car user-hint) ':smt-fname)
-                   (equal (car user-hint) ':rm-file)
-                   (equal (car user-hint) ':smt-solver-params)
-                   (equal (car user-hint) ':smt-solver-cnf)))
-      :hints (("Goal"
-               :in-theory (enable eval-smtlink-option-type
-                                  smtlink-option-syntax-p
-                                  smtlink-option-name-p))))
-
-    (defthm function-lst-syntax-p-of-option
-      (implies
-       (and (consp (cdr user-hint))
-            (smtlink-hint-syntax-p-helper user-hint nil)
-            (consp user-hint))
-       (and (implies (equal (car user-hint) ':functions)
-                     (function-lst-syntax-p (cadr user-hint)))
-            (implies (equal (car user-hint) ':hypotheses)
-                     (hypothesis-lst-syntax-p (cadr user-hint)))
-            (implies (equal (car user-hint) ':main-hint)
-                     (hints-syntax-p (cadr user-hint)))
-            (implies (equal (car user-hint) ':int-to-rat)
-                     (booleanp (cadr user-hint)))
-            (implies (equal (car user-hint) ':smt-fname)
-                     (stringp (cadr user-hint)))
-            (implies (equal (car user-hint) ':rm-file)
-                     (booleanp (cadr user-hint)))
-            (implies (equal (car user-hint) ':smt-solver-params)
-                     (smt-solver-params-p (cadr user-hint)))
-            (implies (equal (car user-hint) ':smt-solver-cnf)
-                     (smt-solver-cnf-p (cadr user-hint)))))
-      :hints (("Goal"
-               :in-theory (enable smtlink-option-syntax-p
-                                  eval-smtlink-option-type))))
-
-    (skip-proofs
-     (defthm smtlink-hint-syntax-preserve
-       (implies (and (smtlink-hint-syntax-p-helper term nil)
-                     (consp term))
-                (smtlink-hint-syntax-p-helper (cddr term)
-                                              nil))))
+    (encapsulate ()
+      (local (in-theory (enable smt-solver-params-fix)))
+      (deffixtype smt-solver-params
+        :pred  smt-solver-params-p
+        :fix   smt-solver-params-fix
+        :equiv smt-solver-params-equiv
+        :define t
+        :forward t
+        :topic smt-solver-params-p))
     )
 
-  (define smtlink-hint-syntax-p ((term t))
-    :returns (syntax-good? booleanp)
-    :short "Recognizer for smtlink-hint-syntax."
-    (smtlink-hint-syntax-p-helper term nil))
+  (defsection cnf-option-lst
+    :parents (Smtlink-process-user-hint)
 
-  ;; Strange fixing function.
-  (define smtlink-hint-syntax-fix ((term smtlink-hint-syntax-p))
-    :short "Fixing function for smtlink-hint-syntax."
-    :returns (fixed-smtlink-hint-syntax smtlink-hint-syntax-p)
-    (mbe :logic (if (smtlink-hint-syntax-p term) term nil)
-         :exec term))
+    (defconst *cnf-options*
+      '(:interface-dir :SMT-files-dir :SMT-module
+                       :SMT-class :SMT-cmd :file-format))
+
+    (define cnf-option-p ((option t))
+      :returns (syntax-good? booleanp)
+      :short "Recoginizer for cnf-option."
+      (if (member-equal option *cnf-options*) t nil))
+
+    (define cnf-option-fix ((option cnf-option-p))
+      :returns (fixed-cnf-option cnf-option-p)
+      :short "Fixing function for cnf-option."
+      (mbe :logic (if (cnf-option-p option) option ':interface-dir)
+           :exec option))
+
+    (encapsulate ()
+      (local (in-theory (enable cnf-option-fix)))
+      (deffixtype cnf-option
+        :pred  cnf-option-p
+        :fix   cnf-option-fix
+        :equiv cnf-option-equiv
+        :define t
+        :forward t
+        :topic cnf-option-p))
+
+    (define cnf-option-lst-p ((option-lst t))
+      :returns (syntax-good? booleanp)
+      :short "Recoginizer for cnf-option-lst."
+      (b* (((if (atom option-lst)) (equal option-lst nil))
+           ((cons first rest) option-lst))
+        (and (cnf-option-p first)
+             (cnf-option-lst-p rest))))
+
+    (define cnf-option-lst-fix ((option-lst cnf-option-lst-p))
+      :returns (fixed-option-lst cnf-option-lst-p
+                                 :hints (("Goal" :in-theory (enable cnf-option-lst-p))))
+      :short "Fixing function for cnf-option-lst."
+      :guard-hints (("Goal" :in-theory (enable cnf-option-fix
+                                               cnf-option-lst-fix
+                                               cnf-option-p cnf-option-lst-p)))
+      (mbe :logic (if (atom option-lst)
+                      nil
+                    (cons (cnf-option-fix (car option-lst))
+                          (cnf-option-lst-fix (cdr option-lst))))
+           :exec option-lst))
+
+    (encapsulate ()
+      (local (in-theory (enable cnf-option-lst-fix)))
+      (deffixtype cnf-option-lst
+        :pred  cnf-option-lst-p
+        :fix   cnf-option-lst-fix
+        :equiv cnf-option-lst-equiv
+        :define t
+        :forward t
+        :topic cnf-option-lst-p))
+    )
+
+
+  (defsection smt-solver-cnf
+    :parents (Smtlink-process-user-hint)
+
+    (define smt-solver-single-cnf-p ((term t) (used cnf-option-lst-p))
+      :returns (mv (syntax-good? booleanp)
+                   (new-used cnf-option-lst-p
+                             :hints (("Goal" :in-theory (enable cnf-option-lst-p cnf-option-p)))))
+      :short "Recognizer for smt-solver-single-cnf."
+      (b* ((used (cnf-option-lst-fix used))
+           ((unless (true-listp term)) (mv nil used))
+           ((if (equal term nil)) (mv t used))
+           ((unless (and (car term) (cddr term) (not (cddr term))))
+            (mv nil used))
+           ((cons option body-lst) term)
+           ((unless (cnf-option-p option)) (mv nil used)))
+        (mv (and (not (member-equal option used))
+                 (stringp (car body-lst)))
+            (cons option used))))
+
+
+    (define smt-solver-cnf-p-helper ((term t) (used cnf-option-lst-p))
+      :returns (syntax-good? booleanp)
+      :short "Helper function for smt-solver-cnf-p."
+      (b* ((used (cnf-option-lst-fix used))
+           ((unless (true-listp term)) nil)
+           ((if (atom term)) (equal term nil))
+           ((unless (and (cdr term))) nil)
+           ((list* first second rest) term)
+           ((mv res new-used) (smt-solver-single-cnf-p (list first second) used)))
+        (and res (smt-solver-cnf-p-helper rest new-used)))
+      ///
+      (defthm stringp-of-cadr-of-smt-solver-cnf-p-helper
+        (implies (and (smt-solver-cnf-p-helper content nil)
+                      (consp content))
+                 (stringp (cadr content)))
+        :hints (("Goal"
+                 :in-theory (enable smt-solver-single-cnf-p))))
+
+      (defthm smt-solver-cnf-p-helper-preserve
+        (implies (and (smt-solver-cnf-p-helper content nil)
+                      (consp content))
+                 (smt-solver-cnf-p-helper (cddr content)
+                                          nil))
+        :hints (("Goal"
+                 :in-theory (enable smt-solver-cnf-p-helper smt-solver-single-cnf-p))))
+      )
+
+    (define smt-solver-cnf-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for smt-solver-cnf."
+      (smt-solver-cnf-p-helper term nil))
+
+    (define smt-solver-cnf-fix ((term smt-solver-cnf-p))
+      :returns (fixed-smt-cnf smt-solver-cnf-p)
+      :short "Fixing function for smt-solver-cnf."
+      (mbe :logic (if (smt-solver-cnf-p term) term nil)
+           :exec term))
+
+    (encapsulate ()
+      (local (in-theory (enable smt-solver-cnf-fix)))
+      (deffixtype smt-solver-cnf
+        :pred  smt-solver-cnf-p
+        :fix   smt-solver-cnf-fix
+        :equiv smt-solver-cnf-equiv
+        :define t
+        :forward t
+        :topic smt-solver-cnf-p))
+    )
+
+  (defsection smtlink-hint-syntax
+    :parents (Smtlink-process-user-hint)
+
+    (defconst *smtlink-options*
+      '((:functions . function-lst-syntax-p)
+        (:hypotheses . hypothesis-lst-syntax-p)
+        (:main-hint . hints-syntax-p)
+        (:int-to-rat . booleanp)
+        (:smt-fname . stringp)
+        (:rm-file . booleanp)
+        (:smt-solver-params . smt-solver-params-p)
+        (:smt-solver-cnf . smt-solver-cnf-p)))
+
+    (defconst *smtlink-option-names*
+      (strip-cars *smtlink-options*))
+
+    (defconst *smtlink-option-types*
+      (remove-duplicates-equal (strip-cdrs *smtlink-options*)))
+
+    (define smtlink-option-type-p ((option-type t))
+      :returns (syntax-good? booleanp)
+      :short "Recoginizer for smtlink-option-type."
+      (if (member-equal option-type *smtlink-option-types*) t nil))
+
+    (define smtlink-option-type-fix ((opttype smtlink-option-type-p))
+      :returns (fixed-opttype smtlink-option-type-p
+                              :hints (("Goal" :in-theory (enable
+                                                          smtlink-option-type-p))))
+      :short "Fixing function for smtlink-option-type."
+      (mbe :logic (if (smtlink-option-type-p opttype) opttype 'function-lst-syntax-p)
+           :exec opttype))
+
+    (define smtlink-option-name-p ((option-name t))
+      :returns (syntax-good? booleanp)
+      :short "Recoginizer for an smtlink-option-name."
+      (if (member-equal option-name *smtlink-option-names*) t nil))
+
+    (define smtlink-option-name-fix ((option smtlink-option-name-p))
+      :returns (fixed-smtlink-option-name smtlink-option-name-p)
+      :short "Fixing function for smtlink-option-name."
+      (mbe :logic (if (smtlink-option-name-p option) option ':functions)
+           :exec option))
+
+    (encapsulate ()
+      (local (in-theory (enable smtlink-option-name-fix)))
+      (deffixtype smtlink-option-name
+        :pred  smtlink-option-name-p
+        :fix   smtlink-option-name-fix
+        :equiv smtlink-option-name-equiv
+        :define t
+        :forward t
+        :topic smtlink-option-name-p)
+
+      (deflist smtlink-option-name-lst
+        :elt-type smtlink-option-name
+        :true-listp t))
+
+    (encapsulate ()
+      (local (in-theory (enable smtlink-option-name-lst-fix)))
+      (deffixtype smtlink-option-name-lst
+        :pred  smtlink-option-name-lst-p
+        :fix   smtlink-option-name-lst-fix
+        :equiv smtlink-option-name-lst-equiv
+        :define t
+        :forward t
+        :topic smtlink-option-name-lst-p))) ;; temporarily stop here
+
+    (defthm smtlink-option-name-fix-preserves-member
+        (implies (member x used :test 'equal)
+                 (member (smtlink-option-name-fix x)
+                         (smtlink-option-name-lst-fix used) :test 'equal)))
+
+      (defthm smtlink-option-name-lst-fix-preserves-subsetp
+        (implies (subsetp used-1 used-2 :test 'equal)
+                 (subsetp (smtlink-option-name-lst-fix used-1)
+                          (smtlink-option-name-lst-fix used-2)
+                          :test 'equal))
+        :hints(("Goal" :in-theory (e/d (subsetp-equal)))))
+
+      (defthm smtlink-option-name-lst-fix-preserves-set-equiv
+        (implies (acl2::set-equiv used-1 used-2)
+                 (acl2::set-equiv
+                  (smtlink-option-name-lst-fix used-1)
+                  (smtlink-option-name-lst-fix used-2)))
+        :hints (("Goal" :in-theory (enable acl2::set-equiv)))
+        :rule-classes(:congruence))
+
+      (defthm smtlink-option-name-lst-p-and-member
+        (implies (and (member x used)
+                      (not (smtlink-option-name-p x)))
+                 (not (smtlink-option-name-lst-p used)))
+        :hints(("Goal" :in-theory (enable smtlink-option-name-lst-p))))
+
+      (defthm smtlink-option-name-lst-p--monotonicity
+        (implies (and (equal (true-listp used-1) (true-listp used-2))
+                      (subsetp used-1 used-2 :test 'equal)
+                      (smtlink-option-name-lst-p used-2))
+                 (smtlink-option-name-lst-p used-1))
+        :hints(("Goal" :in-theory (enable smtlink-option-name-lst-p))))
+
+      (defthm smtlink-option-name-lst-p--congruence
+        (implies (true-set-equiv used-1 used-2)
+                 (equal (smtlink-option-name-lst-p used-1)
+                        (smtlink-option-name-lst-p used-2)))
+        :hints(("Goal" :cases ((smtlink-option-name-lst-p used-1)
+                               (smtlink-option-name-lst-p used-2))))
+        :rule-classes(:congruence))
+
+    (define eval-smtlink-option-type ((option-type smtlink-option-type-p) (term t))
+      :returns (type-correct? booleanp)
+      :short "Evaluating types for smtlink option body."
+      (case option-type
+        (function-lst-syntax-p (function-lst-syntax-p term))
+        (hypothesis-lst-syntax-p (hypothesis-lst-syntax-p term))
+        (hints-syntax-p (hints-syntax-p term))
+        (booleanp (booleanp term))
+        (stringp (stringp term))
+        (smt-solver-params-p (smt-solver-params-p term))
+        (t (smt-solver-cnf-p term))))
+
+    (define smtlink-option-syntax-p ((term t) (used smtlink-option-name-lst-p))
+      :returns (mv (ok booleanp)
+                   (new-used smtlink-option-name-lst-p
+                             :hints (("Goal" :in-theory (enable smtlink-option-name-lst-p smtlink-option-name-p)))))
+      :short "Recoginizer for smtlink-option-syntax."
+      :guard-hints (("Goal" :in-theory (enable smtlink-option-syntax-p smtlink-option-name-p
+                                               eval-smtlink-option-type smtlink-option-name-lst-p)))
+      (b* ((used (smtlink-option-name-lst-fix used))
+           ((unless (true-listp term)) (mv nil used))
+           ((if (equal term nil)) (mv t used))
+           ((unless (and (car term) (cdr term) (not (cddr term)))) (mv nil used))
+           ((cons option body-lst) term)
+           ((unless (smtlink-option-name-p option)) (mv nil used))
+           (option-type (cdr (assoc-equal option *smtlink-options*))))
+        (mv (and (not (member-equal option used))
+                 (eval-smtlink-option-type option-type (car body-lst)))
+            (cons option used)))
+      ///
+      (more-returns
+       (ok (implies (and (subsetp used-1 used :test 'equal) ok)
+                    (mv-nth 0 (smtlink-option-syntax-p term used-1)))
+           :name smtlink-option-syntax-p--monotonicity.ok
+           )
+       (ok (implies (acl2::set-equiv used-1 used)
+                    (equal (mv-nth 0 (smtlink-option-syntax-p term used-1))
+                           ok))
+           :name smtlink-option-syntax-p--ok-congruence.ok
+           :hints(("Goal"
+                   :in-theory (disable smtlink-option-syntax-p
+                                       smtlink-option-syntax-p--monotonicity.ok
+                                       booleanp-of-smtlink-option-syntax-p.ok)
+                   :use((:instance smtlink-option-syntax-p--monotonicity.ok
+                                   (used-1 used-1) (used used) (term term))
+                        (:instance smtlink-option-syntax-p--monotonicity.ok
+                                   (used-1 used) (used used-1) (term term))
+                        (:instance booleanp-of-smtlink-option-syntax-p.ok
+                                   (used used-1) (term term))
+                        (:instance booleanp-of-smtlink-option-syntax-p.ok
+                                   (used used) (term term)))))
+           :rule-classes (:congruence))
+       (new-used (implies (and (subsetp used-1 used :test 'equal) ok)
+                          (subsetp
+                           (mv-nth 1 (smtlink-option-syntax-p term used-1))
+                           new-used
+                           :test 'equal))
+                 :name smtlink-option-syntax-p--monotonicity.new-used)
+       (new-used (implies (and term ok)
+                          (equal new-used
+                                 (cons (car term) (smtlink-option-name-lst-fix used))))
+                 :name smtlink-option-syntax-p--new-used-when-ok)))
+
+    (define smtlink-hint-syntax-p-helper ((term t) (used smtlink-option-name-lst-p))
+      :returns (syntax-good? booleanp)
+      :short "Helper function for smtlink-hint-syntax-p."
+      (b* ((used (smtlink-option-name-lst-fix used))
+           ((unless (true-listp term)) nil)
+           ((if (atom term)) (equal term nil))
+           ((unless (cdr term)) nil)
+           ((list* first second rest) term)
+           ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
+        (and res (smtlink-hint-syntax-p-helper rest new-used)))
+      ///
+      (skip-proofs
+      (defthm smtlink-hint-syntax-p-helper--monotonicity
+        (implies (and (subsetp used-1 used :test 'equal)
+                      (smtlink-hint-syntax-p-helper term used))
+                 (smtlink-hint-syntax-p-helper term used-1)))
+      )
+
+      (defthm smtlink-hint-syntax-p-helper--congruence
+        (b* ((ok (smtlink-hint-syntax-p-helper term used)))
+          (implies (acl2::set-equiv used-1 used)
+                   (equal (smtlink-hint-syntax-p-helper term used-1) ok)))
+        :rule-classes(:congruence)))
+
+    (encapsulate ()
+        (local
+         (defthm lemma-16
+           (implies (and (smtlink-option-name-lst-p used)
+                         (smtlink-option-name-p new-opt)
+                         (smtlink-hint-syntax-p-helper term (cons new-opt used)))
+                    (smtlink-hint-syntax-p-helper term used))
+           :hints(("Goal"
+                   :in-theory (disable
+                               smtlink-hint-syntax-p-helper--monotonicity)
+                   :use((:instance smtlink-hint-syntax-p-helper--monotonicity
+                                   (used-1 used) (used (cons new-opt used))
+                                  (term term))))))
+         )
+
+        (defthm smtlink-hint-syntax-p-helper-preserve
+          (implies (and (smtlink-hint-syntax-p-helper term nil)
+                        (consp term))
+                   (smtlink-hint-syntax-p-helper (cddr term)
+                                                        nil))
+          :hints (("Goal"
+                   :in-theory (disable lemma-16)
+                   :expand ((smtlink-hint-syntax-p-helper term nil)
+                            (smtlink-option-syntax-p (list (car term) (cadr term))
+                                                      nil))
+                   :use ((:instance lemma-16
+                                    (term (cddr term))
+                                    (new-opt (car term))
+                                    (used nil)))))))
+
+    (define smtlink-hint-syntax-p ((term t))
+      :returns (syntax-good? booleanp)
+      :short "Recognizer for smtlink-hint-syntax."
+      (smtlink-hint-syntax-p-helper term nil))
+
+    ;; Strange fixing function.
+    (define smtlink-hint-syntax-fix ((term smtlink-hint-syntax-p))
+      :short "Fixing function for smtlink-hint-syntax."
+      :returns (fixed-smtlink-hint-syntax smtlink-hint-syntax-p)
+      (mbe :logic (if (smtlink-hint-syntax-p term) term nil)
+           :exec term))
+
+    (encapsulate ()
+      (local (in-theory (enable smtlink-hint-syntax-fix)))
+      (deffixtype smtlink-hint-syntax
+        :pred  smtlink-hint-syntax-p
+        :fix   smtlink-hint-syntax-fix
+        :equiv smtlink-hint-syntax-equiv
+        :define t
+        :forward t
+        :topic smtlink-hint-syntax-p))
+;;    )
 
   ;; -------------------------------------------------------------------------
-  ;; (local (in-theory (enable pseudo-termp)))
-
-  ;; (defthm symbolp-is-pseudo-termp-crock
-  ;;   (implies (symbolp x) (pseudo-termp x)))
 
   (define make-merge-formals-helper ((content argument-lst-syntax-p) (smt-func func-p))
     :returns (func func-p)
     :short "Adding user defined formals to overwrite what's already in smt-func."
     :measure (len content)
     :hints (("Goal" :in-theory (enable argument-lst-syntax-fix)))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable argument-lst-syntax-fix
+                                             argument-lst-syntax-p
+                                             argument-syntax-fix
+                                             argument-syntax-p
+                                             smt-typep
+                                             hints-syntax-p)))
     (b* ((content (argument-lst-syntax-fix content))
          (smt-func (func-fix smt-func))
          ((func f) smt-func)
@@ -999,14 +1069,6 @@
                             f.formals))
          (new-func (change-func f :formals new-formals)))
       (make-merge-formals-helper rest new-func)))
-
-  (verify-guards make-merge-formals-helper
-    :hints (("Goal" :in-theory (enable argument-lst-syntax-fix
-                                       argument-lst-syntax-p
-                                       argument-syntax-fix
-                                       argument-syntax-p
-                                       smt-typep
-                                       hints-syntax-p))))
 
   (define remove-duplicate-from-decl-list ((decls decl-listp) (seen symbol-listp))
     :returns (simple-decls decl-listp)
@@ -1032,7 +1094,13 @@
     :short "Adding user defined returns to overwrite what's already in smt-func."
     :measure (len content)
     :hints (("Goal" :in-theory (enable argument-lst-syntax-fix)))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable argument-lst-syntax-fix
+                                             argument-lst-syntax-p
+                                             argument-syntax-p
+                                             argument-syntax-fix
+                                             hints-syntax-p
+                                             smt-typep
+                                             )))
     (b* ((content (argument-lst-syntax-fix content))
          (smt-func (func-fix smt-func))
          ((func f) smt-func)
@@ -1046,15 +1114,6 @@
          (new-func (change-func f :returns new-returns)))
       (make-merge-returns-helper rest new-func)))
 
-  (verify-guards make-merge-returns-helper
-    :hints (("Goal" :in-theory (enable argument-lst-syntax-fix
-                                       argument-lst-syntax-p
-                                       argument-syntax-p
-                                       argument-syntax-fix
-                                       hints-syntax-p
-                                       smt-typep
-                                       ))))
-
   (define make-merge-returns ((content argument-lst-syntax-p) (smt-func func-p))
     :returns (func func-p)
     :short "Adding user defined returns to overwrite what's already in smt-func."
@@ -1065,17 +1124,14 @@
   (define make-merge-guard ((content hypothesis-syntax-p) (smt-func func-p))
     :returns (func func-p)
     :short "Adding user defined guard to smt-func."
-    :verify-guards nil
+    :guard-hints (("Goal"
+                   :in-theory (enable hypothesis-syntax-fix hypothesis-syntax-p)))
     (b* ((content (hypothesis-syntax-fix content))
          (smt-func (func-fix smt-func))
          ((cons thm (cons & hints-lst)) content)
          (hints (car hints-lst))
          (new-guard (make-hint-pair :thm thm :hints hints)))
       (change-func smt-func :guard new-guard)))
-
-  (verify-guards make-merge-guard
-    :hints (("Goal"
-             :in-theory (enable hypothesis-syntax-fix hypothesis-syntax-p))))
 
 
   (define make-merge-more-returns ((content hypothesis-lst-syntax-p)
@@ -1084,7 +1140,10 @@
     :short "Adding user-defined more-return theorems."
     :measure (len content)
     :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-fix)))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable hypothesis-lst-syntax-p
+                                             hypothesis-lst-syntax-fix
+                                             hypothesis-syntax-p
+                                             hypothesis-syntax-fix)))
     (b* ((content (hypothesis-lst-syntax-fix content))
          (smt-func (func-fix smt-func))
          ((func f) smt-func)
@@ -1096,74 +1155,6 @@
          (new-func (change-func smt-func
                                 :more-returns (cons new-more-return f.more-returns))))
       (make-merge-more-returns rest new-func)))
-
-  (defthm cdr-of-hypothesis-lst-syntax-fix-crock
-    (hypothesis-lst-syntax-p (cdr (hypothesis-lst-syntax-fix content)))
-    :hints (("Goal"
-             :in-theory (enable hypothesis-lst-syntax-fix))))
-
-  (verify-guards make-merge-more-returns
-    :guard-debug t
-    :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-p
-                                       hypothesis-lst-syntax-fix
-                                       hypothesis-syntax-p
-                                       hypothesis-syntax-fix))))
-  )
-
-
-(defthm function-option-lst-syntax-fix-when-function-option-lst-syntaxp
-  (implies (function-option-lst-syntax-p term)
-           (equal (function-option-lst-syntax-fix term) term))
-  :hints(("Goal" :expand (function-option-lst-syntax-fix term))))
-
-(encapsulate ()
-(local (defthm lemma1
-  (implies (and (function-option-lst-syntax-p term) term)
-           (and (mv-nth 0 (function-option-syntax-p
-                           (list (car term) (cadr term)) nil))
-                (consp (cdr term))
-                (function-option-lst-syntax-p (cddr term))
-                (true-listp term)))
-  :hints(("Goal"
-          :expand((function-option-lst-syntax-p term)
-                  (function-option-lst-syntax-p-helper term nil)
-                  (function-option-lst-syntax-p (cddr term)))))))
-
-(local (defthmd lemma2
-  (implies (and (mv-nth 0 (function-option-syntax-p term nil)) term)
-           (and (member-equal (car term) *function-option-names*)
-                (or (and (equal (cdr (assoc-equal (car term) *function-options*)) 'argument-lst-syntax-p)
-                         (argument-lst-syntax-p (cadr term)))
-                    (and (equal (cdr (assoc-equal (car term) *function-options*)) 'natp)
-                         (natp (cadr term)))
-                    (and (equal (cdr (assoc-equal (car term) *function-options*)) 'hypothesis-syntax-p)
-                         (hypothesis-syntax-p (cadr term)))
-                    (and (equal (cdr (assoc-equal (car term) *function-options*)) 'hypothesis-lst-syntax-p)
-                         (hypothesis-lst-syntax-p (cadr term))))))
-  :hints(("Goal" :expand((function-option-syntax-p term nil)
-                         (:free (option-type) (eval-function-option-type
-                                               option-type (cadr term)))
-                         (function-option-name-p (car term)))))))
-
-(defthm everything-about-function-option-lst-syntax-p
-  (implies (and (function-option-lst-syntax-p term) term)
-           (let* ((opt (car term)) (val (cadr term)) (rest (cddr term))
-                  (option-type (cdr (assoc-equal opt *function-options*))))
-             (and (true-listp term)
-                  (consp (cdr term))
-                  (equal (function-option-lst-syntax-fix term) term)
-                  (function-option-lst-syntax-p rest)
-                  (member-equal opt *function-option-names*)
-                  (member-equal option-type *function-option-types*)
-                  (implies (equal option-type 'argument-lst-syntax-p)
-                           (argument-lst-syntax-p val))
-                  (implies (equal option-type 'natp)
-                           (and (integerp val) (<= 0 val)))
-                  (implies (equal option-type 'hypothesis-syntax-p)
-                           (hypothesis-syntax-p val))
-                  (implies (equal option-type 'hypothesis-lst-syntax-p)
-                           (hypothesis-lst-syntax-p val)))))
-  :hints(("Goal" :use((:instance lemma2 (term (list (car term) (cadr term)))))))))
 
   ;; Bozo:
   ;; This implementation is potentially slow because of the threading of smt-func
@@ -1194,21 +1185,22 @@
   (define make-merge-function ((func function-syntax-p) (smt-func func-p))
     :returns (func func-p)
     :short "Function for generating func-p of a single function hint."
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable function-syntax-fix function-syntax-p)))
     (b* ((func (function-syntax-fix func))
          ((cons fun-name fun-opt-lst) func)
          (name fun-name))
       (make-merge-function-option-lst fun-opt-lst
                                       (change-func smt-func :name name))))
-  (verify-guards make-merge-function
-    :hints (("Goal" :in-theory (enable function-syntax-fix function-syntax-p))))
 
   (define merge-functions ((content function-lst-syntax-p) (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
     :short "Merging function hints into smt-hint."
     :measure (len content)
     :hints (("Goal" :in-theory (enable function-lst-syntax-fix)))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable function-lst-syntax-fix
+                                             function-lst-syntax-p
+                                             function-syntax-p
+                                             function-syntax-fix)))
     (b* ((hint (smtlink-hint-fix hint))
          (content (function-lst-syntax-fix content))
          ((unless (consp content)) hint)
@@ -1221,25 +1213,14 @@
          (new-hint (change-smtlink-hint hint :functions new-func-lst)))
       (merge-functions rest new-hint)))
 
-  (verify-guards merge-functions
-    :hints (("Goal" :in-theory (enable function-lst-syntax-fix
-                                       function-lst-syntax-p
-                                       function-syntax-p
-                                       function-syntax-fix))))
-
-
   (define make-merge-hypothesis ((hypo hypothesis-syntax-p))
     :returns (hp hint-pair-p)
     :short "Generate a hint-pair for hypo"
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable hypothesis-syntax-p hypothesis-syntax-fix hints-syntax-p)))
     (b* ((hypo (hypothesis-syntax-fix hypo))
          ((list* thm & rest) hypo))
       (make-hint-pair :thm thm
                       :hints (car rest))))
-
-  (verify-guards make-merge-hypothesis
-    :guard-debug t
-    :hints (("Goal" :in-theory (enable hypothesis-syntax-p hypothesis-syntax-fix hints-syntax-p))))
 
   (define merge-hypothesis ((content hypothesis-lst-syntax-p)
                             (hint smtlink-hint-p))
@@ -1247,7 +1228,7 @@
     :short "Merge hypothesis into hint"
     :measure (len content)
     :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-fix)))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable hypothesis-lst-syntax-p hypothesis-lst-syntax-fix)))
     (b* ((hint (smtlink-hint-fix hint))
          (content (hypothesis-lst-syntax-fix content))
          ((unless (consp content)) hint)
@@ -1260,21 +1241,17 @@
          ;; change-smtlink-hint. Append might be expensive, too.
          (new-hint (change-smtlink-hint hint :hypotheses new-hypo-lst)))
       (merge-hypothesis rest new-hint)))
-  (verify-guards merge-hypothesis
-    :hints (("Goal" :in-theory (enable hypothesis-lst-syntax-p hypothesis-lst-syntax-fix))))
 
   (define merge-main-hint ((content hints-syntax-p)
                            (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
     :short "Merge main-hint"
-    :verify-guards nil
+    :guard-hints (("Goal"
+                   :in-theory (enable hints-syntax-p)))
     (b* ((hint (smtlink-hint-fix hint))
          (content (hints-syntax-fix content))
          (new-hint (change-smtlink-hint hint :main-hint content)))
       new-hint))
-  (verify-guards merge-main-hint
-    :hints (("Goal"
-             :in-theory (enable hints-syntax-p))))
 
   (define set-int-to-rat ((content booleanp)
                           (hint smtlink-hint-p))
@@ -1303,14 +1280,12 @@
                                  (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
     :short "Set :smt-params"
-    :verify-guards nil
+    :guard-hints (("Goal"
+                   :in-theory (enable smt-solver-params-p smt-solver-params-fix)))
     (b* ((hint (smtlink-hint-fix hint))
          (content (smt-solver-params-fix content))
          (new-hint (change-smtlink-hint hint :smt-params content)))
       new-hint))
-  (verify-guards set-smt-solver-params
-    :hints (("Goal"
-             :in-theory (enable smt-solver-params-p smt-solver-params-fix))))
 
   (define merge-smt-solver-cnf ((content smt-solver-cnf-p)
                                 (hint smtlink-hint-p))
@@ -1318,7 +1293,10 @@
     :short "Set :smt-cnf"
     :measure (len content)
     :hints (("Goal" :in-theory (enable smt-solver-cnf-fix)))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (enable smt-solver-cnf-fix smt-solver-cnf-p
+                                             smt-solver-cnf-p-helper)
+                   :use ((:instance stringp-of-cadr-of-smt-solver-cnf-p-helper))
+                   ))
     (b* ((hint (smtlink-hint-fix hint))
          (content (smt-solver-cnf-fix content))
          ((unless (consp content)) hint)
@@ -1346,18 +1324,16 @@
          (new-hint (change-smtlink-hint hint :smt-cnf new-cnf)))
       (merge-smt-solver-cnf rest new-hint)))
 
-  (verify-guards merge-smt-solver-cnf
-    :guard-debug t
-    :hints (("Goal" :in-theory (enable smt-solver-cnf-fix smt-solver-cnf-p
-                                       smt-solver-cnf-p-helper)
-             :use ((:instance stringp-of-cadr)))))
-
   (define combine-hints ((user-hint smtlink-hint-syntax-p) (hint smtlink-hint-p))
     :returns (combined-hint smtlink-hint-p)
     :hints (("Goal" :in-theory (enable smtlink-hint-syntax-fix)))
     :measure (len user-hint)
     :short "Combining user-hints into smt-hint."
-    :verify-guards nil
+    :guard-hints (("Goal"
+                   :in-theory (enable smtlink-hint-syntax-fix smtlink-hint-syntax-p smtlink-hint-syntax-p-helper)
+                   :use ((:instance function-lst-syntax-p-of-option)
+                         (:instance function-lst-syntax-p-constraint)
+                         (:instance smtlink-hint-syntax-preserve))))
     (b* ((hint (smtlink-hint-fix hint))
          (user-hint (smtlink-hint-syntax-fix user-hint))
          ((unless (consp user-hint)) hint)
@@ -1378,24 +1354,6 @@
                      (:smt-solver-params (set-smt-solver-params second hint))
                      (t (merge-smt-solver-cnf second hint)))))
       (combine-hints rest new-hint)))
-
-  (defthm true-listp-of-smtlink-hint-syntax-p
-    (implies (smtlink-hint-syntax-p x)
-             (true-listp x))
-    :hints (("Goal" :in-theory (enable smtlink-hint-syntax-p
-                                       smtlink-hint-syntax-p-helper))))
-  (defthm crock
-    (implies (and (true-listp x) (not (consp (cdr x)))) (not (cdr x))))
-
-  (verify-guards combine-hints
-    :guard-debug t
-    :hints (("Goal"
-             :in-theory (enable smtlink-hint-syntax-fix smtlink-hint-syntax-p smtlink-hint-syntax-p-helper)
-             :use ((:instance true-listp-of-smtlink-hint-syntax-p (x user-hint))
-                   (:instance crock (x user-hint))
-                   (:instance function-lst-syntax-p-of-option)
-                   (:instance function-lst-syntax-p-constraint)
-                   (:instance smtlink-hint-syntax-preserve)))))
 
   (define process-hint ((cl pseudo-term-listp) (user-hint t))
     :returns (subgoal-lst pseudo-term-list-listp)
@@ -1423,16 +1381,16 @@
 
   (def-join-thms ev-process-hint)
 
-(encapsulate ()
-  (local (in-theory (enable process-hint)))
-  (defthm correctness-of-process-hint
-    (implies (and (pseudo-term-listp cl)
-                  (alistp b)
-                  (ev-process-hint
-                   (conjoin-clauses (process-hint cl hint))
-                   b))
-             (ev-process-hint (disjoin cl) b))
-    :rule-classes :clause-processor))
+  (encapsulate ()
+    (local (in-theory (enable process-hint)))
+    (defthm correctness-of-process-hint
+      (implies (and (pseudo-term-listp cl)
+                    (alistp b)
+                    (ev-process-hint
+                     (conjoin-clauses (process-hint cl hint))
+                     b))
+               (ev-process-hint (disjoin cl) b))
+      :rule-classes :clause-processor))
 
   ;; Smtlink is a macro that generates a clause processor hint. This clause
   ;;   processor hint generates a clause, with which a new smt-hint is attached.
@@ -1441,4 +1399,4 @@
   ;;   expansion and transformation.
   (defmacro Smtlink (clause hint)
     `(process-hint ,clause ,hint))
-;;  )
+;; )
