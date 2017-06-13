@@ -466,8 +466,9 @@
                            :hints (("Goal" :in-theory (enable function-option-name-lst-p function-option-name-p)))))
     :short "Recoginizer for function-option-syntax."
     (b* ((used (function-option-name-lst-fix used))
-         ((if (equal term nil)) (mv t used))
-         ((unless (and (true-listp term) (car term) (not (cddr term)))) (mv nil used))
+         ((unless (true-listp term)) (mv nil used))
+         ((unless (consp term)) (mv t used))
+         ((unless (and (car term) (cdr term) (not (cddr term)))) (mv nil used))
          ((cons option body-lst) term)
          ((unless (function-option-name-p option)) (mv nil used))
          (option-type (cdr (assoc-equal option *function-options*))))
@@ -479,7 +480,7 @@
      (ok (implies (and (subsetp used-1 used :test 'equal) ok)
                   (mv-nth 0 (function-option-syntax-p term used-1)))
          :name function-option-syntax-p--monotonicity.ok
-         )     
+         )
      (ok (implies (acl2::set-equiv used-1 used)
                   (equal (mv-nth 0 (function-option-syntax-p term used-1))
                          ok))
@@ -1110,15 +1111,59 @@
   )
 
 
-(working-here)
-(defthm function-option-lst-syntax-p-implies-everything-you-want
+(defthm function-option-lst-syntax-fix-when-function-option-lst-syntaxp
+  (implies (function-option-lst-syntax-p term)
+           (equal (function-option-lst-syntax-fix term) term))
+  :hints(("Goal" :expand (function-option-lst-syntax-fix term))))
+
+(encapsulate ()
+(local (defthm lemma1
   (implies (and (function-option-lst-syntax-p term) term)
-           (and (function-option-syntax-p (list (car term) (cadr term)) nil)))
+           (and (mv-nth 0 (function-option-syntax-p
+                           (list (car term) (cadr term)) nil))
+                (consp (cdr term))
+                (function-option-lst-syntax-p (cddr term))
+                (true-listp term)))
   :hints(("Goal"
           :expand((function-option-lst-syntax-p term)
-                  (function-option-lst-syntax-p-helper term nil))
-          :use ((:instance function-option-lst-syntax-p-helper--monotonicity
-                           (term (cddr term)))))))
+                  (function-option-lst-syntax-p-helper term nil)
+                  (function-option-lst-syntax-p (cddr term)))))))
+
+(local (defthmd lemma2
+  (implies (and (mv-nth 0 (function-option-syntax-p term nil)) term)
+           (and (member-equal (car term) *function-option-names*)
+                (or (and (equal (cdr (assoc-equal (car term) *function-options*)) 'argument-lst-syntax-p)
+                         (argument-lst-syntax-p (cadr term)))
+                    (and (equal (cdr (assoc-equal (car term) *function-options*)) 'natp)
+                         (natp (cadr term)))
+                    (and (equal (cdr (assoc-equal (car term) *function-options*)) 'hypothesis-syntax-p)
+                         (hypothesis-syntax-p (cadr term)))
+                    (and (equal (cdr (assoc-equal (car term) *function-options*)) 'hypothesis-lst-syntax-p)
+                         (hypothesis-lst-syntax-p (cadr term))))))
+  :hints(("Goal" :expand((function-option-syntax-p term nil)
+                         (:free (option-type) (eval-function-option-type
+                                               option-type (cadr term)))
+                         (function-option-name-p (car term)))))))
+
+(defthm everything-about-function-option-lst-syntax-p
+  (implies (and (function-option-lst-syntax-p term) term)
+           (let* ((opt (car term)) (val (cadr term)) (rest (cddr term))
+                  (option-type (cdr (assoc-equal opt *function-options*))))
+             (and (true-listp term)
+                  (consp (cdr term))
+                  (equal (function-option-lst-syntax-fix term) term)
+                  (function-option-lst-syntax-p rest)
+                  (member-equal opt *function-option-names*)
+                  (member-equal option-type *function-option-types*)
+                  (implies (equal option-type 'argument-lst-syntax-p)
+                           (argument-lst-syntax-p val))
+                  (implies (equal option-type 'natp)
+                           (and (integerp val) (<= 0 val)))
+                  (implies (equal option-type 'hypothesis-syntax-p)
+                           (hypothesis-syntax-p val))
+                  (implies (equal option-type 'hypothesis-lst-syntax-p)
+                           (hypothesis-lst-syntax-p val)))))
+  :hints(("Goal" :use((:instance lemma2 (term (list (car term) (cadr term)))))))))
 
   ;; Bozo:
   ;; This implementation is potentially slow because of the threading of smt-func
@@ -1129,7 +1174,10 @@
     :short "Add option information into func."
     :measure (len fun-opt-lst)
     :hints (("Goal" :in-theory (enable function-option-lst-syntax-fix)))
-    :verify-guards nil
+    :guard-hints (("Goal" :in-theory (disable
+                                      everything-about-function-option-lst-syntax-p)
+                   :use((:instance everything-about-function-option-lst-syntax-p
+                                   (term fun-opt-lst)))))
     (b* ((fun-opt-lst (function-option-lst-syntax-fix fun-opt-lst))
          (smt-func (func-fix smt-func))
          ((unless (consp fun-opt-lst)) smt-func)
@@ -1141,17 +1189,7 @@
                      (:guard (make-merge-guard content smt-func))
                      (:more-returns (make-merge-more-returns content smt-func)))))
       (make-merge-function-option-lst rest new-func)))
-(verify-guards make-merge-function-option-lst
-  :hints (("Goal"
-           :in-theory (e/d (function-option-lst-syntax-fix
-                            function-option-lst-syntax-p
-                            function-option-syntax-p
-                            hypothesis-lst-syntax-p)
-                           (function-option-lst-syntax-p-helper--head
-                            natp))
-           :expand ((function-option-syntax-p (list (car fun-opt-lst) (cadr
-                                                                       fun-opt-lst)) nil))
-           )))
+
 
   (define make-merge-function ((func function-syntax-p) (smt-func func-p))
     :returns (func func-p)
