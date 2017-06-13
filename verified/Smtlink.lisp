@@ -978,6 +978,48 @@
            ((mv res new-used) (smtlink-option-syntax-p (list first second) used)))
         (and res (smtlink-hint-syntax-p-helper rest new-used)))
       ///
+      (defthm smtlink-lst-syntax-p-constraint
+        (implies (and (smtlink-hint-syntax-p-helper user-hint nil)
+                      (consp user-hint)
+                      (consp (cdr user-hint)))
+                 (or (equal (car user-hint) ':functions)
+                     (equal (car user-hint) ':hypotheses)
+                     (equal (car user-hint) ':main-hint)
+                     (equal (car user-hint) ':int-to-rat)
+                     (equal (car user-hint) ':smt-fname)
+                     (equal (car user-hint) ':rm-file)
+                     (equal (car user-hint) ':smt-solver-params)
+                     (equal (car user-hint) ':smt-solver-cnf)))
+        :hints (("Goal"
+                 :in-theory (enable eval-smtlink-option-type
+                                    smtlink-option-syntax-p
+                                    smtlink-option-name-p))))
+
+      (defthm smtlink-lst-syntax-p-of-option
+        (implies
+         (and (consp (cdr user-hint))
+              (smtlink-hint-syntax-p-helper user-hint nil)
+              (consp user-hint))
+         (and (implies (equal (car user-hint) ':functions)
+                       (function-lst-syntax-p (cadr user-hint)))
+              (implies (equal (car user-hint) ':hypotheses)
+                       (hypothesis-lst-syntax-p (cadr user-hint)))
+              (implies (equal (car user-hint) ':main-hint)
+                       (hints-syntax-p (cadr user-hint)))
+              (implies (equal (car user-hint) ':int-to-rat)
+                       (booleanp (cadr user-hint)))
+              (implies (equal (car user-hint) ':smt-fname)
+                       (stringp (cadr user-hint)))
+              (implies (equal (car user-hint) ':rm-file)
+                       (booleanp (cadr user-hint)))
+              (implies (equal (car user-hint) ':smt-solver-params)
+                       (smt-solver-params-p (cadr user-hint)))
+              (implies (equal (car user-hint) ':smt-solver-cnf)
+                       (smt-solver-cnf-p (cadr user-hint)))))
+        :hints (("Goal"
+                 :in-theory (enable smtlink-option-syntax-p
+                                    eval-smtlink-option-type))))
+
       (skip-proofs
       (defthm smtlink-hint-syntax-p-helper--monotonicity
         (implies (and (subsetp used-1 used :test 'equal)
@@ -1331,9 +1373,9 @@
     :short "Combining user-hints into smt-hint."
     :guard-hints (("Goal"
                    :in-theory (enable smtlink-hint-syntax-fix smtlink-hint-syntax-p smtlink-hint-syntax-p-helper)
-                   :use ((:instance function-lst-syntax-p-of-option)
-                         (:instance function-lst-syntax-p-constraint)
-                         (:instance smtlink-hint-syntax-preserve))))
+                   :use ((:instance smtlink-lst-syntax-p-of-option)
+                         (:instance smtlink-lst-syntax-p-constraint)
+                         (:instance smtlink-hint-syntax-p-helper-preserve))))
     (b* ((hint (smtlink-hint-fix hint))
          (user-hint (smtlink-hint-syntax-fix user-hint))
          ((unless (consp user-hint)) hint)
