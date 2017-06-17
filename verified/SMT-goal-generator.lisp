@@ -24,9 +24,9 @@
 ;; To be compatible with Arithmetic books
 (include-book "ordinals/lexicographic-ordering-without-arithmetic" :dir :system)
 
-;; (defsection SMT-goal-generator
-;;   :parents (Smtlink)
-;;   :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
+(defsection SMT-goal-generator
+  :parents (Smtlink)
+  :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
 
   (defalist sym-nat-alist
     :key-type symbol
@@ -600,16 +600,16 @@
     :pred lambda-binding-listp
     :true-listp t)
 
-  (define generate-lambda-bindings ((lambda-bd-lst lambda-binding-listp) (term pseudo-termp))
-    :returns (new-term pseudo-termp)
-    :measure (len lambda-bd-lst)
-    (b* ((lambda-bd-lst (lambda-binding-list-fix lambda-bd-lst))
-         (term (pseudo-term-fix term))
-         ((unless (consp lambda-bd-lst)) term)
-         ((cons first-bd rest-bd) lambda-bd-lst)
-         ((lambda-binding b) first-bd))
-      (generate-lambda-bindings rest-bd
-                                `((lambda ,b.formals ,term) ,@b.actuals))))
+  ;; (define generate-lambda-bindings ((lambda-bd-lst lambda-binding-listp) (term pseudo-termp))
+  ;;   :returns (new-term pseudo-termp)
+  ;;   :measure (len lambda-bd-lst)
+  ;;   (b* ((lambda-bd-lst (lambda-binding-list-fix lambda-bd-lst))
+  ;;        (term (pseudo-term-fix term))
+  ;;        ((unless (consp lambda-bd-lst)) term)
+  ;;        ((cons first-bd rest-bd) lambda-bd-lst)
+  ;;        ((lambda-binding b) first-bd))
+  ;;     (generate-lambda-bindings rest-bd
+  ;;                               `((lambda ,b.formals ,term) ,@b.actuals))))
 
   (defprod fhg-single-args
     ((fn func-p :default nil)
@@ -647,10 +647,13 @@
           (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint-pair "Function name can't be 'quote.")
                   (make-hint-pair)))
 
-         (lambdaed-fn-call-instance (generate-lambda-bindings a.lambda-acc `(,f.name ,@a.actuals))))
+         ;; (lambdaed-fn-call-instance (generate-lambda-bindings a.lambda-acc
+         ;;                                                      `(,f.name
+         ;;                                                        ,@a.actuals)))
+         )
       (change-hint-pair h
                         :thm `((lambda (,@formals ,@returns) ,h.thm)
-                               ,@a.actuals ,lambdaed-fn-call-instance))))
+                               ,@a.actuals (,f.name ,@a.actuals)))))
 
 
   (define generate-fn-returns-hint ((returns decl-listp) (args fhg-single-args-p))
@@ -973,7 +976,8 @@
             (if (equal nil expand-hint)
                 h.main-hint
                 (append `(:in-theory (enable ,@expand-hint)) h.main-hint)))
-           (expanded-clause-w/-hint (make-hint-pair :thm G-prim-without-type :hints hint-with-fn-expand))
+           (expanded-clause-w/-hint (make-hint-pair :thm G-prim-without-type
+                                                    :hints hint-with-fn-expand))
 
            ;; Update smtlink-hint
            (new-hints
@@ -992,4 +996,4 @@
     (verify-guards SMT-goal-generator)
     )
 
-;; )
+  )

@@ -15,10 +15,10 @@
 (include-book "SMT-verified-cps")
 (include-book "SMT-config")
 
-;; (defsection Smtlink-process-user-hint
-;;   :parents (Smtlink)
-;;   :short "Functionalities for processing user hints given to Smtlink. User
-;;   hints will be merged with (smt-hint)."
+(defsection Smtlink-process-user-hint
+  :parents (Smtlink)
+  :short "Functionalities for processing user hints given to Smtlink. User
+  hints will be merged with (smt-hint)."
 
   ;; --------------------------------------------------------
 
@@ -1500,4 +1500,4 @@
   ;;   expansion and transformation.
   (defmacro Smtlink (clause hint)
     `(process-hint ,clause ,hint))
-;; )
+  )

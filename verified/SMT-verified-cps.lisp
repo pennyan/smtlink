@@ -91,10 +91,37 @@
                :induct (preprocess-auxes hinted-As (disjoin cl)))))
     )
 
+  (define generate-returns-auxes ((hinted-As-returns hint-pair-listp) (G pseudo-termp))
+    :returns (list-of-A-thm pseudo-term-list-listp)
+    :measure (len hinted-As-returns)
+    (b* ((hinted-As-returns (hint-pair-list-fix hinted-As-returns))
+         (G (pseudo-term-fix G))
+         ((unless (consp hinted-As-returns)) nil)
+         ((cons first-hinted-A rest-hinted-As) hinted-As-returns)
+         (A (hint-pair->thm first-hinted-A))
+         (A-hint (hint-pair->hints first-hinted-A))
+         (first-A-thm `((hint-please ',A-hint 'A-hint) ,A ,G)))
+      (cons first-A-thm (generate-returns-auxes rest-hinted-As G))))
+
+  (define generate-types-auxes ((hinted-As-types decl-listp) (G pseudo-termp))
+    :returns (list-of-A-thm pseudo-term-list-listp)
+    :measure (len hinted-As-types)
+    (b* ((hinted-As-types (decl-list-fix hinted-As-types))
+         (G (pseudo-term-fix G))
+         ((unless (consp hinted-As-types)) nil)
+         ((cons first-hinted-A rest-hinted-As) hinted-As-types)
+         (A-name (decl->name first-hinted-A))
+         (A-hint-pair (decl->type first-hinted-A))
+         (A-type (hint-pair->thm A-hint-pair))
+         (A `(,A-type ,A-name))
+         (A-hint (hint-pair->hints A-hint-pair))
+         (first-A-thm `((hint-please ',A-hint 'A-hint) ,A ,G)))
+      (cons first-A-thm (generate-types-auxes rest-hinted-As G))))
+
   (local
-   (defthm pseudo-term-listp-of-append-2-pseudo-term-listp
-     (implies (and (pseudo-term-listp x) (pseudo-term-listp y))
-              (pseudo-term-listp (append x y)))))
+   (defthm pseudo-term-list-listp-of-append-2-pseudo-term-list-listp
+     (implies (and (pseudo-term-list-listp x) (pseudo-term-list-listp y))
+              (pseudo-term-list-listp (append x y)))))
   ;;
   ;; Constructing three type of clauses:
   ;;
@@ -115,21 +142,30 @@
   (local (in-theory (enable pseudo-term-list-listp pseudo-termp hint-pair-p
                             hint-pair-listp true-listp)))
   (define construct-smtlink-subgoals ((hinted-As hint-pair-listp)
+                                      (hinted-As-returns hint-pair-listp)
+                                      (hinted-As-types decl-listp)
                                       (hinted-G-prim hint-pair-p)
                                       (smt-hint true-listp)
                                       (G pseudo-termp))
     :returns (subgoals pseudo-term-list-listp)
+    :guard-hints (("Goal" :in-theory (disable
+                                      pseudo-term-list-listp-of-preprocess-auxes.list-of-a-thm)
+                   :use ((:instance pseudo-term-list-listp-of-preprocess-auxes.list-of-a-thm))))
     (b* ((hinted-As (hint-pair-list-fix hinted-As))
+         (hinted-As-returns (hint-pair-list-fix hinted-As-returns))
+         (hinted-As-types (decl-list-fix hinted-As-types))
          (hinted-G-prim (hint-pair-fix hinted-G-prim))
          (smt-hint (true-list-fix smt-hint))
          (G (pseudo-term-fix G))
          ((mv aux-clauses list-of-not-As) (preprocess-auxes hinted-As G))
+         (aux-clauses-returns (generate-returns-auxes hinted-As-returns G))
+         (aux-clauses-types (generate-types-auxes hinted-As-types G))
          (G-prim (hint-pair->thm hinted-G-prim))
          (main-hint (hint-pair->hints hinted-G-prim))
          (cl0 `((hint-please ',smt-hint 'smt-hint) ,@list-of-not-As ,G-prim))
          (cl1 `((hint-please ',main-hint 'main-hint) ,@list-of-not-As (not ,G-prim) ,G))
          )
-      `(,cl0 ,cl1 ,@aux-clauses)))
+      `(,cl0 ,cl1 ,@aux-clauses ,@aux-clauses-types ,@aux-clauses-returns)))
 
 
   ;; If I give guard to smtlink-hint, then I get the error:
@@ -160,11 +196,15 @@
          ((unless (smtlink-hint-p smtlink-hint)) (list (remove-hint-please cl)))
          (cl (remove-hint-please cl))
          (hinted-As (smtlink-hint->aux-hint-list smtlink-hint))
+         (hinted-As-returns (smtlink-hint->aux-thm-list smtlink-hint))
+         (hinted-As-types (smtlink-hint->type-decl-list smtlink-hint))
          (hinted-G-prim (smtlink-hint->expanded-clause-w/-hint smtlink-hint))
          ;; (smt-hint (append `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state))
          ;;                   (smtlink-hint->smt-hint smtlink-hint)))
          (smt-hint `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state)))
-         (full (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint
+         (full (construct-smtlink-subgoals hinted-As
+                                           hinted-As-returns hinted-As-types
+                                           hinted-G-prim smt-hint
                                            (disjoin cl)))
          )
       full))
