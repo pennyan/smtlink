@@ -32,7 +32,7 @@
   (declare (xargs :guard t))
   (change-smtlink-hint
    *default-smtlink-hint*
-   :functions (list (make-func :name 'expt :uninterpreted t))
+   :functions (list (make-func :name 'expt))
    :rm-file nil
    :smt-params nil
    :smt-cnf (my-smtlink-expt-config)))
@@ -54,7 +54,6 @@
           (SMT::Smtlink clause nil))))
 
 ;; Example 2
-;; Currently failing this theorem because we are using uninterpreted functions
 (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
 (defthm poly-of-expt-example
   (implies (and (real/rationalp x) (real/rationalp y) (real/rationalp z)

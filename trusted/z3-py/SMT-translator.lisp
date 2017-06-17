@@ -248,12 +248,12 @@
 
          ;; If fn-call is neither a lambda expression nor a function call
          ((unless (mbt (symbolp fn-call))) (mv nil nil))
-         ;; See if fn-call is an uninterpreted function
+         ;; Now, fn-call should be treated as an uninterpreted function
          (fn (hons-get fn-call a.fn-lst))
          ((if fn)
           (b* (((func f) (cdr fn))
-               ((if (not f.uninterpreted))
-                (mv (er hard? 'SMT-translator=>translate-expression "Not a basic SMT function: ~q0" fn-call) nil))
+               ;; ((if (not f.uninterpreted))
+               ;;  (mv (er hard? 'SMT-translator=>translate-expression "Not a basic SMT function: ~q0" fn-call) nil))
                ((mv translated-actuals uninterpreted-1)
                 (translate-expression (change-te-args a :expr-lst fn-actuals :uninterpreted-lst uninterpreted-rest)))
                (translated-fn-call

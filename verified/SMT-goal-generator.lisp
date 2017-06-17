@@ -690,9 +690,10 @@
     (b* ((args (fhg-single-args-fix args))
          ((fhg-single-args a) args)
          ((func f) a.fn)
-         ((unless f.uninterpreted)
-          (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint "Function call ~q0 still exists in term but it's not declared as an uninterpreted function." f.name)
-                  a)))
+         ;; ((unless f.uninterpreted)
+         ;;  (prog2$ (er hard? 'SMT-goal-generator=>generate-fn-hint "Function call ~q0 still exists in term but it's not declared as an uninterpreted function." f.name)
+         ;;          a))
+         )
       (change-fhg-single-args a
                               :fn-returns-hint-acc (generate-fn-returns-hint f.returns a)
                               :fn-more-returns-hint-acc (generate-fn-more-returns-hint f.more-returns a))))
