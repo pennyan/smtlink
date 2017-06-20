@@ -100,8 +100,9 @@
   (define SMT-extract ((term pseudo-termp))
     :returns (mv (decl-list pseudo-term-listp) (theorem pseudo-termp))
     (b* (((mv decl-list theorem) (extract-disjunct term)))
-      (prog2$ (cw "decl-list:~q0~%theorem:~q1~%" decl-list theorem)
-              (mv decl-list theorem))))
+      ;; (prog2$ (cw "decl-list:~q0~%theorem:~q1~%" decl-list theorem)
+      (mv decl-list theorem)
+      )) ;;)
 
   )
 

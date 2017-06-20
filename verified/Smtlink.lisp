@@ -179,14 +179,15 @@
           ;; The name and the type/guard
           (and (true-listp term)
                (car term) (cadr term) (not (cddr term))
-               (smt-typep (car term))
-               (symbolp (cadr term)))
+               (symbolp (car term))
+               (smt-typep (cadr term)))
           ;; The name, the type and the :hints
           (and (true-listp term)
-               (car term) (cadr term) (not (cdddr term)) 
+               (car term) (cadr term) (not (cddddr term)) 
                (symbolp (car term))
                (smt-typep (cadr term))
-               (hints-syntax-p (cddr term)))))
+               (equal ':hints (caddr term))
+               (hints-syntax-p (cadddr term)))))
 
     (define argument-syntax-fix ((term argument-syntax-p))
       :returns (fixed-term argument-syntax-p)
@@ -1207,7 +1208,7 @@
          ((cons argname (cons type (cons & hints))) first)
          (new-returns (cons (make-decl :name argname
                                        :type (make-hint-pair :thm type
-                                                             :hints hints))
+                                                             :hints (car hints)))
                             f.returns))
          (new-func (change-func f :returns new-returns)))
       (make-merge-returns-helper rest new-func)))
@@ -1459,13 +1460,11 @@
   (define process-hint ((cl pseudo-term-listp) (user-hint t))
     :returns (subgoal-lst pseudo-term-list-listp)
     (b* ((cl (pseudo-term-list-fix cl))
-         (- (cw "user-hint: ~q0" user-hint))
          ((unless (smtlink-hint-syntax-p user-hint))
           (prog2$ (cw "User provided Smtlink hint can't be applied because of ~
     syntax error in the hints: ~q0Therefore proceed without Smtlink...~%" user-hint)
                   (list cl)))
          (combined-hint (combine-hints user-hint (smt-hint)))
-         (- (cw "comined-hint: ~q0" combined-hint))
          (cp-hint `(:clause-processor (Smt-verified-cp clause ',combined-hint)))
          (subgoal-lst (cons `(hint-please ',cp-hint 'process-hint) cl)))
       (list subgoal-lst)))

@@ -37,7 +37,7 @@
     (declare (xargs :stobjs state
                     :guard (pseudo-term-listp cl)
                     :mode :program))
-    (b* ((- (cw "clause given to the trusted clause processor: ~q0"  cl))
+    (b* (;; (- (cw "clause given to the trusted clause processor: ~q0"  cl))
          ((mv res state) (SMT-prove-stub (disjoin cl) smtlink-hint state)))
       (if res
           (prog2$ (cw "Proved!~%") (mv nil nil state))
