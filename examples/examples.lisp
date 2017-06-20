@@ -69,8 +69,8 @@
                                              :returns ((ex rationalp))
                                              :level 0))
                            :hypotheses (((< (expt z n) (expt z m)))
-                                        ((< '0 (expt z m)))
-                                        ((< '0 (expt z n))))
+                                        ((< 0 (expt z m)))
+                                        ((< 0 (expt z n))))
                            :main-hint nil
                            :smt-fname ""
                            :int-to-rat t
