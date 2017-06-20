@@ -1479,7 +1479,6 @@
     (b* (((unless (and (true-listp val)
                        (car val)))
           val)
-         (- (cw "val ~p0 being translated ...~%" val))
          ((mv err term)
           (acl2::translate-cmp (car val) t t nil 'Smtlink-process-user-hint->trans-hypothesis
                                (w state) (acl2::default-state-vars t)))
@@ -1536,8 +1535,6 @@
          ((if (atom hint)) hint)
          ((unless (cdr hint)) hint)
          ((list* first second rest) hint)
-         (- (cw "first: ~q0" first))
-         (- (cw "second: ~q0" second))
          (new-second (trans-hint-option first second state))
          (new-hint `(,first ,new-second ,@(trans-hint rest state))))
       new-hint))
