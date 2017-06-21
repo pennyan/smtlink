@@ -267,7 +267,7 @@
      (type-decl-list decl-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
      (smt-cnf smtlink-config-p :default (make-smtlink-config))
-     (wrld-fn-len natp :default 512)))
+     (wrld-fn-len natp :default 0)))
 
   (defoption maybe-smtlink-hint smtlink-hint-p
     :parents (smtlink-hint))

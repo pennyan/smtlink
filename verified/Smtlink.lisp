@@ -827,7 +827,9 @@
         (:smt-fname . stringp)
         (:rm-file . booleanp)
         (:smt-solver-params . smt-solver-params-p)
-        (:smt-solver-cnf . smt-solver-cnf-p)))
+        (:smt-solver-cnf . smt-solver-cnf-p)
+        ;; internal parameter
+        (:wrld-len . natp)))
 
     (defconst *smtlink-option-names*
       (strip-cars *smtlink-options*))
@@ -924,6 +926,7 @@
         (booleanp (booleanp term))
         (stringp (stringp term))
         (smt-solver-params-p (smt-solver-params-p term))
+        (natp (natp term))
         (t (smt-solver-cnf-p term))))
 
     (define smtlink-option-syntax-p ((term t) (used smtlink-option-name-lst-p))
@@ -1077,7 +1080,9 @@
                                  (and (equal (cdr (assoc-equal (car term) *smtlink-options*)) 'smt-solver-params-p)
                                       (smt-solver-params-p (cadr term)))
                                  (and (equal (cdr (assoc-equal (car term) *smtlink-options*)) 'smt-solver-cnf-p)
-                                      (smt-solver-cnf-p (cadr term))))))
+                                      (smt-solver-cnf-p (cadr term)))
+                                 (and (equal (cdr (assoc-equal (car term) *smtlink-options*)) 'natp)
+                                      (natp (cadr term))))))
                :hints(("Goal" :expand((smtlink-option-syntax-p term nil)
                                       (:free (option-type) (eval-smtlink-option-type
                                                             option-type (cadr term)))
@@ -1105,6 +1110,8 @@
                                  (stringp val))
                         (implies (equal option-type 'smt-solver-params-p)
                                  (smt-solver-params-p val))
+                        (implies (equal option-type 'natp)
+                                 (natp val))
                         (implies (equal option-type 'smt-solver-cnf-p)
                                  (smt-solver-cnf-p val)))))
         :hints(("Goal"
@@ -1375,6 +1382,14 @@
          (new-hint (change-smtlink-hint hint :rm-file content)))
       new-hint))
 
+  (define set-wrld-len ((content natp)
+                        (hint smtlink-hint-p))
+    :returns (new-hint smtlink-hint-p)
+    :short "Set :wrld-fn-len"
+    (b* ((hint (smtlink-hint-fix hint))
+         (new-hint (change-smtlink-hint hint :wrld-fn-len content)))
+      new-hint))
+
   (define set-smt-solver-params ((content smt-solver-params-p)
                                  (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
@@ -1424,7 +1439,8 @@
          (new-hint (change-smtlink-hint hint :smt-cnf new-cnf)))
       (merge-smt-solver-cnf rest new-hint)))
 
-  (define combine-hints ((user-hint smtlink-hint-syntax-p) (hint smtlink-hint-p))
+  (define combine-hints ((user-hint smtlink-hint-syntax-p)
+                         (hint smtlink-hint-p))
     :returns (combined-hint smtlink-hint-p)
     :hints (("Goal" :in-theory (enable smtlink-hint-syntax-fix)))
     :measure (len user-hint)
@@ -1454,6 +1470,7 @@
                      (:smt-fname (set-fname second hint))
                      (:rm-file (set-rm-file second hint))
                      (:smt-solver-params (set-smt-solver-params second hint))
+                     (:wrld-len (set-wrld-len second hint))
                      (t (merge-smt-solver-cnf second hint)))))
       (combine-hints rest new-hint)))
 
@@ -1472,7 +1489,11 @@
 
   ;; ------------------------------------------------------------------------
   ;;     Run translate-cmp on terms to generate translated terms
-
+  (define wrld-fn-len ((state))
+    :mode :program
+    (b* ((world (w state)))
+      (len (remove-duplicates-eq
+            (strip-cadrs (universal-theory :here))))))
 
   (define trans-hypothesis ((val t) (state))
     :mode :program
@@ -1527,12 +1548,18 @@
     :mode :program
     (cond ((equal opt ':functions) (trans-functions val state))
           ((equal opt ':hypotheses) (trans-hypotheses val state))
+          ((equal opt ':wrld-len)
+           (er hard?
+               'Smtlink-process-user-hint->trans-hint-option
+               "User trying to access internal parameter ~
+                wrld-len!"))
           (t val)))
 
   (define trans-hint ((hint t) (state))
     :mode :program
     (b* (((unless (true-listp hint)) hint)
-         ((if (atom hint)) hint)
+         (wrld-len (wrld-fn-len state))
+         ((if (atom hint)) `(:wrld-len ,wrld-len))
          ((unless (cdr hint)) hint)
          ((list* first second rest) hint)
          (new-second (trans-hint-option first second state))
@@ -1568,5 +1595,5 @@
   ;; A computed hint will be waiting to take the clause and hint for clause
   ;;   expansion and transformation.
   (defmacro Smtlink (clause hint)
-    `(process-hint ,clause (trans-hint ,hint state)))
+    `(process-hint ,clause (trans-hint ',hint state)))
   )

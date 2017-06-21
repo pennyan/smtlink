@@ -35,8 +35,8 @@ class to_smt_w_expt(ACL2_to_Z3.ACL22SMT):
         # the translator turns integerp to isReal!  That's because the z3
         # solver (understandably) chokes on mixed integer/real polynomials.
         self.expt = z3.Function('EXPT', z3.RealSort(), z3.RealSort(), z3.RealSort())
-        self.b_sum = z3.Function('b_sum', z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort())
-        self.b_expt = z3.Function('b_expt', z3.RealSort(), z3.RealSort(), z3.RealSort())
+        # self.b_sum = z3.Function('b_sum', z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort(), z3.RealSort())
+        # self.b_expt = z3.Function('b_expt', z3.RealSort(), z3.RealSort(), z3.RealSort())
         self.maxPowExpand = 10
 
     def simplify(self, expr, **kwargs):

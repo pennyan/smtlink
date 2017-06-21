@@ -64,19 +64,19 @@
   :hints (("Goal"
            :clause-processor
            (SMT::Smtlink clause
-                         '(:functions ((expt :formals ((r rationalp)
-                                                       (i rationalp))
-                                             :returns ((ex rationalp))
-                                             :level 0))
-                           :hypotheses (((< (expt z n) (expt z m)))
-                                        ((< 0 (expt z m)))
-                                        ((< 0 (expt z n))))
-                           :main-hint nil
-                           :smt-fname ""
-                           :int-to-rat t
-                           :rm-file nil
-                           :smt-solver-params nil
-                           :smt-solver-cnf nil)))))
+                         (:functions ((expt :formals ((r rationalp)
+                                                      (i rationalp))
+                                            :returns ((ex rationalp))
+                                            :level 0))
+                          :hypotheses (((< (expt z n) (expt z m)))
+                                       ((< 0 (expt z m)))
+                                       ((< 0 (expt z n))))
+                          :main-hint nil
+                          :smt-fname ""
+                          :int-to-rat t
+                          :rm-file nil
+                          :smt-solver-params nil
+                          :smt-solver-cnf nil)))))
 
 ;; Buggy example
 (acl2::must-fail
