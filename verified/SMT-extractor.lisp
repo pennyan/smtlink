@@ -14,7 +14,7 @@
 (include-book "SMT-basics")
 
 (defsection SMT-extract
-  :parents (Smtlink)
+  :parents (verified)
   :short "SMT-extract extracts type hypotheses from the clause. The SMT solver requires knowing type declarations."
 
 

@@ -16,7 +16,7 @@
 (defttag :writes-okp)
 
 (defsection SMT-write
-  :parent (Smtlink)
+  :parents (trusted)
   :short "SMT-write writes out the translated string to a SMT file as configured."
 
   (local (in-theory (enable characterp wordp)))

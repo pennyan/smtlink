@@ -13,7 +13,7 @@
 (include-book "SMT-config")
 
 (defsection SMT-hint-interface
-  :parents (Smtlink)
+  :parents (verified)
   :short "Define default Smtlink hint interface"
 
   ;; -------------------------------------------------------

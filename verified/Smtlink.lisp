@@ -16,7 +16,7 @@
 (include-book "SMT-config")
 
 (defsection Smtlink-process-user-hint
-  :parents (Smtlink)
+  :parents (verified)
   :short "Functionalities for processing user hints given to Smtlink. User
   hints will be merged with (smt-hint)."
 

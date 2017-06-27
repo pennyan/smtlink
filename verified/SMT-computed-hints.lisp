@@ -16,7 +16,7 @@
 
 
 (defsection SMT-computed-hints
-  :parents (Smtlink)
+  :parents (verified)
   :short "Define Smtlink computed-hints"
 
   (defconst *SMT-computed-hints-table*

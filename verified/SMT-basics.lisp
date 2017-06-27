@@ -9,7 +9,7 @@
 (include-book "xdoc/top" :dir :system)
 
 (defsection SMT-basics
-  :parents (Smtlink)
+  :parents (verified)
   :short "Basic functions and types in Smtlink."
 
   (defconst *SMT-basics*

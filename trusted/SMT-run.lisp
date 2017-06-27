@@ -20,7 +20,7 @@
 (set-state-ok t)
 
 (defsection SMT-run
-  :parent (Smtlink)
+  :parents (trusted)
   :short "SMT-run runs the configured SMT solver then interprets the result and feed it back to ACL2."
 
   (define SMT-run ((fname stringp) (smt-conf smtlink-config-p))

@@ -24,7 +24,7 @@
 (value-triple (tshell-ensure))
 
 (defsection SMT-prove
-  :parents (Smtlink)
+  :parents (trusted)
   :short "SMT-prove is the main functions for transliteration into SMT languages and calling the external SMT solver."
 
   (encapsulate ()

@@ -25,7 +25,7 @@
 (include-book "ordinals/lexicographic-ordering-without-arithmetic" :dir :system)
 
 (defsection SMT-goal-generator
-  :parents (Smtlink)
+  :parents (verified)
   :short "SMT-goal-generator generates the three type of goals for the verified clause processor"
 
   (defalist sym-nat-alist

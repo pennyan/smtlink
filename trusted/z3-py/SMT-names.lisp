@@ -15,7 +15,7 @@
 (include-book "std/strings/eqv" :dir :system)
 
 (defsection SMT-names
-  :parents (Smtlink)
+  :parents (z3-py)
   :short "SMT-names generates SMT solver friendly names."
 
   (define character-fix (x)

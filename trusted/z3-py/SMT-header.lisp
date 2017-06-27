@@ -11,7 +11,7 @@
 (include-book "SMT-translator")
 
 (defsection SMT-header
-  :parent (Smtlink)
+  :parents (z3-py)
   :short "SMT-header contains string definitions for the header of a Z3 file."
 
   (local (in-theory (enable paragraphp wordp)))

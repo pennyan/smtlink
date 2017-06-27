@@ -14,7 +14,7 @@
 (include-book "SMT-hint-interface")
 
 (defsection SMT-hint-please
-  :parents (Smtlink)
+  :parents (verified)
   :short "The function hint-please in SMT is for passing hints to subgoals
   using the clause-processor and computed-hint mechanism."
 

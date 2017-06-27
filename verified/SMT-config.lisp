@@ -12,7 +12,7 @@
 
 
 (defsection SMT-config
-  :parents (Smtlink)
+  :parents (verified)
   :short "Define Smtlink config"
 
 (defprod smtlink-config

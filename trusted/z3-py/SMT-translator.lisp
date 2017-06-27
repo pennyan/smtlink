@@ -17,7 +17,7 @@
 (include-book "./SMT-names")
 
 (defsection SMT-translator
-  :parents (Smtlink)
+  :parents (z3-py)
   :short "SMT-translator does the LISP to Python translation."
 
   (define SMT-numberp (sym)

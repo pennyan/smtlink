@@ -33,7 +33,7 @@
 (include-book "SMT-goal-generator")
 
 (defsection SMT-verified-clause-processors
-  :parents (Smtlink)
+  :parents (verified)
   :short "SMT verified clause processors"
 
   ;; -----------------------------------------------------------------
