@@ -8,10 +8,6 @@
 (in-package "SMT")
 (include-book "../top")
 
-;; (include-book "clause-processors/meta-extract-user" :dir :system)
-(include-book "centaur/misc/tshell" :dir :system)
-;; (include-book "misc/eval" :dir :system)
-
 (deftheory before-arith (current-theory :here))
 (include-book "arithmetic-5/top" :dir :system)
 (deftheory after-arith (current-theory :here))
@@ -20,7 +16,6 @@
 (defsection examples
   :parents (tutorial)
 
-  (defttag :tshell)
   (value-triple (tshell-ensure))
 
   (defun my-smtlink-expt-config ()
@@ -54,8 +49,7 @@
                   (<=  (x^2-y^2 x y) 1))
              (<= y (* 3 (- x (/ 17 8)) (- x (/ 17 8)))))
     :hints(("Goal"
-            :clause-processor
-            (SMT::Smtlink clause nil))))
+            :smtlink nil)))
 
   ;; Example 2
   (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y)))
@@ -66,21 +60,19 @@
              (<= (* 2 (expt z n) x y)
                  (* (expt z m) (||x^2+y^2||^2 x y))))
     :hints (("Goal"
-             :clause-processor
-             (SMT::Smtlink clause
-                           (:functions ((expt :formals ((r rationalp)
-                                                        (i rationalp))
-                                              :returns ((ex rationalp))
-                                              :level 0))
-                                       :hypotheses (((< (expt z n) (expt z m)))
-                                                    ((< 0 (expt z m)))
-                                                    ((< 0 (expt z n))))
-                                       :main-hint nil
-                                       :smt-fname ""
-                                       :int-to-rat t
-                                       :rm-file nil
-                                       :smt-solver-params nil
-                                       :smt-solver-cnf nil)))))
+             :smtlink (:functions ((expt :formals ((r rationalp)
+                                                   (i rationalp))
+                                         :returns ((ex rationalp))
+                                         :level 0))
+                                  :hypotheses (((< (expt z n) (expt z m)))
+                                               ((< 0 (expt z m)))
+                                               ((< 0 (expt z n))))
+                                  :main-hint nil
+                                  :smt-fname ""
+                                  :int-to-rat t
+                                  :rm-file nil
+                                  :smt-solver-params nil
+                                  :smt-solver-cnf nil))))
 
   ;; Buggy example
   (acl2::must-fail
@@ -90,8 +82,7 @@
                    (integerp (/ x y)))
               (not (equal y 0)))
      :hints(("Goal"
-             :clause-processor
-             (SMT::Smtlink clause nil)))
+             :smtlink nil))
      :rule-classes nil)
    )
   )

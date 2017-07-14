@@ -1596,4 +1596,15 @@
   ;;   expansion and transformation.
   (defmacro Smtlink (clause hint)
     `(process-hint ,clause (trans-hint ',hint state)))
+
+  ;; Adding :smtlink as a custom :hints option
+  (add-custom-keyword-hint :smtlink
+                           (pprogn
+                            (fms "~%Using clause-processor Smtlink~%"
+                                 nil *standard-co* state nil)
+                            (value
+                             (acl2::splice-keyword-alist
+                              :smtlink
+                              `(:clause-processor (smtlink clause ,acl2::val))
+                              acl2::keyword-alist))))
   )
