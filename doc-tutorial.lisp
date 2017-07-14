@@ -15,5 +15,6 @@
 
 (defxdoc tutorial
   :parents (Smtlink)
-  :short ""
-  :long "<h3>Introduction</h3>")
+  :short "A tutorial to walk you through how to use Smtlink to prove ACL2 theorems."
+  :long "<h3>Introduction</h3>
+        ")
