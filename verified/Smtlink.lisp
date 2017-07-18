@@ -1482,6 +1482,7 @@
     syntax error in the hints: ~q0Therefore proceed without Smtlink...~%" user-hint)
                   (list cl)))
          (combined-hint (combine-hints user-hint (smt-hint)))
+         (- (cw "combined-hint: ~q0" combined-hint))
          (cp-hint `(:clause-processor (Smt-verified-cp clause ',combined-hint)))
          (subgoal-lst (cons `(hint-please ',cp-hint 'process-hint) cl)))
       (list subgoal-lst)))

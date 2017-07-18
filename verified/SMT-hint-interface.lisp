@@ -234,7 +234,6 @@
   ;; 6. rm-file: configuration for whether to remove generated files.
   ;; 7. smt-fname: configure the name of generated SMT theorem file.
   ;; 8. smt-params: hints for parameter tuning of the SMT solver.
-  ;; 13. smt-cnf: configuration for connection to the SMT solver.
   ;;
   ;; Internal fields:
   ;; 9. fast-functions: internal field for storing a fast version of function
@@ -244,6 +243,7 @@
   ;; 11. type-decl-list: internal field for making a list of auxiliary type
   ;; hints.
   ;; 12. expanded-clause-w/-hint: internal field for storing the SMT theorem.
+  ;; 13. smt-cnf: configuration for connection to the SMT solver.
   ;; 14. wrld-fn-len: a number specifying the upper bound of the length of the
   ;; current world. It sets a limit to the expansion depth to take care of
   ;; recursive function expansion. This will only ensure termination proof of

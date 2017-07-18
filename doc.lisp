@@ -6,8 +6,8 @@
 ;;
 
 (in-package "SMT")
-(include-book "doc-tutorial")
-(include-book "doc-dev")
+(include-book "centaur/sv/tutorial/support" :dir :system)
+(include-book "examples/examples")
 
 ;; ------------------------------------------------------- ;;
 ;;    Documentation
@@ -99,8 +99,8 @@
          @({
           (value-triple (tshell-ensure))
          })
-         <p>@(tsee value-triple) makes sure such term is an event form and
-         therefore is certifiable as a book.</p>
+         <p>@(tsee value-triple) makes sure the form @('(tshell-ensure)') can
+         be submitted in an event context and therefore is certifiable.</p>
 
          <p>For a detail description of how to setup and get started using
          @('Smtlink'), see @(tsee tutorial).</p>
@@ -114,5 +114,31 @@
          <p>Yan Peng and Mark R. Greenstreet. <a
          href='https://arxiv.org/abs/1509.06082'>Extending ACL2 with SMT
          Solvers</a>In ACL2 Workshop 2015. October 2015. EPTCS 192. Pages 61-77.</p>")
+
+
+(defxdoc z3-py
+  :parents (Trusted)
+  :short "The Z3 python interface related books."
+  :long "<h3>Introduction</h3>")
+
+(defxdoc Trusted
+  :parents (Developer)
+  :short "Trusted part of Smtlink."
+  :long "<h3>Introduction</h3>")
+
+(defxdoc Verified
+  :parents (Developer)
+  :short "Verified part of Smtlink"
+  :long "<h3>Introduction</h3>")
+
+(defxdoc Developer
+  :parents (Smtlink)
+  :short "The developer's reference to Smtlink."
+  :long "<h3>Introduction</h3>")
+
+(sv::deftutorial Tutorial
+  :parents (Smtlink)
+  :short "A tutorial to walk you through how to use Smtlink to prove ACL2 theorems."
+  :long "<h3>Introduction</h3>")
 
 (xdoc::save "./manual" :redef-okp t)  ;; write the manual

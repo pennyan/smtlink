@@ -6,4 +6,28 @@
 ;;
 
 (in-package "SMT")
-(include-book "doc")
+
+;; verified
+(include-book "verified/SMT-basics")
+(include-book "verified/SMT-computed-hints")
+(include-book "verified/SMT-config")
+(include-book "verified/SMT-extractor")
+(include-book "verified/SMT-goal-generator")
+(include-book "verified/SMT-hint-interface")
+(include-book "verified/SMT-hint-please")
+(include-book "verified/SMT-verified-cps")
+(include-book "verified/Smtlink")
+
+;; trusted
+(include-book "trusted/SMT-prove")
+(include-book "trusted/SMT-run")
+(include-book "trusted/SMT-trusted-cp")
+(include-book "trusted/SMT-write")
+
+;; trusted/z3-py
+(include-book "trusted/z3-py/ACL22SMT")
+(include-book "trusted/z3-py/SMT-header")
+(include-book "trusted/z3-py/SMT-names")
+(include-book "trusted/z3-py/SMT-translator")
+
+
