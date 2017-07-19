@@ -10,6 +10,7 @@
 ;; load other packages needed to define our new packages...
 (include-book "std/portcullis" :dir :system)
 (include-book "centaur/fty/portcullis" :dir :system)
+(include-book "centaur/sv/tutorial/support" :dir :system)
 
 ;; define our new packages
 (defpkg "SMT"
@@ -82,6 +83,10 @@
       fty::deffixtype
       fty::defalist
       fty::defoption
+
+      sv::def-saved-event
+      sv::deftutorial
+      sv::$
       )
     )
    ;; Things to remove
