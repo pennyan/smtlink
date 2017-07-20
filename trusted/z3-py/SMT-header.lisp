@@ -15,12 +15,27 @@
   :short "SMT-header contains string definitions for the header of a Z3 file."
 
   (local (in-theory (enable paragraphp wordp)))
+
+  (local
+   (defthm all-boundp-of-initial-glb
+     (implies (state-p x)
+              (all-boundp acl2::*initial-global-table*
+                          (global-table x)))))
+
+  (local
+   (defthm boundp-of-system-books-dir
+     (implies (state-p state)
+              (acl2::f-boundp-global 'acl2::system-books-dir state))
+     :hints (("Goal"
+              :in-theory (disable all-boundp-of-initial-glb)
+              :use ((:instance all-boundp-of-initial-glb (x state)))))))
+
   (define SMT-head ((smt-conf smtlink-config-p) (state))
-    :guard (acl2::f-boundp-global 'acl2::system-books-dir state)
-    :guard-debug t
+    :guard-hints (("Goal"
+                   :in-theory (disable boundp-of-system-books-dir)
+                   :use ((:instance boundp-of-system-books-dir))))
     :returns (mv (head paragraphp)
                  (import paragraphp))
-    :ignore-ok t
     (b* ((smt-conf (mbe :logic (smtlink-config-fix smt-conf) :exec smt-conf))
          ((smtlink-config c) smt-conf)
          (sys-dir (f-get-global 'acl2::system-books-dir state))
