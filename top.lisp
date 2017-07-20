@@ -25,7 +25,6 @@
 (include-book "trusted/SMT-write")
 
 ;; trusted/z3-py
-(include-book "trusted/z3-py/ACL22SMT")
 (include-book "trusted/z3-py/SMT-header")
 (include-book "trusted/z3-py/SMT-names")
 (include-book "trusted/z3-py/SMT-translator")

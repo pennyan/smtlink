@@ -302,7 +302,7 @@
   ;; (defstub smt-hint () => *)
   (encapsulate
     (((smt-hint) => *))
-    (local (defun smt-hint () (make-smtlink-hint)))
+    (local (define smt-hint () (make-smtlink-hint)))
     (defthm smtlink-p-of-smt-hint
       (smtlink-hint-p (smt-hint)))
     )

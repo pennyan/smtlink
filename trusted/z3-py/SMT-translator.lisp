@@ -197,6 +197,7 @@
          (mapped-rest (map-translated-actuals rest)))
       (cons first (cons #\, mapped-rest))))
 
+
   (define translate-expression ((args te-args-p))
     :returns (mv (translated paragraphp
                              :hints (("Goal" :in-theory (enable paragraphp))))
@@ -270,7 +271,7 @@
       (mv (cons `( ,fn #\( ,(map-translated-actuals translated-actuals) #\) ) translated-rest)
           uninterpreted-1)))
 
-  (encapsulate ()
+    (encapsulate ()
     (local (defthm lemma-1
              (implies (te-args-p x)
                       (pseudo-term-listp (te-args->expr-lst x)))))
@@ -444,9 +445,7 @@
                     (not (consp (car (car (te-args->expr-lst args))))))
                (not (car (car (te-args->expr-lst args))))))
     )
-
-  (verify-guards translate-expression
-    :guard-debug t)
+    (verify-guards translate-expression)
 
   (define translate-declaration ((name symbolp) (type symbolp) (int-to-rat booleanp))
     :returns (translated paragraphp

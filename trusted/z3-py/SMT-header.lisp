@@ -15,15 +15,26 @@
   :short "SMT-header contains string definitions for the header of a Z3 file."
 
   (local (in-theory (enable paragraphp wordp)))
-  (define SMT-head ((smt-conf smtlink-config-p))
+  (define SMT-head ((smt-conf smtlink-config-p) (state))
+    :guard (acl2::f-boundp-global 'acl2::system-books-dir state)
+    :guard-debug t
     :returns (mv (head paragraphp)
                  (import paragraphp))
+    :ignore-ok t
     (b* ((smt-conf (mbe :logic (smtlink-config-fix smt-conf) :exec smt-conf))
-         ((smtlink-config c) smt-conf))
+         ((smtlink-config c) smt-conf)
+         (sys-dir (f-get-global 'acl2::system-books-dir state))
+         ((unless (stringp sys-dir))
+          (mv (er hard? 'SMT-header=>SMT-head "Failed to find where the system ~
+  books are.") nil))
+         (relative-smtlink-dir "smtlink/z3_interface")
+         ;; (relative-smtlink-dir "../z3_interface")
+         )
       (mv (list
            "from sys import path"
            #\Newline
-           "path.insert(0,\"" c.interface-dir "\")"
+           "path.insert(0,\"" sys-dir relative-smtlink-dir "\")"
+           ;; "path.insert(0,\"" relative-smtlink-dir "\")"
            #\Newline
            "from " c.SMT-module " import *"
            #\Newline

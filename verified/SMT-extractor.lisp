@@ -96,6 +96,7 @@
     )
 
   (verify-guards extract-conjunct)
+  (verify-guards extract-disjunct)
 
   (define SMT-extract ((term pseudo-termp))
     :returns (mv (decl-list pseudo-term-listp) (theorem pseudo-termp))

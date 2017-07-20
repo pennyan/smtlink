@@ -78,7 +78,7 @@
          ((smtlink-config c) h.smt-cnf)
          (smt-file (make-fname c.SMT-files-dir h.smt-fname c.file-format))
          (smt-term (SMT-translation term smtlink-hint))
-         ((mv head import) (SMT-head c))
+         ((mv head import) (SMT-head c state))
          ;; (state (SMT-write-file smt-file (cons head (ACL22SMT)) import smt-term state))
          (state (SMT-write-file smt-file head import smt-term state))
          ((mv result state) (SMT-interpret smt-file h.rm-file c state)))

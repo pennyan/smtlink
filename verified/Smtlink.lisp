@@ -687,7 +687,7 @@
     :parents (Smtlink-process-user-hint)
 
     (defconst *cnf-options*
-      '(:interface-dir :SMT-files-dir :SMT-module
+      '(:SMT-files-dir :SMT-module
                        :SMT-class :SMT-cmd :file-format))
 
     (define cnf-option-p ((option t))
@@ -698,7 +698,7 @@
     (define cnf-option-fix ((option cnf-option-p))
       :returns (fixed-cnf-option cnf-option-p)
       :short "Fixing function for cnf-option."
-      (mbe :logic (if (cnf-option-p option) option ':interface-dir)
+      (mbe :logic (if (cnf-option-p option) option ':SMT-cmd)
            :exec option))
 
     (encapsulate ()
@@ -1418,9 +1418,6 @@
          ((cons option (cons str rest)) content)
          ((smtlink-hint h) hint)
          (new-cnf (case option
-                    (:interface-dir
-                     (change-smtlink-config h.smt-cnf
-                                            :interface-dir str))
                     (:SMT-files-dir
                      (change-smtlink-config h.smt-cnf
                                             :SMT-files-dir str))
