@@ -18,6 +18,7 @@ expanded
 *.swp
 # .#*
 manual/*
+verified/smtlink-config
 
 doc.lisp.backup
 workxxx

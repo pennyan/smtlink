@@ -193,15 +193,18 @@
     :returns (subgoal-lst pseudo-term-list-listp)
     :guard-debug t
     (b* (((unless (pseudo-term-listp cl)) nil)
-         ((unless (smtlink-hint-p smtlink-hint)) (list (remove-hint-please cl)))
+         ((unless (smtlink-hint-p smtlink-hint))
+          (list (remove-hint-please cl)))
+         ((smtlink-hint h) smtlink-hint)
          (cl (remove-hint-please cl))
          (hinted-As (smtlink-hint->aux-hint-list smtlink-hint))
          (hinted-As-returns (smtlink-hint->aux-thm-list smtlink-hint))
          (hinted-As-types (smtlink-hint->type-decl-list smtlink-hint))
          (hinted-G-prim (smtlink-hint->expanded-clause-w/-hint smtlink-hint))
-         ;; (smt-hint (append `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state))
-         ;;                   (smtlink-hint->smt-hint smtlink-hint)))
-         (smt-hint `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state)))
+         (smt-hint
+          (if h.custom-p
+              `(:clause-processor (SMT-trusted-cp-custom clause ',smtlink-hint state))
+            `(:clause-processor (SMT-trusted-cp clause ',smtlink-hint state))))
          (full (construct-smtlink-subgoals hinted-As
                                            hinted-As-returns hinted-As-types
                                            hinted-G-prim smt-hint

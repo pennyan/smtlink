@@ -14,7 +14,6 @@
   :parents (trusted)
   :short "The trusted clause processor"
 
-
   (defstub SMT-prove-stub (term smtlink-hint state) (mv t state))
 
   (program)
@@ -33,11 +32,14 @@
      (defun SMT-prove-stub (term smtlink-hint state)
        (SMT-prove term smtlink-hint state)))
 
-    (defun SMT-trusted-cp (cl smtlink-hint state)
-      (declare (xargs :stobjs state
-                      :guard (pseudo-term-listp cl)
-                      :mode :program))
-      (b* (;; (- (cw "clause given to the trusted clause processor: ~q0"  cl))
+    (define SMT-trusted-cp-main ((cl pseudo-term-listp)
+                                 (smtlink-hint)
+                                 (custom-p booleanp)
+                                 state)
+      :stobjs state
+      :mode :program
+      (b* ((smt-cnf (if custom-p (custom-smt-cnf) (default-smt-cnf)))
+           (smtlink-hint (change-smtlink-hint smtlink-hint :smt-cnf smt-cnf))
            ((mv res state) (SMT-prove-stub (disjoin cl) smtlink-hint state)))
         (if res
             (prog2$ (cw "Proved!~%") (mv nil nil state))
@@ -50,8 +52,29 @@
 
   (logic)
 
+  (define SMT-trusted-cp ((cl pseudo-term-listp)
+                          (smtlink-hint smtlink-hint-p)
+                          state)
+    :mode :program
+    :stobjs state
+    (prog2$ (cw "Using default SMT-trusted-cp...~%")
+            (SMT-trusted-cp-main cl smtlink-hint nil state)))
+  
+  (define SMT-trusted-cp-custom ((cl pseudo-term-listp)
+                                 (smtlink-hint smtlink-hint-p)
+                                 state)
+    :mode :program
+    :stobjs state
+    (prog2$ (cw "Using custom SMT-trusted-cp...~%")
+            (SMT-trusted-cp-main cl smtlink-hint t state)))
+  
   (define-trusted-clause-processor
     SMT-trusted-cp
     nil
     :ttag Smtlink)
+
+  (define-trusted-clause-processor
+    SMT-trusted-cp-custom
+    nil
+    :ttag Smtlink-custom)
   )

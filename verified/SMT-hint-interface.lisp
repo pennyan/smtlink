@@ -231,26 +231,28 @@
   ;; 3. main-hint: hints to the G' -> G theorem.
   ;; 4. let-binding: binds expressions to variables, generalization.
   ;; 5. int-to-rat: converts all integers to rationals.
-  ;; 6. rm-file: configuration for whether to remove generated files.
-  ;; 7. smt-fname: configure the name of generated SMT theorem file.
-  ;; 8. smt-params: hints for parameter tuning of the SMT solver.
+  ;; 6. smt-dir: where to put the generated python files. Default /tmp/z3_files
+  ;; 7. rm-file: configuration for whether to remove generated files.
+  ;; 8. smt-fname: configure the name of generated SMT theorem file.
+  ;; 9. smt-params: hints for parameter tuning of the SMT solver.
   ;;
   ;; Internal fields:
-  ;; 9. fast-functions: internal field for storing a fast version of function
+  ;; 10. fast-functions: internal field for storing a fast version of function
   ;; definitions. Might be able to make the functions field a fast one after
   ;; changing the user interface.
-  ;; 10. aux-hint-list: internal field for making a list of auxiliary hints.
-  ;; 11. type-decl-list: internal field for making a list of auxiliary type
+  ;; 11. aux-hint-list: internal field for making a list of auxiliary hints.
+  ;; 12. type-decl-list: internal field for making a list of auxiliary type
   ;; hints.
-  ;; 12. expanded-clause-w/-hint: internal field for storing the SMT theorem.
-  ;; 13. smt-cnf: configuration for connection to the SMT solver.
-  ;; 14. wrld-fn-len: a number specifying the upper bound of the length of the
+  ;; 13. expanded-clause-w/-hint: internal field for storing the SMT theorem.
+  ;; 14. smt-cnf: configuration for connection to the SMT solver.
+  ;; 15. wrld-fn-len: a number specifying the upper bound of the length of the
   ;; current world. It sets a limit to the expansion depth to take care of
   ;; recursive function expansion. This will only ensure termination proof of
   ;; the expand function, but it doesn't guarantee performance since the world
   ;; length can be extremely large, and expansion is exponential. Performance
   ;; is replied upon user who will specify which functions are recursive and
   ;; therefore will be expanded only by a given number of levels.
+  ;; 16. custom-p: Used custom version of Smtlink or not. Default nil.
   ;;
   (defprod smtlink-hint
     ((functions func-listp :default nil)
@@ -258,6 +260,7 @@
      (main-hint true-listp :default nil)
      (let-binding let-binding-p :default (make-let-binding))
      (int-to-rat booleanp :default nil)
+     (smt-dir stringp :default "")
      (rm-file booleanp :default t)
      (smt-fname stringp :default "")
      (smt-params true-listp :default nil)
@@ -267,7 +270,8 @@
      (type-decl-list decl-listp :default nil)
      (expanded-clause-w/-hint hint-pair-p :default (make-hint-pair))
      (smt-cnf smtlink-config-p :default (make-smtlink-config))
-     (wrld-fn-len natp :default 0)))
+     (wrld-fn-len natp :default 0)
+     (custom-p booleanp :default nil)))
 
   (defoption maybe-smtlink-hint smtlink-hint-p
     :parents (smtlink-hint))

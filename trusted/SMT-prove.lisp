@@ -18,7 +18,6 @@
 (include-book "./z3-py/SMT-names")
 (include-book "./z3-py/SMT-translator")
 (include-book "./z3-py/SMT-header")
-;; (include-book "./z3-py/ACL22SMT")
 
 (defttag :tshell)
 (value-triple (tshell-ensure))
@@ -46,17 +45,16 @@
                (implies lines (stringp (car lines))))))
 
     (local (in-theory (enable string-or-symbol-p)))
-    (define make-fname ((dir stringp) (fname stringp) (suffix stringp))
+    (define make-fname ((dir stringp) (fname stringp))
       :returns (full-fname stringp)
       :guard-debug t
       (b* ((dir (str-fix dir))
            (fname (str-fix fname))
-           (suffix (str-fix suffix))
            (dir (if (equal dir "") "/tmp/py_file" dir))
            ((unless (equal fname ""))
-            (concatenate 'string dir "/" (lisp-to-python-names fname) suffix))
+            (concatenate 'string dir "/" (lisp-to-python-names fname)))
            (cmd (concatenate 'string "mkdir -p " dir " && "
-                             "mktemp " dir "/smtlink" suffix ".XXXXX")))
+                             "mktemp " dir "/smtlink.XXXXX")))
         (mv-let (exit-status lines)
           (time$ (tshell-call cmd
                               :print t
@@ -76,9 +74,9 @@
          (smtlink-hint (smtlink-hint-fix smtlink-hint))
          ((smtlink-hint h) smtlink-hint)
          ((smtlink-config c) h.smt-cnf)
-         (smt-file (make-fname c.SMT-files-dir h.smt-fname c.file-format))
+         (smt-file (make-fname h.smt-dir h.smt-fname))
          (smt-term (SMT-translation term smtlink-hint))
-         ((mv head import) (SMT-head c state))
+         ((mv head import) (SMT-head c))
          ;; (state (SMT-write-file smt-file (cons head (ACL22SMT)) import smt-term state))
          (state (SMT-write-file smt-file head import smt-term state))
          ((mv result state) (SMT-interpret smt-file h.rm-file c state)))

@@ -910,9 +910,9 @@
              (implies (pseudo-term-listp cl)
                       (pseudo-termp (disjoin cl)))))
 
-    (local (defthm hint-pair-listp-of-append
-             (implies (and (hint-pair-listp x) (hint-pair-listp y))
-                      (hint-pair-listp (append x y)))))
+    ;; (local (defthm hint-pair-listp-of-append
+    ;;          (implies (and (hint-pair-listp x) (hint-pair-listp y))
+    ;;                   (hint-pair-listp (append x y)))))
 
     (local (defthm alistp-of-pseudo-term-alistp
              (implies (pseudo-term-alistp x)

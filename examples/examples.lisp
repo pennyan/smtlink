@@ -11,28 +11,7 @@
 (include-book "arithmetic-5/top" :dir :system)
 
 (value-triple (tshell-ensure))
-(def-saved-event add-hints-tutorial
-  (add-default-hints '((SMT::SMT-process-hint clause))))
-
-(def-saved-event smtconf-tutorial
-  (defun my-smtlink-config ()
-    (declare (xargs :guard t))
-    (change-smtlink-config *default-smtlink-config*
-                           :interface-dir "../z3_interface/"
-                           :SMT-files-dir ""
-                           :SMT-module "ACL2_to_Z3"
-                           :SMT-class "ACL22SMT"
-                           :SMT-cmd "python"
-                           :file-format ".py")))
-
-(def-saved-event smthint-tutorial
-  (defun my-smtlink-hint ()
-    (declare (xargs :guard t))
-    (change-smtlink-hint *default-smtlink-hint*
-                         :smt-cnf (my-smtlink-config))))
-
-(def-saved-event smthint-attach-1-tutorial
-  (defattach smt-hint my-smtlink-hint))
+(add-default-hints '((SMT::SMT-process-hint clause)))
 
 ;; Section 2. A short tour
 ;; Example 1
@@ -60,20 +39,13 @@
     (declare (xargs :guard t))
     (change-smtlink-config *default-smtlink-config*
                            :interface-dir "../z3_interface"
-                           :SMT-files-dir ""
-                           :SMT-module    "RewriteExpt"
-                           :SMT-class     "to_smt_w_expt"
-                           :SMT-cmd       "python"
-                           :file-format   ".py")))
+                           :smt-module    "RewriteExpt"
+                           :smt-class     "to_smt_w_expt"
+                           :smt-cmd       "python"
+                           :pythonpath    "")))
 
-(def-saved-event smthint-expt-tutorial
-  (defun my-smtlink-hint-expt ()
-    (declare (xargs :guard t))
-    (change-smtlink-hint *default-smtlink-hint*
-                         :smt-cnf (my-smtlink-expt-config))))
-
-(def-saved-event smthint-attach-2-tutorial
-  (defattach smt-hint my-smtlink-hint-expt))
+(def-saved-event smtconf-expt-defattach-tutorial
+  (defattach custom-smt-cnf my-smtlink-expt-config))
 
 ;; Example 2
 (def-saved-event ||x^2+y^2||^2
@@ -99,7 +71,7 @@
                                   :int-to-rat t
                                   :rm-file nil
                                   :smt-solver-params nil
-                                  :smt-solver-cnf nil)))))
+                                  :custom-p t)))))
 
 (deftutorial Example-2
   :parents (Tutorial)

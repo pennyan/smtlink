@@ -16,40 +16,22 @@
 
   (local (in-theory (enable paragraphp wordp)))
 
-  (local
-   (defthm all-boundp-of-initial-glb
-     (implies (state-p x)
-              (all-boundp acl2::*initial-global-table*
-                          (global-table x)))))
-
-  (local
-   (defthm boundp-of-system-books-dir
-     (implies (state-p state)
-              (acl2::f-boundp-global 'acl2::system-books-dir state))
-     :hints (("Goal"
-              :in-theory (disable all-boundp-of-initial-glb)
-              :use ((:instance all-boundp-of-initial-glb (x state)))))))
-
-  (define SMT-head ((smt-conf smtlink-config-p) (state))
-    :guard-hints (("Goal"
-                   :in-theory (disable boundp-of-system-books-dir)
-                   :use ((:instance boundp-of-system-books-dir))))
+  (define SMT-head ((smt-conf smtlink-config-p))
     :returns (mv (head paragraphp)
                  (import paragraphp))
     (b* ((smt-conf (mbe :logic (smtlink-config-fix smt-conf) :exec smt-conf))
          ((smtlink-config c) smt-conf)
-         (sys-dir (f-get-global 'acl2::system-books-dir state))
-         ((unless (stringp sys-dir))
-          (mv (er hard? 'SMT-header=>SMT-head "Failed to find where the system ~
-  books are.") nil))
-         (relative-smtlink-dir "smtlink/z3_interface")
-         ;; (relative-smtlink-dir "../z3_interface")
+         ;; TODO: Need treatment for c.SMT-module
+         ;; For pathnames like ./, ~/, /...,
+         ;; c.interface-dir should be the path before last /,
+         ;; c.SMT-module should be the file name after last /, without the .py
          )
       (mv (list
            "from sys import path"
            #\Newline
-           "path.insert(0,\"" sys-dir relative-smtlink-dir "\")"
-           ;; "path.insert(0,\"" relative-smtlink-dir "\")"
+           "path.insert(0,\"" c.interface-dir "\")"
+           #\Newline
+           "path.insert(1,\"" c.PYTHONPATH "\")"
            #\Newline
            "from " c.SMT-module " import *"
            #\Newline

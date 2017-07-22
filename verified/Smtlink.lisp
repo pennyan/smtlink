@@ -36,8 +36,7 @@
   ;;                          :int-to-rat nil
   ;;                          :smt-fname ""
   ;;                          :rm-file t
-  ;;                          :smt-solver-params (...)
-  ;;                          :smt-solver-cnf ()))))
+  ;;                          :smt-solver-params (...)))))
 
   ;; Types:
   ;; hints-syntax-p/fix
@@ -49,7 +48,6 @@
   ;; function-option-lst-syntax-p/fix
   ;; function-syntax-p/fix
   ;; function-lst-syntax-p/fix
-  ;; smt-solver-cnf-p/fix
   ;; smt-solver-params-p/fix
   ;; smtlink-hint-syntax-p/fix
 
@@ -683,138 +681,138 @@
         :topic smt-solver-params-p))
     )
 
-  (defsection cnf-option-lst
-    :parents (Smtlink-process-user-hint)
+  ;; (defsection cnf-option-lst
+  ;;   :parents (Smtlink-process-user-hint)
 
-    (defconst *cnf-options*
-      '(:SMT-files-dir :SMT-module
-                       :SMT-class :SMT-cmd :file-format))
+  ;;   (defconst *cnf-options*
+  ;;     '(:SMT-files-dir :SMT-module
+  ;;                      :SMT-class :SMT-cmd :file-format))
 
-    (define cnf-option-p ((option t))
-      :returns (syntax-good? booleanp)
-      :short "Recoginizer for cnf-option."
-      (if (member-equal option *cnf-options*) t nil))
+  ;;   (define cnf-option-p ((option t))
+  ;;     :returns (syntax-good? booleanp)
+  ;;     :short "Recoginizer for cnf-option."
+  ;;     (if (member-equal option *cnf-options*) t nil))
 
-    (define cnf-option-fix ((option cnf-option-p))
-      :returns (fixed-cnf-option cnf-option-p)
-      :short "Fixing function for cnf-option."
-      (mbe :logic (if (cnf-option-p option) option ':SMT-cmd)
-           :exec option))
+  ;;   (define cnf-option-fix ((option cnf-option-p))
+  ;;     :returns (fixed-cnf-option cnf-option-p)
+  ;;     :short "Fixing function for cnf-option."
+  ;;     (mbe :logic (if (cnf-option-p option) option ':SMT-cmd)
+  ;;          :exec option))
 
-    (encapsulate ()
-      (local (in-theory (enable cnf-option-fix)))
-      (deffixtype cnf-option
-        :pred  cnf-option-p
-        :fix   cnf-option-fix
-        :equiv cnf-option-equiv
-        :define t
-        :forward t
-        :topic cnf-option-p))
+  ;;   (encapsulate ()
+  ;;     (local (in-theory (enable cnf-option-fix)))
+  ;;     (deffixtype cnf-option
+  ;;       :pred  cnf-option-p
+  ;;       :fix   cnf-option-fix
+  ;;       :equiv cnf-option-equiv
+  ;;       :define t
+  ;;       :forward t
+  ;;       :topic cnf-option-p))
 
-    (define cnf-option-lst-p ((option-lst t))
-      :returns (syntax-good? booleanp)
-      :short "Recoginizer for cnf-option-lst."
-      (b* (((if (atom option-lst)) (equal option-lst nil))
-           ((cons first rest) option-lst))
-        (and (cnf-option-p first)
-             (cnf-option-lst-p rest))))
+  ;;   (define cnf-option-lst-p ((option-lst t))
+  ;;     :returns (syntax-good? booleanp)
+  ;;     :short "Recoginizer for cnf-option-lst."
+  ;;     (b* (((if (atom option-lst)) (equal option-lst nil))
+  ;;          ((cons first rest) option-lst))
+  ;;       (and (cnf-option-p first)
+  ;;            (cnf-option-lst-p rest))))
 
-    (define cnf-option-lst-fix ((option-lst cnf-option-lst-p))
-      :returns (fixed-option-lst cnf-option-lst-p
-                                 :hints (("Goal" :in-theory (enable cnf-option-lst-p))))
-      :short "Fixing function for cnf-option-lst."
-      :guard-hints (("Goal" :in-theory (enable cnf-option-fix
-                                               cnf-option-lst-fix
-                                               cnf-option-p cnf-option-lst-p)))
-      (mbe :logic (if (atom option-lst)
-                      nil
-                    (cons (cnf-option-fix (car option-lst))
-                          (cnf-option-lst-fix (cdr option-lst))))
-           :exec option-lst))
+  ;;   (define cnf-option-lst-fix ((option-lst cnf-option-lst-p))
+  ;;     :returns (fixed-option-lst cnf-option-lst-p
+  ;;                                :hints (("Goal" :in-theory (enable cnf-option-lst-p))))
+  ;;     :short "Fixing function for cnf-option-lst."
+  ;;     :guard-hints (("Goal" :in-theory (enable cnf-option-fix
+  ;;                                              cnf-option-lst-fix
+  ;;                                              cnf-option-p cnf-option-lst-p)))
+  ;;     (mbe :logic (if (atom option-lst)
+  ;;                     nil
+  ;;                   (cons (cnf-option-fix (car option-lst))
+  ;;                         (cnf-option-lst-fix (cdr option-lst))))
+  ;;          :exec option-lst))
 
-    (encapsulate ()
-      (local (in-theory (enable cnf-option-lst-fix)))
-      (deffixtype cnf-option-lst
-        :pred  cnf-option-lst-p
-        :fix   cnf-option-lst-fix
-        :equiv cnf-option-lst-equiv
-        :define t
-        :forward t
-        :topic cnf-option-lst-p))
-    )
-
-
-  (defsection smt-solver-cnf
-    :parents (Smtlink-process-user-hint)
-
-    (define smt-solver-single-cnf-p ((term t) (used cnf-option-lst-p))
-      :returns (mv (syntax-good? booleanp)
-                   (new-used cnf-option-lst-p
-                             :hints (("Goal" :in-theory (enable cnf-option-lst-p cnf-option-p)))))
-      :short "Recognizer for smt-solver-single-cnf."
-      (b* ((used (cnf-option-lst-fix used))
-           ((unless (true-listp term)) (mv nil used))
-           ((if (equal term nil)) (mv t used))
-           ((unless (and (car term) (cddr term) (not (cddr term))))
-            (mv nil used))
-           ((cons option body-lst) term)
-           ((unless (cnf-option-p option)) (mv nil used)))
-        (mv (and (not (member-equal option used))
-                 (stringp (car body-lst)))
-            (cons option used))))
+  ;;   (encapsulate ()
+  ;;     (local (in-theory (enable cnf-option-lst-fix)))
+  ;;     (deffixtype cnf-option-lst
+  ;;       :pred  cnf-option-lst-p
+  ;;       :fix   cnf-option-lst-fix
+  ;;       :equiv cnf-option-lst-equiv
+  ;;       :define t
+  ;;       :forward t
+  ;;       :topic cnf-option-lst-p))
+  ;;   )
 
 
-    (define smt-solver-cnf-p-helper ((term t) (used cnf-option-lst-p))
-      :returns (syntax-good? booleanp)
-      :short "Helper function for smt-solver-cnf-p."
-      (b* ((used (cnf-option-lst-fix used))
-           ((unless (true-listp term)) nil)
-           ((if (atom term)) (equal term nil))
-           ((unless (and (cdr term))) nil)
-           ((list* first second rest) term)
-           ((mv res new-used) (smt-solver-single-cnf-p (list first second) used)))
-        (and res (smt-solver-cnf-p-helper rest new-used)))
-      ///
-      (defthm stringp-of-cadr-of-smt-solver-cnf-p-helper
-        (implies (and (smt-solver-cnf-p-helper content nil)
-                      (consp content))
-                 (stringp (cadr content)))
-        :hints (("Goal"
-                 :in-theory (enable smt-solver-single-cnf-p))))
+  ;; (defsection smt-solver-cnf
+  ;;   :parents (Smtlink-process-user-hint)
 
-      (defthm smt-solver-cnf-p-helper-preserve
-        (implies (and (smt-solver-cnf-p-helper content nil)
-                      (consp content))
-                 (smt-solver-cnf-p-helper (cddr content)
-                                          nil))
-        :hints (("Goal"
-                 :in-theory (enable smt-solver-cnf-p-helper smt-solver-single-cnf-p))))
-      )
+  ;;   (define smt-solver-single-cnf-p ((term t) (used cnf-option-lst-p))
+  ;;     :returns (mv (syntax-good? booleanp)
+  ;;                  (new-used cnf-option-lst-p
+  ;;                            :hints (("Goal" :in-theory (enable cnf-option-lst-p cnf-option-p)))))
+  ;;     :short "Recognizer for smt-solver-single-cnf."
+  ;;     (b* ((used (cnf-option-lst-fix used))
+  ;;          ((unless (true-listp term)) (mv nil used))
+  ;;          ((if (equal term nil)) (mv t used))
+  ;;          ((unless (and (car term) (cddr term) (not (cddr term))))
+  ;;           (mv nil used))
+  ;;          ((cons option body-lst) term)
+  ;;          ((unless (cnf-option-p option)) (mv nil used)))
+  ;;       (mv (and (not (member-equal option used))
+  ;;                (stringp (car body-lst)))
+  ;;           (cons option used))))
 
-    (define smt-solver-cnf-p ((term t))
-      :returns (syntax-good? booleanp)
-      :short "Recognizer for smt-solver-cnf."
-      (smt-solver-cnf-p-helper term nil))
 
-    (define smt-solver-cnf-fix ((term smt-solver-cnf-p))
-      :returns (fixed-smt-cnf smt-solver-cnf-p)
-      :short "Fixing function for smt-solver-cnf."
-      (mbe :logic (if (smt-solver-cnf-p term) term nil)
-           :exec term))
+  ;;   (define smt-solver-cnf-p-helper ((term t) (used cnf-option-lst-p))
+  ;;     :returns (syntax-good? booleanp)
+  ;;     :short "Helper function for smt-solver-cnf-p."
+  ;;     (b* ((used (cnf-option-lst-fix used))
+  ;;          ((unless (true-listp term)) nil)
+  ;;          ((if (atom term)) (equal term nil))
+  ;;          ((unless (and (cdr term))) nil)
+  ;;          ((list* first second rest) term)
+  ;;          ((mv res new-used) (smt-solver-single-cnf-p (list first second) used)))
+  ;;       (and res (smt-solver-cnf-p-helper rest new-used)))
+  ;;     ///
+  ;;     (defthm stringp-of-cadr-of-smt-solver-cnf-p-helper
+  ;;       (implies (and (smt-solver-cnf-p-helper content nil)
+  ;;                     (consp content))
+  ;;                (stringp (cadr content)))
+  ;;       :hints (("Goal"
+  ;;                :in-theory (enable smt-solver-single-cnf-p))))
 
-    (encapsulate ()
-      (local (in-theory (enable smt-solver-cnf-fix)))
-      (deffixtype smt-solver-cnf
-        :pred  smt-solver-cnf-p
-        :fix   smt-solver-cnf-fix
-        :equiv smt-solver-cnf-equiv
-        :define t
-        :forward t
-        :topic smt-solver-cnf-p))
+  ;;     (defthm smt-solver-cnf-p-helper-preserve
+  ;;       (implies (and (smt-solver-cnf-p-helper content nil)
+  ;;                     (consp content))
+  ;;                (smt-solver-cnf-p-helper (cddr content)
+  ;;                                         nil))
+  ;;       :hints (("Goal"
+  ;;                :in-theory (enable smt-solver-cnf-p-helper smt-solver-single-cnf-p))))
+  ;;     )
 
-    (in-theory (disable ;; smt-solver-cnf-p-helper-preserve
-                stringp-of-cadr-of-smt-solver-cnf-p-helper))
-    )
+  ;;   (define smt-solver-cnf-p ((term t))
+  ;;     :returns (syntax-good? booleanp)
+  ;;     :short "Recognizer for smt-solver-cnf."
+  ;;     (smt-solver-cnf-p-helper term nil))
+
+  ;;   (define smt-solver-cnf-fix ((term smt-solver-cnf-p))
+  ;;     :returns (fixed-smt-cnf smt-solver-cnf-p)
+  ;;     :short "Fixing function for smt-solver-cnf."
+  ;;     (mbe :logic (if (smt-solver-cnf-p term) term nil)
+  ;;          :exec term))
+
+  ;;   (encapsulate ()
+  ;;     (local (in-theory (enable smt-solver-cnf-fix)))
+  ;;     (deffixtype smt-solver-cnf
+  ;;       :pred  smt-solver-cnf-p
+  ;;       :fix   smt-solver-cnf-fix
+  ;;       :equiv smt-solver-cnf-equiv
+  ;;       :define t
+  ;;       :forward t
+  ;;       :topic smt-solver-cnf-p))
+
+  ;;   (in-theory (disable ;; smt-solver-cnf-p-helper-preserve
+  ;;               stringp-of-cadr-of-smt-solver-cnf-p-helper))
+  ;;   )
 
   (defsection smtlink-hint-syntax
     :parents (Smtlink-process-user-hint)
@@ -825,9 +823,10 @@
         (:main-hint . hints-syntax-p)
         (:int-to-rat . booleanp)
         (:smt-fname . stringp)
+        (:smt-dir . stringp)
         (:rm-file . booleanp)
         (:smt-solver-params . smt-solver-params-p)
-        (:smt-solver-cnf . smt-solver-cnf-p)
+        (:custom-p . booleanp)
         ;; internal parameter
         (:wrld-len . natp)))
 
@@ -926,8 +925,8 @@
         (booleanp (booleanp term))
         (stringp (stringp term))
         (smt-solver-params-p (smt-solver-params-p term))
-        (natp (natp term))
-        (t (smt-solver-cnf-p term))))
+        (custom-p (booleanp term))
+        (t (natp term))))
 
     (define smtlink-option-syntax-p ((term t) (used smtlink-option-name-lst-p))
       :returns (mv (ok booleanp)
@@ -1079,8 +1078,6 @@
                                       (stringp (cadr term)))
                                  (and (equal (cdr (assoc-equal (car term) *smtlink-options*)) 'smt-solver-params-p)
                                       (smt-solver-params-p (cadr term)))
-                                 (and (equal (cdr (assoc-equal (car term) *smtlink-options*)) 'smt-solver-cnf-p)
-                                      (smt-solver-cnf-p (cadr term)))
                                  (and (equal (cdr (assoc-equal (car term) *smtlink-options*)) 'natp)
                                       (natp (cadr term))))))
                :hints(("Goal" :expand((smtlink-option-syntax-p term nil)
@@ -1110,10 +1107,10 @@
                                  (stringp val))
                         (implies (equal option-type 'smt-solver-params-p)
                                  (smt-solver-params-p val))
+                        (implies (equal option-type 'custom-p)
+                                 (booleanp val))
                         (implies (equal option-type 'natp)
-                                 (natp val))
-                        (implies (equal option-type 'smt-solver-cnf-p)
-                                 (smt-solver-cnf-p val)))))
+                                 (natp val)))))
         :hints(("Goal"
                 :in-theory (disable lemma2)
                 :use((:instance lemma2 (term (list (car term) (cadr term))))))))
@@ -1374,12 +1371,28 @@
          (new-hint (change-smtlink-hint hint :smt-fname content)))
       new-hint))
 
+  (define set-smt-dir ((content stringp)
+                       (hint smtlink-hint-p))
+    :returns (new-hint smtlink-hint-p)
+    :short "Set :smt-dir"
+    (b* ((hint (smtlink-hint-fix hint))
+         (new-hint (change-smtlink-hint hint :smt-dir content)))
+      new-hint))
+
   (define set-rm-file ((content booleanp)
                        (hint smtlink-hint-p))
     :returns (new-hint smtlink-hint-p)
     :short "Set :rm-file"
     (b* ((hint (smtlink-hint-fix hint))
          (new-hint (change-smtlink-hint hint :rm-file content)))
+      new-hint))
+
+  (define set-custom-p ((content booleanp)
+                        (hint smtlink-hint-p))
+    :returns (new-hint smtlink-hint-p)
+    :short "Set :custom-p"
+    (b* ((hint (smtlink-hint-fix hint))
+         (new-hint (change-smtlink-hint hint :custom-p content)))
       new-hint))
 
   (define set-wrld-len ((content natp)
@@ -1401,40 +1414,40 @@
          (new-hint (change-smtlink-hint hint :smt-params content)))
       new-hint))
 
-  (define merge-smt-solver-cnf ((content smt-solver-cnf-p)
-                                (hint smtlink-hint-p))
-    :returns (new-hint smtlink-hint-p)
-    :short "Set :smt-cnf"
-    :measure (len content)
-    :hints (("Goal" :in-theory (enable smt-solver-cnf-fix)))
-    :guard-hints (("Goal" :in-theory (e/d (smt-solver-cnf-fix smt-solver-cnf-p
-                                                              smt-solver-cnf-p-helper)
-                                          (stringp-of-cadr-of-smt-solver-cnf-p-helper))
-                   :use ((:instance stringp-of-cadr-of-smt-solver-cnf-p-helper))
-                   ))
-    (b* ((hint (smtlink-hint-fix hint))
-         (content (smt-solver-cnf-fix content))
-         ((unless (consp content)) hint)
-         ((cons option (cons str rest)) content)
-         ((smtlink-hint h) hint)
-         (new-cnf (case option
-                    (:SMT-files-dir
-                     (change-smtlink-config h.smt-cnf
-                                            :SMT-files-dir str))
-                    (:SMT-module
-                     (change-smtlink-config h.smt-cnf
-                                            :SMT-module str))
-                    (:SMT-class
-                     (change-smtlink-config h.smt-cnf
-                                            :SMT-class str))
-                    (:SMT-cmd
-                     (change-smtlink-config h.smt-cnf
-                                            :SMT-cmd str))
-                    (t
-                     (change-smtlink-config h.smt-cnf
-                                            :file-format str))))
-         (new-hint (change-smtlink-hint hint :smt-cnf new-cnf)))
-      (merge-smt-solver-cnf rest new-hint)))
+  ;; (define merge-smt-solver-cnf ((content smt-solver-cnf-p)
+  ;;                               (hint smtlink-hint-p))
+  ;;   :returns (new-hint smtlink-hint-p)
+  ;;   :short "Set :smt-cnf"
+  ;;   :measure (len content)
+  ;;   :hints (("Goal" :in-theory (enable smt-solver-cnf-fix)))
+  ;;   :guard-hints (("Goal" :in-theory (e/d (smt-solver-cnf-fix smt-solver-cnf-p
+  ;;                                                             smt-solver-cnf-p-helper)
+  ;;                                         (stringp-of-cadr-of-smt-solver-cnf-p-helper))
+  ;;                  :use ((:instance stringp-of-cadr-of-smt-solver-cnf-p-helper))
+  ;;                  ))
+  ;;   (b* ((hint (smtlink-hint-fix hint))
+  ;;        (content (smt-solver-cnf-fix content))
+  ;;        ((unless (consp content)) hint)
+  ;;        ((cons option (cons str rest)) content)
+  ;;        ((smtlink-hint h) hint)
+  ;;        (new-cnf (case option
+  ;;                   (:SMT-files-dir
+  ;;                    (change-smtlink-config h.smt-cnf
+  ;;                                           :SMT-files-dir str))
+  ;;                   (:SMT-module
+  ;;                    (change-smtlink-config h.smt-cnf
+  ;;                                           :SMT-module str))
+  ;;                   (:SMT-class
+  ;;                    (change-smtlink-config h.smt-cnf
+  ;;                                           :SMT-class str))
+  ;;                   (:SMT-cmd
+  ;;                    (change-smtlink-config h.smt-cnf
+  ;;                                           :SMT-cmd str))
+  ;;                   (t
+  ;;                    (change-smtlink-config h.smt-cnf
+  ;;                                           :file-format str))))
+  ;;        (new-hint (change-smtlink-hint hint :smt-cnf new-cnf)))
+  ;;     (merge-smt-solver-cnf rest new-hint)))
 
   (define combine-hints ((user-hint smtlink-hint-syntax-p)
                          (hint smtlink-hint-p))
@@ -1465,10 +1478,11 @@
                      (:main-hint (merge-main-hint second hint))
                      (:int-to-rat (set-int-to-rat second hint))
                      (:smt-fname (set-fname second hint))
+                     (:smt-dir (set-smt-dir second hint))
                      (:rm-file (set-rm-file second hint))
+                     (:custom-p (set-custom-p second hint))
                      (:smt-solver-params (set-smt-solver-params second hint))
-                     (:wrld-len (set-wrld-len second hint))
-                     (t (merge-smt-solver-cnf second hint)))))
+                     (t (set-wrld-len second hint)))))
       (combine-hints rest new-hint)))
 
   (define process-hint ((cl pseudo-term-listp) (user-hint t))
