@@ -59,19 +59,18 @@
              (<= (* 2 (expt z n) x y)
                  (* (expt z m) (||x^2+y^2||^2 x y))))
     :hints (("Goal"
-             :smtlink (:functions ((expt :formals ((r rationalp)
-                                                   (i rationalp))
-                                         :returns ((ex rationalp))
-                                         :level 0))
-                                  :hypotheses (((< (expt z n) (expt z m)))
-                                               ((< 0 (expt z m)))
-                                               ((< 0 (expt z n))))
-                                  :main-hint nil
-                                  :smt-fname ""
-                                  :int-to-rat t
-                                  :rm-file nil
-                                  :smt-solver-params nil
-                                  :custom-p t)))))
+             :smtlink-custom (:functions ((expt :formals ((r rationalp)
+                                                          (i rationalp))
+                                                :returns ((ex rationalp))
+                                                :level 0))
+                              :hypotheses (((< (expt z n) (expt z m)))
+                                           ((< 0 (expt z m)))
+                                           ((< 0 (expt z n))))
+                              :main-hint nil
+                              :smt-fname ""
+                              :int-to-rat t
+                              :rm-file nil
+                              :smt-solver-params nil)))))
 
 (deftutorial Example-2
   :parents (Tutorial)

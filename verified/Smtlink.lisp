@@ -1609,6 +1609,9 @@
   (defmacro Smtlink (clause hint)
     `(process-hint ,clause (trans-hint ',hint state)))
 
+  (defmacro Smtlink-custom (clause hint)
+    `(process-hint ,clause (trans-hint ',(append hint '(:custom-p t)) state)))
+
   ;; Adding :smtlink as a custom :hints option
   (add-custom-keyword-hint :smtlink
                            (pprogn
@@ -1618,5 +1621,16 @@
                              (acl2::splice-keyword-alist
                               :smtlink
                               `(:clause-processor (smtlink clause ,acl2::val))
+                              acl2::keyword-alist))))
+
+  ;; Adding :smtlink-custom as a custom :hints option
+  (add-custom-keyword-hint :smtlink-custom
+                           (pprogn
+                            (fms "~%Using clause-processor Smtlink (customized)~%"
+                                 nil *standard-co* state nil)
+                            (value
+                             (acl2::splice-keyword-alist
+                              :smtlink-custom
+                              `(:clause-processor (smtlink-custom clause ,acl2::val))
                               acl2::keyword-alist))))
   )
