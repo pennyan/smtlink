@@ -96,4 +96,3 @@
   :long "<h3>Example 3</h3>
          @(`(:code ($ non-theorem-example))`)")
 
-

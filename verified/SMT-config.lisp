@@ -12,9 +12,9 @@
 (include-book "std/util/defconsts" :dir :system)
 (include-book "std/strings/top" :dir :system)
 
-;; (defsection SMT-config
-;;   :parents (verified)
-;;   :short "Define default Smtlink config and custom Smtlink config"
+(defsection SMT-config
+  :parents (verified)
+  :short "Define default Smtlink config and custom Smtlink config"
 
 (defprod smtlink-config
   ((interface-dir stringp :default "")
@@ -135,11 +135,11 @@ where the system books are."))
     (change-smt-cnf rest new-cnf)))
 
 (defconsts *smt-cnf*
-  (b* ((res (read-file-into-string "smtlink-config"))
+  (b* ((res (read-file-into-string "~/smtlink-config"))
        ((unless res) (default-smtlink-config))
        (config-alist (process-config res)))
     (change-smt-cnf config-alist (default-smtlink-config))))
 
 
 (define default-smt-cnf () *smt-cnf*)
-;;)
+)

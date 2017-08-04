@@ -60,34 +60,10 @@
 
          <h4>Build Smtlink</h4>
          <ul>
-         <li>Use the Makefile</li>
-         <p>Makefile requires three parameters @('ACL2'), @('PYTHON') and
-         @('SAVE_PY_TO'). @('ACL2') is the directory where @('ACL2') is
-         installed. @('PYTHON') tells @('Smtlink') where to find Python and
-         @('SAVE_PY_TO') tells @('Smtlink') where to store generated Python
-         scripts, if one chooses to keep the scripts.</p> <ul>
-         <li>Go to Smtlink directory</li>
-         <li>Run @('make JOBS=... ACL2=... PYTHON=... SAVE_PY_TO=...') to
-         generate configurations and certify books</li>
-         </ul>
-
-         <li>Without using the Makefile</li>
-         <ul>
-         <li>Run script py_utils/gen_ACL22SMT.py to generate the ACL22SMT.lisp
-         file using command:
-         @({
-          python gen_ACL22SMT.py z3_interface/ACL2_to_Z3.py ./trusted/z3-py/ACL22SMT.lisp
-         })
+         <li>Setup smtlink-config in smtlink-config
          </li>
-         <li>Run script py_utils/gen_config.py to generate the SMT-config.lisp
-         file using command:
-         @({
-          python gen_config.py -i ./verified/SMT-config-template.lisp -o
-         ./verified/SMT-config.lisp -p $PYTHON -z $SAVE_PY_TO
-         })
+         <li>Certify Smtlink to bake setup into certified books.
          </li>
-         <li>Certify Smtlink by @('cert.pl top')</li>
-         </ul>
          </ul>
 
          <h4>Load and Setup Smtlink</h4>
