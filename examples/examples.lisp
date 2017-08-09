@@ -8,7 +8,6 @@
 (in-package "SMT")
 (include-book "../top")
 (include-book "centaur/sv/tutorial/support" :dir :system)
-(include-book "arithmetic-5/top" :dir :system)
 
 (value-triple (tshell-ensure))
 (add-default-hints '((SMT::SMT-process-hint clause)))
@@ -32,6 +31,7 @@
   :parents (Tutorial)
   :short "Example 1"
   :long "<h3>Example 1</h3>
+         @(`(:code ($ x^2-y^2))`)
          @(`(:code ($ poly-ineq))`)")
 
 (def-saved-event smtconf-expt-tutorial
@@ -52,31 +52,35 @@
   (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y))))
 
 (def-saved-event poly-of-expt-example
-  (defthm poly-of-expt-example
-    (implies (and (real/rationalp x) (real/rationalp y) (real/rationalp z)
-                  (integerp m) (integerp n)
-                  (< 0 z) (< z 1) (< 0 m) (< m n))
-             (<= (* 2 (expt z n) x y)
-                 (* (expt z m) (||x^2+y^2||^2 x y))))
-    :hints (("Goal"
-             :smtlink-custom (:functions ((expt :formals ((r rationalp)
-                                                          (i rationalp))
-                                                :returns ((ex rationalp))
-                                                :level 0))
-                              :hypotheses (((< (expt z n) (expt z m)))
-                                           ((< 0 (expt z m)))
-                                           ((< 0 (expt z n))))
-                              :main-hint nil
-                              :smt-fname ""
-                              :int-to-rat t
-                              :rm-file nil
-                              :smt-solver-params nil)))))
-
+  (encapsulate ()
+    (local (include-book "arithmetic-5/top" :dir :system))
+    (defthm poly-of-expt-example
+      (implies (and (real/rationalp x) (real/rationalp y) (real/rationalp z)
+                    (integerp m) (integerp n)
+                    (< 0 z) (< z 1) (< 0 m) (< m n))
+               (<= (* 2 (expt z n) x y)
+                   (* (expt z m) (||x^2+y^2||^2 x y))))
+      :hints (("Goal"
+               :smtlink-custom (:functions ((expt :formals ((r rationalp)
+                                                            (i rationalp))
+                                                  :returns ((ex rationalp))
+                                                  :level 0))
+                                :hypotheses (((< (expt z n) (expt z m)))
+                                             ((< 0 (expt z m)))
+                                             ((< 0 (expt z n))))
+                                :main-hint nil
+                                :smt-fname ""
+                                :int-to-rat t
+                                :rm-file nil
+                                :smt-solver-params nil))))))
 (deftutorial Example-2
   :parents (Tutorial)
   :short "Example 2"
   :long "<h3>Example 2</h3>
-         @(`(:code ($ smtconf-expt-tutorial))`)")
+         @(`(:code ($ smtconf-expt-tutorial))`)
+         @(`(:code ($ smtconf-expt-defattach-tutorial))`)
+         @(`(:code ($ ||x^2+y^2||^2))`)
+         @(`(:code ($ poly-of-expt-example))`)")
 
 ;; Buggy example
 (def-saved-event non-theorem-example

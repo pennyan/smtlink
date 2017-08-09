@@ -147,7 +147,41 @@
 (sv::deftutorial Tutorial
   :parents (Smtlink)
   :short "A tutorial to walk you through how to use Smtlink to prove ACL2 theorems."
-  :long ""
+  :long "<h3>Prerequisites</h3>
+         <p>Following instructions in :doc @(see Smtlink), one should have
+         setup a file in @('$HOME') named as smtlink-config for configurations
+         and have certified the Smtlink book afterwards to bake in the
+         configurations.</p>
+         <p>Then the header of the ACL2 script should look like:</p>
+         @({
+          (in-package \"ACL2\")
+          (include-book \"Smtlink/top\" :dir :system)
+          (tshell-ensure)
+         })
+         <p>Smtlink uses a computed hint to look for the final piece of clause
+         to pass onto the SMT solver. In order to install the computed hint,
+         one needs to @(see add-default-hints).</p>
+         @({
+          (add-default-hints '((SMT::SMT-process-hint clause)))
+         })
+         <p>The rest of this document contains three pieces of arithmetic
+         examples to show what one can do with Smtlink and how. The first one
+         shows a regular example, the second one is proved using the extended
+         version called smtlink-custom and the third one is a theorem that does
+         not pass Smtlink.</p>
+         "
+  )
+
+(defxdoc SMT-Theory
+  :parents (Smtlink)
+  :short "A discussion of what theories are supported in Smtlink and what we
+  intend to support in the future."
+  :long "<h3>SMT solvers</h3>
+         <p>meow</p>
+         <h3>Theories</h3>
+         <p>meow</p>
+         <h3>Wishlist</h3>
+         <ul>Proving</ul>"
   )
 
 (xdoc::save "./manual" :redef-okp t)  ;; write the manual
