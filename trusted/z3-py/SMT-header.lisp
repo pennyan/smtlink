@@ -31,7 +31,7 @@
            #\Newline
            "path.insert(0,\"" c.interface-dir "\")"
            #\Newline
-           "path.insert(1,\"" c.PYTHONPATH "\")"
+           "path.insert(1,\"" c.pythonpath "\")"
            #\Newline
            "from " c.SMT-module " import *"
            #\Newline

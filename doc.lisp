@@ -60,8 +60,40 @@
 
          <h4>Build Smtlink</h4>
          <ul>
-         <li>Setup smtlink-config in smtlink-config
-         </li>
+         <li>Setup smtlink configuration in smtlink-config. The configuration
+         takes below format:</li>
+           <table>
+           <tr>
+             <th>Option</th>
+             <th>Explanation</th>
+             <th>Example</th>
+           </tr>
+           <tr>
+             <td>interface-dir</td>
+             <td>The directory where the SMT solver interface module files are</td>
+             <td>/Users/xxx/.../smtlink/z3_interface</td>
+           </tr>
+           <tr>
+             <td>smt-module</td>
+             <td>The module name (i.e. the file name)</td>
+             <td>ACL2_to_Z3</td>
+           </tr>
+           <tr>
+             <td>smt-class</td>
+             <td>The class name</td>
+             <td>ACL22SMT</td>
+           </tr>
+           <tr>
+             <td>smt-cmd</td>
+             <td>The command for running the SMT solver</td>
+             <td>/usr/local/bin/python</td>
+           </tr>
+           <tr>
+             <td>pythonpath</td>
+             <td>Set up python path if one wants to use a specific library</td>
+             <td>/some/path/to/python/libraries</td>
+           </tr>
+           </table>
          <li>Certify Smtlink to bake setup into certified books.
          </li>
          </ul>
@@ -115,6 +147,7 @@
 (sv::deftutorial Tutorial
   :parents (Smtlink)
   :short "A tutorial to walk you through how to use Smtlink to prove ACL2 theorems."
-  :long "<h3>Introduction</h3>")
+  :long ""
+  )
 
 (xdoc::save "./manual" :redef-okp t)  ;; write the manual
