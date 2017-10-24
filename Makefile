@@ -11,21 +11,19 @@
 
 .PHONY: all clean
 
-ifndef ACL2
- $(error Variable ACL2 is undefined.)
-endif
-BUILD_DIR := $(dir $(ACL2))books/build
+ACL2 := /Users/penny/bin/acl2
+ACL2_BOOKS := /Users/penny/Software/acl2/books
+BUILD_DIR := /Users/penny/Software/acl2/books/build
+
 JOBS ?= 2
 
-all:
-	if [ -z "$$PYTHON" ]; then echo "Variable PYTHON is undefined"; exit 1; fi
-	if [ -z "$$SAVE_PY_TO" ]; then echo "Variable SAVE_PY_TO is undefined"; exit 1; fi
-	$(PYTHON) py_utils/gen_ACL22SMT.py ./z3_interface/ACL2_to_Z3.py ./trusted/z3-py/ACL22SMT.lisp
-	$(PYTHON) py_utils/gen_config.py -i ./verified/SMT-config-template.lisp \
-                                   -o ./verified/SMT-config.lisp \
-                                   -p $(PYTHON) \
-                                   -z $(SAVE_PY_TO)
-	$(BUILD_DIR)/cert.pl -j $(JOBS) -a $(ACL2) top
+all: top example
+
+top:
+	$(BUILD_DIR)/cert.pl -j $(JOBS) -a $(ACL2) -b $(ACL2_BOOKS) top
+
+example:
+	$(BUILD_DIR)/cert.pl -j $(JOBS) -a $(ACL2) -b $(ACL2_BOOKS) examples/examples.lisp
 
 
 clean:

@@ -1,7 +1,6 @@
 # ignoring intermediate files and tmp files
 
 tryouts/*
-Carl/*
 
 *.cert
 *.port
@@ -18,7 +17,7 @@ expanded
 *.swp
 # .#*
 manual/*
-verified/smtlink-config
+smtlink-config
 
 doc.lisp.backup
 workxxx

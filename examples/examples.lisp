@@ -29,8 +29,15 @@
 
 (deftutorial Example-1
   :parents (Tutorial)
-  :short "Example 1"
+  :short "Example 1: the basics"
   :long "<h3>Example 1</h3>
+<p>The first example is a basic polynomial inequality.  Let's say we want to
+prove below theorem:</p>
+<box><p><b><color rgb='#323cbe'>Theorem 1.</color></b> Let @($ x\\in
+R$) and @($ y \\in R$)</p></box>
+         @([
+             \forall x\\in R\ and\exists y\\in R,\\ if\\ \\frac{9x^2}{8}+y^2 <= 1\\ and\\ x^2+y^2 <= 1,\\ then\\ y<=3(x-\\frac{17}{8})^2
+         ])
          @(`(:code ($ x^2-y^2))`)
          @(`(:code ($ poly-ineq))`)")
 
