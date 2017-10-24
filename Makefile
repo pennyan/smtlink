@@ -28,3 +28,4 @@ example:
 
 clean:
 	$(BUILD_DIR)/clean.pl
+	rm -rf manual
