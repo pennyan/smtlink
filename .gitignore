@@ -16,6 +16,7 @@ expanded
 *.log
 *.swp
 # .#*
+py_utils/*
 manual/*
 smtlink-config
 
