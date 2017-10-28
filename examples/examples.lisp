@@ -98,7 +98,7 @@ POLY-INEQ-EXAMPLE
 })
 
 <p>Smtlink is a sequence of clause processors and computed hints. Calling
-smtlink from the @(':hints') put the theorem term though a clause processor
+smtlink from the @(':hints') put the theorem clause though a clause processor
 looking for syntax errors in the @(see smt-hints). If nothing wrong, it will
 generate a term to be recognized by the first computed-hint
 @('SMT::SMT-process-hint'). The first computed-hint then installs the
@@ -112,10 +112,24 @@ being conducted. </p>
 processor. The first subgoal is the goal to be sent to the trusted clause
 processor that transliterates the term into the corresponding SMT form and
 writes it out to a file. An SMT solver is called upon the file and results are
-read back into ACL2.
+read back into ACL2. Below are the outputs from this clause processor called
+@('SMT-trusted-cp').
 </p>
 
+@({
+Using default SMT-trusted-cp...
+/tmp/py_file/smtlink.6Wt6m
+; mktemp: `mkdir -p /tmp/py_file && mktemp /tmp/py_file/smtlink.XXXXX`: 0.01 sec, 8,544 bytes
+proved
+; SMT solver: `python /tmp/py_file/smtlink.6Wt6m`: 0.18 sec, 7,888 bytes
+; rm -f: `rm -f /tmp/py_file/smtlink.6Wt6m`: 0.01 sec, 7,792 bytes
+Proved!
+})
 
+<p>The other three goals are additional goals. Proving them ensures the first
+verified clause processor doesn't introduce unsoundness. To understand what
+they are and why they can ensure soundness. Check out the references in @(see
+Smtlink).</p>
 ")
 
 (def-saved-event smtconf-expt-tutorial
