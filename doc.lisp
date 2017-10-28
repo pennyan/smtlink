@@ -157,9 +157,9 @@ Smtlink book afterwards to bake in the configurations.</p>
   (include-book \"Smtlink/top\" :dir :system)
   (tshell-ensure)
 })
-<p>Smtlink uses a computed hint to look for the final piece of clause to pass
-onto the SMT solver.  In order to install the computed hint, one needs to @(see
-add-default-hints).</p>
+<p>Smtlink uses a sequence of computed hints and clause processors to perform
+different stages.  In order to install the first computed-hint, one needs to
+@(see add-default-hints).</p>
 @({
   (add-default-hints '((SMT::SMT-process-hint clause)))
 })

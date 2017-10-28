@@ -27,18 +27,96 @@
             :smtlink nil)))
   )
 
+
 (deftutorial Example-1
   :parents (Tutorial)
   :short "Example 1: the basics"
   :long "<h3>Example 1</h3>
 <p>The first example is a basic polynomial inequality.  Let's say we want to
 prove below theorem:</p>
-<box><p><b><color rgb='#323cbe'>Theorem 1.</color></b> Let @($ x\\in
-R$) and @($ y \\in R$), @(\forall x\\in R\ and\exists y\\in R,\\ if\\
-  \\frac{9x^2}{8}+y^2 <= 1\\ and\\ x^2+y^2 <= 1,\\ then\\
-  y<=3(x-\\frac{17}{8})^2)
-         @(`(:code ($ x^2-y^2))`)
-         @(`(:code ($ poly-ineq))`) </p></box>")
+
+<box>
+<p>
+<b><color rgb='#323cbe'>Theorem 1.</color></b>
+@($\\forall x\\in R$) and @($\\forall y \\in R$), if @($ \\frac{9x^2}{8}+y^2 \\le 1$) and
+@($ x^2+y^2 \\le 1$), then @($ y\\le3(x-\\frac{17}{8})^2$).
+</p>
+</box>
+
+<p>Suppose we've defined a function called @('x^2-y^2') like below:</p>
+
+@(`(:code ($ x^2-y^2))`)
+
+<p>We define our theorem as:</p>
+
+@(`(:code ($ poly-ineq))`)
+
+<p>Smtlink should just prove this inequality without any problem.</p>
+<p>Like is shown in the example, @(':smtlink') can be provided as a hint in the
+standard @(see acl2::hints) in ACL2. In the most basic cases where Smtlink
+handles everything, no @(see smt-hints) are required to be provided, Hence
+@(':smtlink nil').</p>
+
+<p>The output of this defthm should look similar to:</p>
+
+@({
+Goal'
+SMT-goal-generator=>Expanding ... X^2-Y^2
+Subgoal 4
+Using default SMT-trusted-cp...
+/tmp/py_file/smtlink.6Wt6m
+; mktemp: `mkdir -p /tmp/py_file && mktemp /tmp/py_file/smtlink.XXXXX`: 0.01 sec, 8,544 bytes
+proved
+; SMT solver: `python /tmp/py_file/smtlink.6Wt6m`: 0.18 sec, 7,888 bytes
+; rm -f: `rm -f /tmp/py_file/smtlink.6Wt6m`: 0.01 sec, 7,792 bytes
+Proved!
+Subgoal 3
+Subgoal 3'
+Subgoal 2
+Subgoal 1
+
+Summary
+Form:  ( DEFTHM POLY-INEQ-EXAMPLE ...)
+Rules: ((:DEFINITION HINT-PLEASE)
+        (:DEFINITION NOT)
+        (:DEFINITION X^2-Y^2)
+        (:EXECUTABLE-COUNTERPART BINARY-*)
+        (:EXECUTABLE-COUNTERPART UNARY--)
+        (:EXECUTABLE-COUNTERPART UNARY-/)
+        (:FAKE-RUNE-FOR-TYPE-SET NIL)
+        (:REWRITE ASSOCIATIVITY-OF-+)
+        (:REWRITE ACL2::COMMUTATIVITY-2-OF-+)
+        (:REWRITE COMMUTATIVITY-OF-*)
+        (:REWRITE COMMUTATIVITY-OF-+)
+        (:REWRITE DISTRIBUTIVITY))
+Hint-events: ((:CLAUSE-PROCESSOR PROCESS-HINT)
+              (:CLAUSE-PROCESSOR SMT-TRUSTED-CP)
+              (:CLAUSE-PROCESSOR SMTLINK-SUBGOALS))
+Time:  0.25 seconds (prove: 0.25, print: 0.00, other: 0.00)
+Prover steps counted:  633
+POLY-INEQ-EXAMPLE
+})
+
+<p>Smtlink is a sequence of clause processors and computed hints. Calling
+smtlink from the @(':hints') put the theorem term though a clause processor
+looking for syntax errors in the @(see smt-hints). If nothing wrong, it will
+generate a term to be recognized by the first computed-hint
+@('SMT::SMT-process-hint'). The first computed-hint then installs the
+next-to-be clause processor to work on the clause. The next is the main
+verified clause processor. Function expansion happens here.</p>
+
+<p>@('SMT-goal-generator=>Expanding ... X^2-Y^2') shows function expansion is
+being conducted. </p>
+
+<p>In this example, four subgoals are generated as a result of this clause
+processor. The first subgoal is the goal to be sent to the trusted clause
+processor that transliterates the term into the corresponding SMT form and
+writes it out to a file. An SMT solver is called upon the file and results are
+read back into ACL2.
+</p>
+
+
+")
 
 (def-saved-event smtconf-expt-tutorial
   (defun my-smtlink-expt-config ()

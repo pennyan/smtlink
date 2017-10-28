@@ -83,7 +83,7 @@
   (logic)
 
   )
-;; Add this line to your code to add a default hint of SMT-hint-wrapper-hint
+;; Add this line to your code to add a default hint of Smtlink
 ;; (add-default-hints '((SMT-computed-hint clause)))
 ;; Remove hint:
 ;; (remove-default-hints '((SMT-computed-hint clause)))
