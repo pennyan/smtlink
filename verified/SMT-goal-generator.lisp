@@ -135,7 +135,7 @@
     :short "Outputs for function expand"
     ((expanded-term-lst pseudo-term-listp "List of expanded terms." :default nil)
      (expanded-fn-lst pseudo-term-alistp "List of expanded function calls,
-    needed for expand hint for proving G' -> G theorem." :default nil)))
+    needed for expand hint for proving G' implies G theorem." :default nil)))
 
   (defthm natp-of-sum-lvls-lemma
     (implies (and (consp (sym-nat-alist-fix fn-lvls)) (natp x))
@@ -587,6 +587,7 @@
 
   (local (in-theory (enable lambda->formals-fix lambda->actuals-fix)))
   (defprod lambda-binding
+    :parents (SMT-goal-generator)
     ((formals symbol-listp
               :default nil
               :reqfix (lambda->formals-fix formals actuals))
@@ -596,6 +597,7 @@
     :require (equal (len formals) (len actuals)))
 
   (deflist lambda-binding-list
+    :parents (lambda-binding)
     :elt-type lambda-binding
     :pred lambda-binding-listp
     :true-listp t)
@@ -612,6 +614,7 @@
   ;;                               `((lambda ,b.formals ,term) ,@b.actuals))))
 
   (defprod fhg-single-args
+    :parents (SMT-goal-generator)
     ((fn func-p :default nil)
      (actuals pseudo-term-listp :default nil)
      (fn-returns-hint-acc hint-pair-listp :default nil)
@@ -701,6 +704,7 @@
 
   ;; function hypotheses generation arguments
   (defprod fhg-args
+    :parents (SMT-goal-generator)
     ((term-lst pseudo-term-listp :default nil)
      (fn-lst func-alistp :default nil)
      (fn-returns-hint-acc hint-pair-listp :default nil)

@@ -312,6 +312,7 @@
           :topic function-option-name-p)
 
         (deflist function-option-name-lst
+          :parents (function-option-name)
           :elt-type function-option-name
           :true-listp t))
 
@@ -826,8 +827,8 @@
         (:smt-dir . stringp)
         (:rm-file . booleanp)
         (:smt-solver-params . smt-solver-params-p)
-        (:custom-p . booleanp)
         ;; internal parameter
+        (:custom-p . booleanp)
         (:wrld-len . natp)))
 
     (defconst *smtlink-option-names*
@@ -871,6 +872,7 @@
         :topic smtlink-option-name-p)
 
       (deflist smtlink-option-name-lst
+        :parents (smtlink-option-name)
         :elt-type smtlink-option-name
         :true-listp t))
 

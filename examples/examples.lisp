@@ -53,7 +53,7 @@ prove below theorem:</p>
 
 <p>Smtlink should just prove this inequality without any problem.</p>
 <p>Like is shown in the example, @(':smtlink') can be provided as a hint in the
-standard @(see acl2::hints) in ACL2. In the most basic cases where Smtlink
+standard @(see acl2::hints) in ACL2.  In the most basic cases where Smtlink
 handles everything, no @(see smt-hints) are required to be provided, Hence
 @(':smtlink nil').</p>
 
@@ -97,22 +97,22 @@ Prover steps counted:  633
 POLY-INEQ-EXAMPLE
 })
 
-<p>Smtlink is a sequence of clause processors and computed hints. Calling
+<p>Smtlink is a sequence of clause processors and computed hints.  Calling
 smtlink from the @(':hints') put the theorem clause though a clause processor
-looking for syntax errors in the @(see smt-hints). If nothing wrong, it will
+looking for syntax errors in the @(see smt-hints).  If nothing wrong, it will
 generate a term to be recognized by the first computed-hint
-@('SMT::SMT-process-hint'). The first computed-hint then installs the
-next-to-be clause processor to work on the clause. The next is the main
-verified clause processor. Function expansion happens here.</p>
+@('SMT::SMT-process-hint').  The first computed-hint then installs the
+next-to-be clause processor to work on the clause.  The next is the main
+verified clause processor.  Function expansion happens here.</p>
 
 <p>@('SMT-goal-generator=>Expanding ... X^2-Y^2') shows function expansion is
 being conducted. </p>
 
 <p>In this example, four subgoals are generated as a result of this clause
-processor. The first subgoal is the goal to be sent to the trusted clause
+processor.  The first subgoal is the goal to be sent to the trusted clause
 processor that transliterates the term into the corresponding SMT form and
-writes it out to a file. An SMT solver is called upon the file and results are
-read back into ACL2. Below are the outputs from this clause processor called
+writes it out to a file.  An SMT solver is called upon the file and results are
+read back into ACL2.  Below are the outputs from this clause processor called
 @('SMT-trusted-cp').
 </p>
 
@@ -126,9 +126,9 @@ proved
 Proved!
 })
 
-<p>The other three goals are additional goals. Proving them ensures the first
-verified clause processor doesn't introduce unsoundness. To understand what
-they are and why they can ensure soundness. Check out the references in @(see
+<p>The other three goals are additional goals.  Proving them ensures the first
+verified clause processor doesn't introduce unsoundness.  To understand what
+they are and why they can ensure soundness.  Check out the references in @(see
 Smtlink).</p>
 ")
 
@@ -146,8 +146,8 @@ Smtlink).</p>
   (defattach custom-smt-cnf my-smtlink-expt-config))
 
 ;; Example 2
-(def-saved-event ||x^2+y^2||^2
-  (defun ||x^2+y^2||^2 (x y) (+ (* x x) (* y y))))
+(def-saved-event x^2+y^2
+  (defun x^2+y^2 (x y) (+ (* x x) (* y y))))
 
 (def-saved-event poly-of-expt-example
   (encapsulate ()
@@ -157,7 +157,7 @@ Smtlink).</p>
                     (integerp m) (integerp n)
                     (< 0 z) (< z 1) (< 0 m) (< m n))
                (<= (* 2 (expt z n) x y)
-                   (* (expt z m) (||x^2+y^2||^2 x y))))
+                   (* (expt z m) (x^2+y^2 x y))))
       :hints (("Goal"
                :smtlink-custom (:functions ((expt :formals ((r rationalp)
                                                             (i rationalp))
@@ -166,19 +166,68 @@ Smtlink).</p>
                                 :hypotheses (((< (expt z n) (expt z m)))
                                              ((< 0 (expt z m)))
                                              ((< 0 (expt z n))))
-                                :main-hint nil
-                                :smt-fname ""
-                                :int-to-rat t
-                                :rm-file nil
-                                :smt-solver-params nil))))))
+                                :int-to-rat t))))))
 (deftutorial Example-2
   :parents (Tutorial)
-  :short "Example 2"
+  :short "Example 2: something wild"
   :long "<h3>Example 2</h3>
-         @(`(:code ($ smtconf-expt-tutorial))`)
-         @(`(:code ($ smtconf-expt-defattach-tutorial))`)
-         @(`(:code ($ ||x^2+y^2||^2))`)
-         @(`(:code ($ poly-of-expt-example))`)")
+<p>Smtlink is extensible, with the user's understanding that the extended part
+is not verified and therefore is the user's responsibility to ensure its
+soundness.  A different trust tag is installed if this customized Smtlink is
+used.  Such ability makes Smtlink very powerful.  Here's an example to show the
+usage.</p>
+<p>Let's say we want to prove the theorem:</p>
+
+<box>
+<p>
+<b><color rgb='#323cbe'>Theorem 2.</color></b>
+@($\\forall x,y,z\\in R$), and @($\\forall m,n \\in Z$), if @($ 0 \\le z \\le 1$) and
+@($ 0 \\le m \\le n $), then @($ 2xy\\cdot z^n \\le (x^2+y^2)z^m$).
+</p>
+</box>
+
+<p>In @('smtlink/z3_interface/'), file @('RewriteExpt.py') is a Python class
+extending from the default class in ACL2_to_Z3.py.  One could imaging defining
+one's own file that does magical things in the SMT solver.  What
+@('RewriteExpt.py') does is that it uses basic rewrite lemmas about @('expt')
+to help the SMT solver to solve.  In order to make Smtlink uses the custom
+version instead of the default, one needs to define and attach a new
+configuration:</p>
+
+@(`(:code ($ smtconf-expt-tutorial))`)
+@(`(:code ($ smtconf-expt-defattach-tutorial))`)
+
+<p>Defining the function @('x^2+y^2')</p>
+@(`(:code ($ ||x^2+y^2||))`)
+
+<p>Then define the theorem to prove:</p>
+@(`(:code ($ poly-of-expt-example))`)
+
+<p>Notice the @(':hints') keyword used this time is @(':smtlink-custom').  It
+allows the customized version of Smtlink to be applied to the current
+clause.  Take a read in @(see smt-hints) for a detailed description of each
+keyword.  Here we will only describe what's used in this example.</p>
+
+<p>In the hints, @(':function') tells Smtlink to treat @('expt') as an
+uninterpreted function.  @(':formals') tells us the input argument types of the
+uninterpreted function and @(':returns') tells us the output argument type.
+@(':levels') specifies an expansion level of 0, making the function an
+uninterpreted function.</p>
+
+<p>@(':hypotheses') provides a list of hypotheses that the user believes to be
+true and can help with the proof. The hypotheses will be insert into the
+hypotheses when generating the SMT problem. They will be proved correctness
+as part of the returned clauses from the verified clause processor. </p>
+
+<p>@(':int-to-rat') tells Smtlink to raise integers to rationals when
+translating the clause into a SMT problem. This is because of the limitation in
+Z3. Integers mixed with real numbers are hard for Z3. We prove the given
+theorem by proving a more general statement in the SMT solver.</p>
+
+<p>Another observation is that, we are including the arithmetic-5 book for
+proving the returned auxiliary clauses, which requires arithmetic
+reasoning.</p>
+")
 
 ;; Buggy example
 (def-saved-event non-theorem-example
@@ -194,7 +243,32 @@ Smtlink).</p>
 
 (deftutorial Example-3
   :parents (Tutorial)
-  :short "Example 3"
+  :short "Example 3: defence against evil"
   :long "<h3>Example 3</h3>
-         @(`(:code ($ non-theorem-example))`)")
+<p>The third evil example is from one of the reviews we get when we first
+published our paper in @(see Smtlink). </p>
+
+@(`(:code ($ non-theorem-example))`)
+
+<p>This is an evil theorem because we know below is a theorem in ACL2:</p>
+
+@({
+(thm (equal (/ x 0) 0))
+})
+
+<p>Therefore if Smtlink falsely prove @('non-theorem'), it will introduce
+contradiction into ACL2.</p>
+
+<p>Smtlink fails to prove the @('non-theorem') with error message:</p>
+
+@({
+HARD ACL2 ERROR in SMT-TRANSLATOR=>TRANSLATE-FUNCTION:  Not a basic
+SMT function: INTEGERP
+})
+
+<p>This is because ACL2 treats @('integerp')'s as type declarations in Z3.  But
+here in this theorem, @('(integerp (/ x y))') is a constraint/hypotheses rather
+than a type declaration. When ACL2 tried to translate it as a constraint, it
+finds out @('integerp') is not a supported function.</p>
+")
 

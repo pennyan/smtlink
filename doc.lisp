@@ -172,7 +172,68 @@ smtlink-custom and the third one is a theorem that does not pass Smtlink.</p>"
 (defxdoc SMT-hints
   :parents (Smtlink)
   :short "Describes the hints interface for Smtlink."
-  :long "")
+  :long "
+@({Examples:
+
+:smtlink(-custom)
+(:functions ((my-expt :formals ((r rationalp)
+                                (i rationalp))
+                      :returns ((ex rationalp :hints (:in-theory (enable my-expt))))
+                      :level 0)
+             ...)
+ :hypotheses (((< (my-expt z n) (my-expt z m))
+               :hints (:use ((:instance hypo1-hint (x x)))))
+              ((< 0 (expt z m)))
+              ((< 0 (expt z n)))
+              ...)
+ :main-hint (:use ((:instance main-hint (n n) (x x))))
+ :int-to-rat t
+ :smt-fname \"my-smt-problem.lisp\"
+ :smt-dir \"/home/tmp\"
+ :rm-file t)
+
+})
+
+<p>@(':smtlink') is a customized argument option to @(see hints).
+ @('smtlink-custom') is used when one wants to use the customized version of
+ Smtlink. The next argument to @(':smtlink') we call @(see smt-hints). These
+ are the hints one wants to provide to Smtlink so that it can figure out the
+ proof easily. Let's take a look at each one of them:</p>
+
+ <dl>
+
+ <dt>@(':functions')</dt><p/>
+
+ <dd><p>@('functions') are for dealing with recursive functions. Smtlink
+ translate a basic set of ACL2 functions (See @(see smt-basics)) into SMT
+ functions.</p></dd>
+
+ <dt>@(':hypotheses')</dt><p/>
+
+ <dd><p></p></dd>
+
+ <dt>@(':main-hint')</dt><p/>
+
+ <dd><p></p></dd>
+
+ <dt>@(':int-to-rat')</dt><p/>
+
+ <dd><p></p></dd>
+
+ <dt>@(':smt-fname')</dt><p/>
+
+ <dd><p></p></dd>
+
+ <dt>@(':smt-dir')</dt><p/>
+
+ <dd><p></p></dd>
+
+ <dt>@(':rm-file')</dt><p/>
+
+ <dd><p></p></dd>
+
+ </dl>
+")
 
 (defxdoc SMT-Theory
   :parents (Smtlink)

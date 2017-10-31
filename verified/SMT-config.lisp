@@ -16,12 +16,13 @@
   :parents (verified)
   :short "Define default Smtlink config and custom Smtlink config"
 
-(defprod smtlink-config
-  ((interface-dir stringp :default "")
-   (smt-module    stringp :default "")
-   (smt-class     stringp :default "")
-   (smt-cmd       stringp :default "")
-   (pythonpath    stringp :default "")))
+  (defprod smtlink-config
+    :parents (SMT-config)
+    ((interface-dir stringp :default "" "The directory to the customized Python file")
+     (smt-module    stringp :default "" "The file/Module name")
+     (smt-class     stringp :default "" "The Python class name")
+     (smt-cmd       stringp :default "" "The Python command")
+     (pythonpath    stringp :default "" "The PYTHONPATH to libraries")))
 
 (local
  (defthm all-boundp-of-initial-glb

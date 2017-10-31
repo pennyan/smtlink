@@ -142,12 +142,14 @@
   ;;   :define t)
 
   (defprod hint-pair
+    :parents (smtlink-hint)
     ((thm pseudo-termp :default nil)       ;; a theorem statement about the variable
      (hints true-listp :default nil)     ;; the hint for proving this theorem
      )
     :verbosep t)
 
   (deflist hint-pair-list
+    :parents (hint-pair)
     :elt-type hint-pair
     :pred hint-pair-listp
     :true-listp t)
@@ -162,11 +164,13 @@
 
   (local (in-theory (enable decl->type-reqfix)))
   (defprod decl
+    :parents (smtlink-hint)
     ((name symbolp :default nil)
      (type hint-pair-p :default (make-hint-pair) :reqfix (decl->type-reqfix type)))
     :require (symbolp (hint-pair->thm type)))
 
   (deflist decl-list
+    :parents (decl)
     :elt-type decl
     :pred decl-listp
     :true-listp t)
@@ -186,6 +190,7 @@
   ;;     (cons (cons d.name d) (make-alist-decl-list rest))))
 
   (defprod func
+    :parents (smtlink-hint)
     ((name symbolp :default nil)
      (formals decl-listp :default nil)
      (guard hint-pair-p :default (make-hint-pair))
@@ -197,6 +202,7 @@
      (flattened-returns symbol-listp :default nil)))
 
   (deflist func-list
+    :parents (func)
     :elt-type func
     :pred func-listp
     :true-listp t)
@@ -208,16 +214,19 @@
     :pred func-alistp)
 
   (defprod binding
+    :parents (smtlink-hint)
     ((var symbolp :default nil)
      (expr pseudo-termp :default nil)
      (type symbolp :default nil)))
 
   (deflist binding-list
+    :parents (binding)
     :elt-type binding
     :pred binding-listp
     :true-listp t)
 
   (defprod let-binding
+    :parents (smtlink-hint)
     ((bindings binding-listp :default nil)
      (hypotheses hint-pair-listp :default nil)))
 
@@ -255,6 +264,7 @@
   ;; 16. custom-p: Used custom version of Smtlink or not. Default nil.
   ;;
   (defprod smtlink-hint
+    :parents (SMT-hint-interface)
     ((functions func-listp :default nil)
      (hypotheses hint-pair-listp :default nil)
      (main-hint true-listp :default nil)
