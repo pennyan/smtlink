@@ -77,6 +77,7 @@
       str::str-fix
 
       std::defaggregate
+      std::defval
 
       fty::defprod
       fty::deflist

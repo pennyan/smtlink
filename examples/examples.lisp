@@ -54,7 +54,7 @@ prove below theorem:</p>
 <p>Smtlink should just prove this inequality without any problem.</p>
 <p>Like is shown in the example, @(':smtlink') can be provided as a hint in the
 standard @(see acl2::hints) in ACL2.  In the most basic cases where Smtlink
-handles everything, no @(see smt-hints) are required to be provided, Hence
+handles everything, no @(see smt-hint) are required to be provided, Hence
 @(':smtlink nil').</p>
 
 <p>The output of this defthm should look similar to:</p>
@@ -99,7 +99,7 @@ POLY-INEQ-EXAMPLE
 
 <p>Smtlink is a sequence of clause processors and computed hints.  Calling
 smtlink from the @(':hints') put the theorem clause though a clause processor
-looking for syntax errors in the @(see smt-hints).  If nothing wrong, it will
+looking for syntax errors in the @(see smt-hint).  If nothing wrong, it will
 generate a term to be recognized by the first computed-hint
 @('SMT::SMT-process-hint').  The first computed-hint then installs the
 next-to-be clause processor to work on the clause.  The next is the main
@@ -205,7 +205,7 @@ configuration:</p>
 
 <p>Notice the @(':hints') keyword used this time is @(':smtlink-custom').  It
 allows the customized version of Smtlink to be applied to the current
-clause.  Take a read in @(see smt-hints) for a detailed description of each
+clause.  Take a read in @(see smt-hint) for a detailed description of each
 keyword.  Here we will only describe what's used in this example.</p>
 
 <p>In the hints, @(':function') tells Smtlink to treat @('expt') as an
