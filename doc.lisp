@@ -192,7 +192,7 @@ smtlink-custom and the third one is a theorem that does not pass Smtlink.</p>"
 
 })
 
-<p>@(':smtlink') is a customized argument option to @(see hints).
+<p>@(':smtlink') is a customized argument option to @(see acl2::hints).
  @('smtlink-custom') is used when one wants to use the customized version of
  Smtlink.  The next argument to @(':smtlink') we call @(see smt-hint).  These
  are the hints one wants to provide to Smtlink so that it can figure out the
@@ -225,7 +225,7 @@ smtlink-custom and the third one is a theorem that does not pass Smtlink.</p>"
  It returns an argument called @('ex') with type @('rationalp').  Return types
  of functions are proved as one of the clauses returned by the verified clause
  processor.  One can give hints to the proof.  The hints uses a similar form as
- in @(see hints).  The only difference is that the hints will only go to a
+ in @(see acl2::hints).  The only difference is that the hints will only go to a
  specific subgoal, therefore no goal specifier is needed.  @('level') is the
  expansion level.</p>
  </dd>
@@ -235,14 +235,14 @@ smtlink-custom and the third one is a theorem that does not pass Smtlink.</p>"
  <dd><p>@(':hypotheses') are \"facts\" that the user believes to be true and
  should help with the proof.  The facts will be returned as auxiliary clauses
  to be proved from the verified clause processor.  One can provide hints for
- proving any of the hypotheses.  It follows the format of the @(see hints),
+ proving any of the hypotheses.  It follows the format of the @(see acl2::hints),
  except that no goal specifier is needed.</p></dd>
 
  <dt>@(':main-hint')</dt><p/>
 
  <dd><p>@(':main-hint') provides a hint to the main returned auxiliary theorem.
  This theorem proves the expanded clause implies the original clause.  The
- format of the hint follows that of the @(see hints), except that no goal
+ format of the hint follows that of the @(see acl2::hints), except that no goal
  specifier is needed.</p></dd>
 
  <dt>@(':int-to-rat')</dt><p/>

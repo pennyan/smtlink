@@ -57,6 +57,7 @@
       formals
       strip-cadrs
       bfix
+      real/rationalp
 
       read-string
 
