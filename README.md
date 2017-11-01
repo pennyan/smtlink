@@ -51,8 +51,7 @@ Then one needs to enable *tshell* by doing
 
 ### Reference
 
-Yan Peng and Mark R. Greenstreet. Extending ACL2 with SMT SolversExternal link
-to [Extending ACL2 with SMT Solvers][publication] In ACL2 Workshop 2015.
-October 2015. EPTCS 192. Pages 61-77.
+Yan Peng and Mark R. Greenstreet. [Extending ACL2 with SMT Solvers][publication]
+In ACL2 Workshop 2015. October 2015. EPTCS 192. Pages 61-77.
 
 [publication]: https://arxiv.org/abs/1509.06082
