@@ -76,6 +76,7 @@
       str::charlisteqv
       str::character-list-fix
       str::str-fix
+      str::downcase-string
 
       std::defaggregate
       std::defval

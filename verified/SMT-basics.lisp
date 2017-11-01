@@ -9,6 +9,7 @@
 (include-book "xdoc/top" :dir :system)
 (include-book "std/util/defval" :dir :system)
 (include-book "std/strings/decimal" :dir :system)
+(include-book "std/strings/case-conversion" :dir :system)
 
 (defxdoc SMT-basics
   :parents (verified)
@@ -73,9 +74,10 @@
            ;; collects a reversed list of strings
            (b* (((when (atom falist)) acc)
                 ((cons facl2 (cons fsmt nargs)) (car falist))
-                (entry `("<tr><td>@(see "
-                         ,(symbol-name facl2)
-                         ")</td><td>"
+                (facl2-str `("@(see " ,(symbol-name facl2) ")"))
+                (entry `("<tr><td>"
+                         ,@facl2-str
+                         "</td><td>"
                          ,fsmt
                          "</td><td>"
                          ,(natstr nargs)
@@ -105,9 +107,12 @@
            ;; collects a reversed list of strings
            (b* (((when (atom alist)) acc)
                 ((cons facl2 fsmt) (car alist))
-                (entry `("<tr><td>@(see "
-                         ,(symbol-name facl2)
-                         ")</td><td>"
+                (facl2-str (if (equal facl2 'realp)
+                               (list (downcase-string (symbol-name facl2)))
+                             `("@(see " ,(symbol-name facl2) ")")))
+                (entry `("<tr><td>"
+                         ,@facl2-str
+                         "</td><td>"
                          ,fsmt
                          "</td></tr> ")))
              (alist-to-xdoc-aux (cdr alist) (revappend entry acc)))))
