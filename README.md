@@ -1,58 +1,55 @@
------------------------------------------------------------------
+Smtlink
+====================
 
-                       Smtlink README
+*Smtlink* is a framework for integrating external *SMT* solvers into *ACL2* based on
+*clause processors* and *computed hints*.
 
------------------------------------------------------------------
+It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated is
+*Z3*. *SMT-LIB* is expected to be integrated in near future.
 
-Smtlink is a trusted clause processor that provides an interface
-for integrating an external SMT solver into ACL2.
+### Requirements
 
-The default SMT solver integrated is Z3.
+* Python 2 is properly installed
+* Z3 is properly installed
+* ACL2 and its book directory is properly installed
+* Smtlink uses Unix commands
 
------------------------------------------------------------------
+### Build Smtlink
 
-                     REQUIREMENTS
+* Setup Smtlink configuration in *smtlink-config* in directory $HOME. The
+  configuration takes below format
+  ```
+  interface-dir=...
+  smt-module=...
+  smt-class=...
+  smt-cmd=...
+  python-path=...
+  ```
+  Below table explains what they stands for.
+  
+  Option        | Explanation                                                    | Example
+  ------------- | -------------------------------------------------------------- | -------------
+  interface-dir | The directory where the SMT solver interface module files are  | /Users/.../smtlink/z3_interface
+  smt-module    | The module name (i.e. the file name)                           | ACL2_to_Z3
+  smt-class     | The class name                                                 | ACL22SMT
+  smt-cmd       | The command for running the SMT solver                         | /usr/local/bin/python
+  pythonpath    | Set up PAYTHONPATH is one wants to use a specific library      | /some/path/to/python/libraries
+  
+* Certify Smtlink to bake setup into certified books
 
-1. Python 2 is properly installed.
-2. Z3 is properly installed that it can be imported and used in
-   Python.
-3. ACL2 and its book directory is properly installed.
-4. Smtlink uses Unix commands that requires Unix environment.
+### Load and Setup Smtlink
 
-----------------------------------------------------------------
+To use Smtlink, one needs to include book:
+```
+(include-book "smtlink/top" :dir :sysmtem)
+```
+Then one needs to enable *tshell* by doing
+(value-triple (tshell-ensure))
 
-                  BUILD INSTRUCTIONS
+### Reference
 
-1. Run script gen_ACL22SMT.py to generate the ACL2_to_Z3.lisp
-   file using command:
+Yan Peng and Mark R. Greenstreet. Extending ACL2 with SMT SolversExternal link
+to [Extending ACL2 with SMT Solvers][publication] In ACL2 Workshop 2015.
+October 2015. EPTCS 192. Pages 61-77.
 
-     python gen_ACL22SMT.py z3_interface/ACL2_to_Z3.py ACL22SMT.lisp
-     (Usage : python gen_ACL22SMT.py <input-file> <output-file>)
-
-2. Run Script gen_config.py to generate the config.lisp file:
-
-     python gen_config.py -i config-template.lisp
-                          -o config.lisp
-                          -p <dir-to-python-executable>
-                          -z nil
-     (Usage :
-      python gen_config.py -i config-template.lisp
-                           -o config.lisp
-                           -p <dir-to-python-executable>
-                           -z <dir-to-python-files>
-
-     Check gen_config.py for defaults.
-
-3. Follow :doc cert.pl to certify the books using command
-   "cert.pl top.lisp".
-
-
-Or use:
-     make ACL2=<dir-to-ACL2-executable/script> PYTHON=<dir-to-python>
-          SAVE_PY_TO=<dir-to-save-python-scripts> or nil
-----------------------------------------------------------------
-
-                     USAGE
-
-Refer to document "Extending ACL2 with SMT solvers"
-for usage.
+[publication] https://arxiv.org/abs/1509.06082

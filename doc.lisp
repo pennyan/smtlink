@@ -59,9 +59,18 @@ near future.</p>
 
 <h4>Build Smtlink</h4>
 <ul>
-<li>Setup smtlink configuration in smtlink-config.  The configuration takes
-below format:</li>
+<li>Setup smtlink configuration in smtlink-config in directory $HOME.  The
+configuration takes below format:</li>
+@({
+  interface-dir=...
+  smt-module=...
+  smt-class=...
+  smt-cmd=...
+  python-path=...
+  })
 <table>
+
+<li>Below table explains what they stands for.</li>
 <tr>
 <th>Option</th>
 <th>Explanation</th>
@@ -70,7 +79,7 @@ below format:</li>
 <tr>
 <td>interface-dir</td>
 <td>The directory where the SMT solver interface module files are</td>
-<td>/Users/xxx/.../smtlink/z3_interface</td>
+<td>/Users/.../smtlink/z3_interface</td>
 </tr>
 <tr>
 <td>smt-module</td>
@@ -89,18 +98,20 @@ below format:</li>
 </tr>
 <tr>
 <td>pythonpath</td>
-<td>Set up python path if one wants to use a specific library</td>
+<td>Set up PYTHONPATH if one wants to use a specific library</td>
 <td>/some/path/to/python/libraries</td>
 </tr>
 </table>
+
 <li>Certify Smtlink to bake setup into certified books.
 </li>
+
 </ul>
 
 <h4>Load and Setup Smtlink</h4>
 <p>To use @('Smtlink'), one needs to include book:</p>
 @({
-  (include-book \"Smtlink/top\" :dir :system)
+  (include-book \"smtlink/top\" :dir :system)
   })
 <p>Then one needs to enable @(tsee acl2::tshell) by doing:</p>
 @({
