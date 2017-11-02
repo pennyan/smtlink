@@ -1,4 +1,4 @@
-z3_interface README
+z3_interface
 =====================
 
 Subdirectory z3_interface is for storing interface files to
@@ -6,7 +6,7 @@ SMT solvers.
 
 The default z3 interface file provided is ACL2_to_Z3.py.
 
-***  Basic functions
+### Basic functions
 
 Smtlink's built-in translator requires several premitive
 functions to be implemented. Below is the list of functions
@@ -31,6 +31,6 @@ needed:
 
 Check details in ACL2_to_Z3.py.
 
-*** Customized module
+### Customized module
 
 Check details in RewriteExpt.py for extended module with customized abilities.
