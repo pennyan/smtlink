@@ -12,22 +12,22 @@ Smtlink's built-in translator requires several premitive
 functions to be implemented. Below is the list of functions
 needed:
 
-  Option             | Explanation
-  ------------------ | ---------------------------------
-  __SMT__.plus       | binary addition
-  __SMT__.times      | binary multiplication
-  __SMT__.reciprocal | reciprocal
-  __SMT__.negate     | numerical negation
-  __SMT__.equal      | equality
-  __SMT__.lt         | less than
-  __SMT__.ifx        | if statement
-  __SMT__.not        | logic negation
-  lambda             | lambda expression
-  __SMT__.implies    | logic implication
-  __SMT__.hint_okay  | function that always return false
-  __SMT__.isInt      | integer type
-  __SMT__.isReal     | real type
-  __SMT__.isBool     | boolean type
+  Option                 | Explanation
+  ---------------------- | ---------------------------------
+  \_\_SMT\_\_.plus       | binary addition
+  \_\_SMT\_\_.times      | binary multiplication
+  \_\_SMT\_\_.reciprocal | reciprocal
+  \_\_SMT\_\_.negate     | numerical negation
+  \_\_SMT\_\_.equal      | equality
+  \_\_SMT\_\_.lt         | less than
+  \_\_SMT\_\_.ifx        | if statement
+  \_\_SMT\_\_.not        | logic negation
+  lambda                 | lambda expression
+  \_\_SMT\_\_.implies    | logic implication
+  \_\_SMT\_\_.hint_okay  | function that always return false
+  \_\_SMT\_\_.isInt      | integer type
+  \_\_SMT\_\_.isReal     | real type
+  \_\_SMT\_\_.isBool     | boolean type
 
 Check details in ACL2_to_Z3.py.
 
