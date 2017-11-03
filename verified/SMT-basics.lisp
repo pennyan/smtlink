@@ -74,7 +74,9 @@
            ;; collects a reversed list of strings
            (b* (((when (atom falist)) acc)
                 ((cons facl2 (cons fsmt nargs)) (car falist))
-                (facl2-str `("@(see " ,(symbol-name facl2) ")"))
+                (facl2-str (if (equal facl2 'hint-please)
+                               (list (downcase-string (symbol-name facl2)))
+                             `("@(see " ,(symbol-name facl2) ")")))
                 (entry `("<tr><td>"
                          ,@facl2-str
                          "</td><td>"
