@@ -16,7 +16,7 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
 
 ### Build Smtlink
 
-* Setup Smtlink configuration in *smtlink-config* in directory $HOME. The
+* Setup Smtlink configuration in file *smtlink-config* in directory $HOME. The
   configuration takes below format
   ```
   interface-dir=...
@@ -36,7 +36,7 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
   smt-cmd       | The command for running the SMT solver              | /usr/local/bin/python
   pythonpath    | Set up PAYTHONPATH                                  | /some/path/to/python/libraries
   
-* Certify Smtlink to bake setup into certified books
+* Certify Smtlink/top.lisp to bake setup into certified books
 
 ### Load and Setup Smtlink
 
