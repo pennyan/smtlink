@@ -11,7 +11,10 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
 
 * Python 2 is properly installed
 * Z3 is properly installed
-One can check it by running below program:
+
+One needs to build Z3 on one's own instead of using the binary release.
+
+One can check the build by running below program:
 ```
 from z3 import *
 x = Real('x')

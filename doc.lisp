@@ -53,6 +53,7 @@ near future.</p>
 <ul>
 <li>Python 2 is properly installed.</li>
 <li>Z3 is properly installed.
+<p>One needs to build Z3 on one's own instead of using the binary release.</p>
 <p>One can check it by running below program:</p>
 @({
   from z3 import *
