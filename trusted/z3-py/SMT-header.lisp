@@ -29,9 +29,9 @@
       (mv (list
            "from sys import path"
            #\Newline
-           "path.insert(0,\"" c.interface-dir "\")"
+           "path.insert(1,\"" c.interface-dir "\")"
            #\Newline
-           "path.insert(1,\"" c.pythonpath "\")"
+           "path.insert(2,\"" c.pythonpath "\")"
            #\Newline
            "from " c.SMT-module " import *"
            #\Newline
