@@ -136,7 +136,7 @@ where the system books are."))
     (change-smt-cnf rest new-cnf)))
 
 (defconsts *smt-cnf*
-  (b* ((res (read-file-into-string "~/.smtlink-config/smtlink-config"))
+  (b* ((res (read-file-into-string "~/smtlink-config"))
        ((unless res) (default-smtlink-config))
        (config-alist (process-config res)))
     (change-smt-cnf config-alist (default-smtlink-config))))
