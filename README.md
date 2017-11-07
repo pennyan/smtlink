@@ -12,25 +12,25 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
 * Python 2 is properly installed
 * Z3 is properly installed
 
-One needs to build Z3 on one's own instead of using the binary release.
+  One needs to build Z3 on one's own instead of using the binary release.
 
-One can check the build by running below program:
-```
-from z3 import *
-x = Real('x')
-y = Real('y')
-s = Solver()
-s.add(x + y > 5, x > 1, y > 1)
-print(s.check())
-print(s.model())
-```
-One should expect some results like:
-```
->>> print(s.check())
-sat
->>> print(s.model())
-[y = 4, x = 2]
-```
+  One can check the build by running below program:
+  ```
+  from z3 import *
+  x = Real('x')
+  y = Real('y')
+  s = Solver()
+  s.add(x + y > 5, x > 1, y > 1)
+  print(s.check())
+  print(s.model())
+  ```
+  One should expect some results like:
+  ```
+  >>> print(s.check())
+  sat
+  >>> print(s.model())
+  [y = 4, x = 2]
+  ```
 
 * ACL2 and its book directory is properly installed
 * Smtlink uses Unix commands
