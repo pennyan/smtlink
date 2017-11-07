@@ -13,13 +13,13 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
 * Z3 is properly installed
 One can check it by running below program:
 ```
-  from z3 import *
-  x = Real('x')
-  y = Real('y')
-  s = Solver()
-  s.add(x + y > 5, x > 1, y > 1)
-  print(s.check())
-  print(s.model())
+from z3 import *
+x = Real('x')
+y = Real('y')
+s = Solver()
+s.add(x + y > 5, x > 1, y > 1)
+print(s.check())
+print(s.model())
 ```
 One should expect some results like:
 ```
