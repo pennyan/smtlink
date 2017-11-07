@@ -52,14 +52,32 @@ near future.</p>
 <h4>Requirements</h4>
 <ul>
 <li>Python 2 is properly installed.</li>
-<li>Z3 is properly installed.</li>
+<li>Z3 is properly installed.
+<p>One can check it by running below program:</p>
+@({
+  from z3 import *
+  x = Real('x')
+  y = Real('y')
+  s = Solver()
+  s.add(x + y > 5, x > 1, y > 1)
+  print(s.check())
+  print(s.model())
+  })
+One should expect some results like:
+@({
+>>> print(s.check())
+sat
+>>> print(s.model())
+[y = 4, x = 2]
+  })
+</li>
 <li>ACL2 and the system books are properly installed.</li>
 <li>@('Smtlink') uses Unix commands.</li>
 </ul>
 
 <h4>Build Smtlink</h4>
 <ul>
-<li>Setup smtlink configuration in smtlink-config in directory $HOME.  The
+<li>Setup smtlink configuration in file smtlink-config in directory $HOME.  The
 configuration takes below format:</li>
 @({
   interface-dir=...
@@ -70,40 +88,44 @@ configuration takes below format:</li>
   })
 <table>
 
-<li>Below table explains what they stands for.</li>
+<li>Below table explains what they stand for.</li>
 <tr>
 <th>Option</th>
 <th>Explanation</th>
 <th>Example</th>
 </tr>
 <tr>
-<td>interface-dir</td>
+<td>@('interface-dir')</td>
 <td>The directory where the SMT solver interface module files are</td>
 <td>/Users/.../smtlink/z3_interface</td>
 </tr>
 <tr>
-<td>smt-module</td>
+<td>@('smt-module')</td>
 <td>The module name (i.e. the file name)</td>
 <td>ACL2_to_Z3</td>
 </tr>
 <tr>
-<td>smt-class</td>
+<td>@('smt-class')</td>
 <td>The class name</td>
 <td>ACL22SMT</td>
 </tr>
 <tr>
-<td>smt-cmd</td>
+<td>@('smt-cmd')</td>
 <td>The command for running the SMT solver</td>
 <td>/usr/local/bin/python</td>
 </tr>
 <tr>
-<td>pythonpath</td>
+<td>@('pythonpath')</td>
 <td>Set up PYTHONPATH if one wants to use a specific library</td>
 <td>/some/path/to/python/libraries</td>
 </tr>
 </table>
-
-<li>Certify Smtlink to bake setup into certified books.
+<p>Note that @('smt-cmd') for running Z3 is the Python command since we are
+using the Python interface. The Z3 library is imported into Python in the
+scripts written out by Smtlink like is shown in \"Requirements\".</p>
+<li>Certify the book top.lisp in the Smtlink directory, to bake setup into
+certified books.
+<p>This took about 2.5mins on my 4-core mac with hyperthreading @('-j 2').</p>
 </li>
 
 </ul>
@@ -111,7 +133,7 @@ configuration takes below format:</li>
 <h4>Load and Setup Smtlink</h4>
 <p>To use @('Smtlink'), one needs to include book:</p>
 @({
-  (include-book \"smtlink/top\" :dir :system)
+  (include-book \"/dir/to/smtlink/top\")
   })
 <p>Then one needs to enable @(tsee acl2::tshell) by doing:</p>
 @({
@@ -163,7 +185,7 @@ Smtlink book afterwards to bake in the configurations.</p>
 <p>Then the header of the ACL2 script should look like:</p>
 @({
   (in-package \"ACL2\")
-  (include-book \"Smtlink/top\" :dir :system)
+  (include-book \"/dir/to/Smtlink/top\")
   (tshell-ensure)
 })
 <p>Smtlink uses a sequence of computed hints and clause processors to perform

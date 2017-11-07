@@ -17,7 +17,7 @@ BUILD_DIR := /Users/penny/Software/acl2/books/build
 
 JOBS ?= 2
 
-all: top example
+all: example
 
 top:
 	$(BUILD_DIR)/cert.pl -j $(JOBS) -a $(ACL2) -b $(ACL2_BOOKS) top

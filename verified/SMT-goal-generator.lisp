@@ -848,7 +848,7 @@
 
          ;; Now fn is a function in fn-lst,
          ;;   we need to generate returns and more-returns hypotheses for them
-         ((func f) (cdr fn))
+         (f (cdr fn))
          (as-1 (generate-fn-hint (make-fhg-single-args :fn f
                                                        :actuals fn-actuals
                                                        :fn-returns-hint-acc a.fn-returns-hint-acc

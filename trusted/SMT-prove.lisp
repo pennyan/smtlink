@@ -73,7 +73,7 @@
     (b* ((term (pseudo-term-fix term))
          (smtlink-hint (smtlink-hint-fix smtlink-hint))
          ((smtlink-hint h) smtlink-hint)
-         ((smtlink-config c) h.smt-cnf)
+         (c h.smt-cnf)
          (smt-file (make-fname h.smt-dir h.smt-fname))
          (smt-term (SMT-translation term smtlink-hint))
          ((mv head import) (SMT-head c))
