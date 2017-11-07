@@ -63,7 +63,7 @@ near future.</p>
   print(s.check())
   print(s.model())
   })
-One should expect some results like:
+<p>One should expect some results like:</p>
 @({
 >>> print(s.check())
 sat

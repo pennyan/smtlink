@@ -11,6 +11,24 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
 
 * Python 2 is properly installed
 * Z3 is properly installed
+One can check it by running below program:
+```
+  from z3 import *
+  x = Real('x')
+  y = Real('y')
+  s = Solver()
+  s.add(x + y > 5, x > 1, y > 1)
+  print(s.check())
+  print(s.model())
+```
+One should expect some results like:
+```
+>>> print(s.check())
+sat
+>>> print(s.model())
+[y = 4, x = 2]
+```
+
 * ACL2 and its book directory is properly installed
 * Smtlink uses Unix commands
 
@@ -36,13 +54,17 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
   smt-cmd       | The command for running the SMT solver              | /usr/local/bin/python
   pythonpath    | Set up PAYTHONPATH                                  | /some/path/to/python/libraries
   
-* Certify Smtlink/top.lisp to bake setup into certified books
+Note that *smt-cmd* for running Z3 is the Python command since we are
+using the Python interface. The Z3 library is imported into Python in the
+scripts written out by Smtlink like is shown in "Requirements".
+
+* Certify the book top.lisp in the Smtlink directory, to bake setup into certified books.
 
 ### Load and Setup Smtlink
 
 To use Smtlink, one needs to include book:
 ```
-(include-book "smtlink/top" :dir :sysmtem)
+(include-book "/dir/to/smtlink/top")
 ```
 Then one needs to enable *tshell* by doing
 ```
