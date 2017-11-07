@@ -53,8 +53,12 @@ near future.</p>
 <ul>
 <li>Python 2 is properly installed.</li>
 <li>Z3 is properly installed.
-<p>One needs to build Z3 on one's own instead of using the binary release.</p>
-<p>One can check it by running below program:</p>
+<p>One needs to build Z3 on one's own instead of using the binary release.
+Also, since we are using the Python interface, please follow the \"python\"
+section in the \"z3 bindings\" section in <a
+href='https://github.com/Z3Prover/z3/'>README</a> of Z3.</p>
+<p>To check if Z3 is installed properly, one can check it by running below
+program:</p>
 @({
   from z3 import *
   x = Real('x')
