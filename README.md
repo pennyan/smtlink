@@ -44,7 +44,7 @@ sat
   python-path=...
   ```
   
-*  Below table explains what they stands for.
+*  Below table explains what they stands for:
   
   Option        | Explanation                                         | Example
   ------------- | --------------------------------------------------- | -------------
@@ -54,10 +54,10 @@ sat
   smt-cmd       | The command for running the SMT solver              | /usr/local/bin/python
   pythonpath    | Set up PAYTHONPATH                                  | /some/path/to/python/libraries
   
-Note that *smt-cmd* for running Z3 is the Python command since we are
-using the Python interface. The Z3 library is imported into Python in the
-scripts written out by Smtlink like is shown in "Requirements".
-
+  Note that *smt-cmd* for running Z3 is the Python command since we are
+  using the Python interface. The Z3 library is imported into Python in the
+  scripts written out by Smtlink like is shown in "Requirements".
+  
 * Certify the book top.lisp in the Smtlink directory, to bake setup into certified books.
 
 ### Load and Setup Smtlink
