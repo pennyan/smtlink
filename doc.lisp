@@ -85,9 +85,9 @@ sat
 <h4>Build Smtlink</h4>
 <ul>
 <li>Setup smtlink configuration in file smtlink-config in either a user
-specified directory $SMT_HOME or in directory $HOME.  When both environment
-variables are set, $SMT_HOME is used. The configuration takes below
-format:</li> 
+specified directory @('$SMT_HOME') or in directory @('$HOME').  When both
+environment variables are set, @('$SMT_HOME') is used. The configuration takes
+below format:</li>
 @({
   interface-dir=...
   smt-module=...
