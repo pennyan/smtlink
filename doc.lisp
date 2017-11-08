@@ -57,6 +57,8 @@ near future.</p>
 Also, since we are using the Python interface, please follow the \"python\"
 section in the \"z3 bindings\" section in <a
 href='https://github.com/Z3Prover/z3/'>README</a> of Z3.</p>
+<p>I've also wrote a small piece of @(see z3-installation) document about how
+to install Z3 and its Python API.</p>
 <p>To check if Z3 is installed properly, one can check it by running below
 program:</p>
 @({
@@ -131,6 +133,14 @@ scripts written out by Smtlink like is shown in \"Requirements\".</p>
 <li>Certify the book top.lisp in the Smtlink directory, to bake setup into
 certified books.
 <p>This took about 2.5mins on my 4-core mac with hyperthreading @('-j 2').</p>
+<box>
+<p>
+<b><color rgb='#FF0000'>NOTE:</color></b>
+A complete recertification of Smtlink is required if one changed the
+configuration in smtlink-config.
+</p>
+</box>
+
 </li>
 
 </ul>
@@ -329,5 +339,80 @@ that seems likely to be solved by Smtlink.</li>
 <li>Fully verified Smtlink.</li>
 </ul>"
   )
+
+(defxdoc Z3-installation
+  :parents (Smtlink)
+  :short "How to install Z3"
+  :long "<h3>How I installed Z3</h3>
+<p>In case you find the Z3 README page confusing, here's how I installed Z3,
+  one can adjust the process to one's own needs.</p>
+<ul>
+<li>Download the current stable release from <a
+  href='https://github.com/Z3Prover/z3/releases'>releases</a>
+
+<p>We want to download the source code and compile it by ourselves. It might be
+  doable to use the binary releases by setting up @('PYTHONPATH') and
+  @('DYLD_LIBRARY_PATH') (on macos), but I haven't tried it and there's no
+  instruction in Z3 telling us if that's the way to use it.</p>
+</li>
+<li>Assume we are in the release directory, do:
+@({
+python scripts/mk_make.py --prefix=$HOME/usr --python --pypkgdir=$HOME/usr/lib/python-2.7/site-packages
+})
+<p>I want to install it in my @('\$HOME/usr') directory prefix, but you can
+  replace that part of the path with your conventional path. Note that Z3
+  restricts that @('--prefix') be the prefix of @('--pypkgdir').</p>
+</li>
+<li>Now make the C/C++ libraries, do:
+@({
+cd build; make
+})
+</li>
+<li>Now do the installation in places specified in @('--prefix'):
+@({
+make install
+})
+<p>Now if one takes a look at @('$HOME/usr'), one will see in @('@HOME/usr/bin'),
+we have the @('z3') executable, in @('$HOME/usr/include') we have all the z3
+C++ header files, in @('$HOME/usr/lib') we have @('libz3.dylib') and in
+@('$HOME/usr/lib/python-2.7/site-packages') we have all the z3 Python API
+files.</p>
+<p>Because we are using a user specified prefix, the command line produces the
+message:</p>
+@({
+Z3Py was installed at /.../usr/lib/python-2.7/site-packages, make sure
+this directory is in your PYTHONPATH environment variable. @echo Z3 was
+successfully installed.
+})
+</li>
+<li>So the last step is to add this path to PYTHONPATH.
+@({
+export PYTHONPATH=$HOME/usr/lib/python-2.7/site-packages:$PYTHONPATH
+})
+</li>
+<li>Now one should be able to import z3 into Python. One can test it by
+doing:
+@({
+  from z3 import *
+  x = Real('x')
+  y = Real('y')
+  s = Solver()
+  s.add(x + y > 5, x > 1, y > 1)
+  print(s.check())
+  print(s.model())
+  })
+<p>One should expect some results like:</p>
+@({
+>>> print(s.check())
+sat
+>>> print(s.model())
+[y = 4, x = 2]
+  })
+<p>This example asks for a satisfying assignment to the problem:
+@($x + y > 5$), @($x > 1$) and @($y > 1$). It should be easy to check the
+result.</p>
+</li>
+</ul>
+")
 
 (xdoc::save "./manual" :redef-okp t)  ;; write the manual
