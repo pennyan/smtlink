@@ -252,7 +252,7 @@
          ;; Now, fn-call should be treated as an uninterpreted function
          (fn (hons-get fn-call a.fn-lst))
          ((if fn)
-          (b* (((func f) (cdr fn))
+          (b* (;; ((func f) (cdr fn))
                ;; ((if (not f.uninterpreted))
                ;;  (mv (er hard? 'SMT-translator=>translate-expression "Not a basic SMT function: ~q0" fn-call) nil))
                ((mv translated-actuals uninterpreted-1)
