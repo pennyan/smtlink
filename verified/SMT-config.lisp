@@ -11,6 +11,8 @@
 (include-book "std/util/define" :dir :system)
 (include-book "std/util/defconsts" :dir :system)
 (include-book "std/strings/top" :dir :system)
+(include-book "centaur/misc/tshell" :dir :system)
+(value-triple (tshell-ensure))
 
 (defsection SMT-config
   :parents (verified)
@@ -135,11 +137,66 @@ where the system books are."))
                  (t (change-smtlink-config default-cnf :PYTHONPATH value)))))
     (change-smt-cnf rest new-cnf)))
 
-(defconsts *smt-cnf*
-  (b* ((res (read-file-into-string "~/smtlink-config"))
-       ((unless res) (default-smtlink-config))
+;; (b* (((if (file-exists smtconfig current-directory)) current-directory)
+;;      ((mv (& SMT_HOME state)) (getenv$ SMT_HOME state))
+;;      ((if (and SMT_HOME (file-exists smtconfig SMT_HOME))) SMT_HOME)
+;;      ((mv (& HOME state)) (getenv$ HOME state))
+;;      ((if (and HOME (file-exists smtconfig HOME))) HOME)
+;;      ((if (file-exists smtconfig (get-home-dir))) (get-home-dir))
+;;      ((if (file-exists smtconfig (acl2-community-books))) (acl2-community-books)))
+;;   (er ...))
+
+(define file-exists ((smtconfig stringp) (dir stringp))
+  :returns (exist? booleanp)
+  (b* ((cmd (concatenate 'string "test -f " dir "/" smtconfig))
+       ((mv exit-status &)
+        (time$ (tshell-call cmd
+                            :print t
+                            :save t)
+               :msg "; test -f: `~s0`: ~st sec, ~sa bytes~%"
+               :args (list cmd))))
+    (if (equal exit-status 0) t nil)))
+
+(define find-smtlink-config ((smtconfig stringp) (state t))
+  :returns (mv (dir stringp)
+               state)
+  (b* (((mv & SMT_HOME state) (getenv$ "SMT_HOME" state))
+       ((if (and (stringp SMT_HOME)
+                 (file-exists smtconfig SMT_HOME)))
+        (prog2$ (cw "Reading smtlink-config from $SMT_HOME...")
+                (mv SMT_HOME state)))
+       ((mv & HOME state) (getenv$ "HOME" state))
+       ((if (and (stringp HOME)
+                 (file-exists smtconfig HOME)))
+        (prog2$ (cw "Reading smtlink-config from $HOME...")
+                (mv HOME state)))
+       ((mv & PWD state) (getenv$ "PWD" state))
+       ((if (and (stringp PWD)
+                 (file-exists smtconfig PWD)))
+        (prog2$ (cw "Reading smtlink-config from $PWD of Smtlink...")
+                (mv PWD state))))
+    (mv (prog2$
+         (er hard? 'SMT-config=>find-smtlink-config "Failed to find smtlink-config.~%")
+         "")
+        state)))
+
+;;
+;; Where does Smtlink find the configuration file smtlink-config?
+;; 1. It first search in $SMT_HOME if smtlink-config file exists.
+;; 2. If $SMT_HOME is not set, or smtlink-config is not in there,
+;;      look in $HOME to see if such a file exists.
+;; 3. If smtlink-config is not in $HOME, it takes a look in current smtlink
+;;      directory for such a file.
+;; 4. Else, an error is produced asking for smtlink-config file
+;;
+
+(defconsts (*smt-cnf* state)
+  (b* ((smtconfig "smtlink-config")
+       ((mv dir state) (find-smtlink-config smtconfig state))
+       (res (read-file-into-string (concatenate 'string dir "/" smtconfig)))
+       ((unless res) (mv (default-smtlink-config) state))
        (config-alist (process-config res)))
-    (change-smt-cnf config-alist (default-smtlink-config))))
+    (mv (change-smt-cnf config-alist (default-smtlink-config)) state)))
 
 
 (define default-smt-cnf () *smt-cnf*)
