@@ -6,6 +6,7 @@ tryouts/*
 *.port
 *.cert.out
 *.lx64fsl
+Makefile
 Makefile-tmp
 
 z3_files
