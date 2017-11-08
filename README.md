@@ -13,8 +13,11 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
 * Z3 is properly installed
 
   One needs to build Z3 on one's own instead of using the binary release.
+  Since we are using the Python interface, please follow the "python"
+  section in the "z3 bindings" section in [README of Z3][Z3-README].
 
-  One can check the build by running below program:
+  To check if Z3 is installed properly, one can check it by running below
+  program:
   ```
   from z3 import *
   x = Real('x')
@@ -37,8 +40,7 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
 
 ### Build Smtlink
 
-* Setup Smtlink configuration in file *smtlink-config* in directory $HOME. The
-  configuration takes below format
+* Setup smtlink configuration in file *smtlink-config* in either a user specified directory *$SMT_HOME* or in directory *$HOME*.  When both environment variables are set, *$SMT_HOME* is used. The configuration takes below format:
   ```
   interface-dir=...
   smt-module=...
@@ -80,3 +82,4 @@ Yan Peng and Mark R. Greenstreet. [Extending ACL2 with SMT Solvers][publication]
 In ACL2 Workshop 2015. October 2015. EPTCS 192. Pages 61-77.
 
 [publication]: https://arxiv.org/abs/1509.06082
+[Z3-REAMDE]: https://github.com/Z3Prover/z3
