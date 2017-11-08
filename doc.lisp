@@ -136,7 +136,7 @@ certified books.
 <box>
 <p>
 <b><color rgb='#FF0000'>NOTE:</color></b>
-A complete recertification of Smtlink is required if one changed the
+A complete recertification of Smtlink is required if one changes the
 configuration in smtlink-config.
 </p>
 </box>
@@ -344,10 +344,10 @@ that seems likely to be solved by Smtlink.</li>
   :parents (Smtlink)
   :short "How to install Z3"
   :long "<h3>How I installed Z3</h3>
-<p>In case you find the Z3 README page confusing, here's how I installed Z3,
-  one can adjust the process to one's own needs.</p>
+<p>In case you find the Z3 README page confusing, here's how I installed Z3.
+  One can adjust the process to one's own needs.</p>
 <ul>
-<li>Download the current stable release from <a
+<li>Download the current stable release from Z3 <a
   href='https://github.com/Z3Prover/z3/releases'>releases</a>
 
 <p>We want to download the source code and compile it by ourselves. It might be
@@ -361,7 +361,7 @@ python scripts/mk_make.py --prefix=$HOME/usr --python --pypkgdir=$HOME/usr/lib/p
 })
 <p>I want to install it in my @('\$HOME/usr') directory prefix, but you can
   replace that part of the path with your conventional path. Note that Z3
-  restricts that @('--prefix') be the prefix of @('--pypkgdir').</p>
+  restricts @('--prefix') to be the prefix of @('--pypkgdir').</p>
 </li>
 <li>Now make the C/C++ libraries, do:
 @({
@@ -372,7 +372,7 @@ cd build; make
 @({
 make install
 })
-<p>Now if one takes a look at @('$HOME/usr'), one will see in @('@HOME/usr/bin'),
+<p>Now if one takes a look at @('$HOME/usr'), one will see in @('$HOME/usr/bin'),
 we have the @('z3') executable, in @('$HOME/usr/include') we have all the z3
 C++ header files, in @('$HOME/usr/lib') we have @('libz3.dylib') and in
 @('$HOME/usr/lib/python-2.7/site-packages') we have all the z3 Python API
@@ -390,7 +390,7 @@ successfully installed.
 export PYTHONPATH=$HOME/usr/lib/python-2.7/site-packages:$PYTHONPATH
 })
 </li>
-<li>Now one should be able to import z3 into Python. One can test it by
+<li>Now one should be able to import z3 into Python and test it by
 doing:
 @({
   from z3 import *
