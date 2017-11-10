@@ -122,8 +122,6 @@ below format:</li>
 <td>The command for running the SMT solver</td>
 <td>/usr/local/bin/python</td>
 </tr>
-<tr>
-</tr>
 </table>
 <p>Note that @('smt-cmd') for running Z3 is the Python command since we are
 using the Python interface. The Z3 library is imported into Python in the
