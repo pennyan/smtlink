@@ -93,7 +93,6 @@ below format:</li>
   smt-module=...
   smt-class=...
   smt-cmd=...
-  pythonpath=...
   })
 <table>
 
@@ -124,9 +123,6 @@ below format:</li>
 <td>/usr/local/bin/python</td>
 </tr>
 <tr>
-<td>@('pythonpath')</td>
-<td>Set up PYTHONPATH if one wants to use a specific library</td>
-<td>/some/path/to/python/libraries</td>
 </tr>
 </table>
 <p>Note that @('smt-cmd') for running Z3 is the Python command since we are
@@ -361,9 +357,11 @@ that seems likely to be solved by Smtlink.</li>
 @({
 python scripts/mk_make.py --prefix=$HOME/usr --python --pypkgdir=$HOME/usr/lib/python-2.7/site-packages
 })
-<p>I want to install it in my @('\$HOME/usr') directory prefix, but you can
+<p>I want to install it in my @('$HOME/usr') directory prefix, but you can
   replace that part of the path with your conventional path. Note that Z3
-  restricts @('--prefix') to be the prefix of @('--pypkgdir').</p>
+  restricts @('--prefix') to be the prefix of @('--pypkgdir'). Also,
+  @('$HOME/usr') does not need to exist in order to follow these steps; that
+  directory and subdirectories will be created as necessary.</p>
 </li>
 <li>Now make the C/C++ libraries, do:
 @({
@@ -392,8 +390,8 @@ successfully installed.
 export PYTHONPATH=$HOME/usr/lib/python-2.7/site-packages:$PYTHONPATH
 })
 </li>
-<li>Now one should be able to import z3 into Python and test it by
-doing:
+<li>Now one should be able to import z3 into Python.
+Run Python, which will put you in an interactive loop.
 @({
   from z3 import *
   x = Real('x')
@@ -402,6 +400,7 @@ doing:
   s.add(x + y > 5, x > 1, y > 1)
   print(s.check())
   print(s.model())
+  quit()
   })
 <p>One should expect some results like:</p>
 @({

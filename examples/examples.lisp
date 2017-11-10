@@ -60,15 +60,12 @@ handles everything, no @(see smt-hint) are required to be provided, Hence
 <p>The output of this defthm should look similar to:</p>
 
 @({
+Using clause-processor Smtlink
 Goal'
 SMT-goal-generator=>Expanding ... X^2-Y^2
 Subgoal 4
 Using default SMT-trusted-cp...
-/tmp/py_file/smtlink.6Wt6m
-; mktemp: `mkdir -p /tmp/py_file && mktemp /tmp/py_file/smtlink.XXXXX`: 0.01 sec, 8,544 bytes
-proved
-; SMT solver: `python /tmp/py_file/smtlink.6Wt6m`: 0.18 sec, 7,888 bytes
-; rm -f: `rm -f /tmp/py_file/smtlink.6Wt6m`: 0.01 sec, 7,792 bytes
+; SMT solver: `python /tmp/py_file/smtlink.Lc3Dh`: 0.32 sec, 7,872 bytes
 Proved!
 Subgoal 3
 Subgoal 3'
@@ -92,9 +89,10 @@ Rules: ((:DEFINITION HINT-PLEASE)
 Hint-events: ((:CLAUSE-PROCESSOR PROCESS-HINT)
               (:CLAUSE-PROCESSOR SMT-TRUSTED-CP)
               (:CLAUSE-PROCESSOR SMTLINK-SUBGOALS))
-Time:  0.25 seconds (prove: 0.25, print: 0.00, other: 0.00)
+Time:  0.38 seconds (prove: 0.38, print: 0.00, other: 0.00)
 Prover steps counted:  633
 POLY-INEQ-EXAMPLE
+
 })
 
 <p>Smtlink is a sequence of clause processors and computed hints.  Calling
@@ -118,12 +116,18 @@ read back into ACL2.  Below are the outputs from this clause processor called
 
 @({
 Using default SMT-trusted-cp...
-/tmp/py_file/smtlink.6Wt6m
-; mktemp: `mkdir -p /tmp/py_file && mktemp /tmp/py_file/smtlink.XXXXX`: 0.01 sec, 8,544 bytes
-proved
-; SMT solver: `python /tmp/py_file/smtlink.6Wt6m`: 0.18 sec, 7,888 bytes
-; rm -f: `rm -f /tmp/py_file/smtlink.6Wt6m`: 0.01 sec, 7,792 bytes
+; SMT solver: `python /tmp/py_file/smtlink.Lc3Dh`: 0.32 sec, 7,872 bytes
 Proved!
+})
+
+<p>The second line tells the user what command is run to execute the SMT
+solving.  \"Proved!\" indicates the SMT solver has successfully proved the
+theorem.  When a theorem failed, a possible counter-example might be
+provided in the form:</p>
+@({
+Possible counter-example found: ((X ...) (Y ...))
+One can access it through global variable SMT-cex by doing (@ SMT-
+cex).
 })
 
 <p>The other three goals are additional goals.  Proving them ensures the first

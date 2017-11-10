@@ -46,7 +46,6 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
   smt-module=...
   smt-class=...
   smt-cmd=...
-  pythonpath=...
   ```
   
 *  Below table explains what they stands for:
@@ -57,7 +56,7 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
   smt-module    | The module name (i.e. the file name)                | ACL2_to_Z3
   smt-class     | The class name                                      | ACL22SMT
   smt-cmd       | The command for running the SMT solver              | /usr/local/bin/python
-  pythonpath    | Set up PAYTHONPATH                                  | /some/path/to/python/libraries
+
   
   Note that *smt-cmd* for running Z3 is the Python command since we are
   using the Python interface. The Z3 library is imported into Python in the

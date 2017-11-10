@@ -28,7 +28,7 @@
                  (lines string-listp))
     (let ((cmd (concatenate 'string (smtlink-config->smt-cmd smt-conf) " " fname)))
       (time$ (tshell-call cmd
-                          :print t
+                          :print nil
                           :save t)
              :msg "; SMT solver: `~s0`: ~st sec, ~sa bytes~%"
              :args (list cmd))))
@@ -45,24 +45,34 @@
          ((if (equal lines nil))
           (mv (er hard? 'SMT-run=>SMT-interpret "Nothing returned from SMT solver.") state))
          ((if (equal (car lines) "proved"))
-          (b* (((unless (equal rm-file t)) (mv t state))
+          (b* (((unless (equal rm-file nil)) (mv t state))
                (cmd (concatenate 'string "rm -f " fname))
                ((mv exit-status-rm lines-rm) (time$ (tshell-call cmd
-                                                                 :print t
+                                                                 :print nil
                                                                  :save t)
-                                                    :msg "; rm -f: `~s0`: ~st sec, ~sa bytes~%"
+                                                    ;; :msg "; rm -f: `~s0`: ~st sec, ~sa bytes~%"
+                                                    :msg ""
                                                     :args (list cmd))))
             (if (equal exit-status-rm 0)
                 (mv t state)
-              (mv (er hard? 'SMT-run=>SMT-interpret "Remove file error.~% ~q0~%" lines-rm)
+              (mv (er hard? 'SMT-run=>SMT-interpret "Remove file error.~% ~p0~%" lines-rm)
                   state))))
          ((mv err str state) (read-string (car lines) :state state))
-         ((unless (true-listp str))
+         ((unless (equal err nil))
+          (prog2$ (er hard? 'SMT-run=>SMT-interpret "Read-string error.~%~p0~%" err)
+                  (mv nil state)))
+         ((unless (and (true-listp str)
+                       ;; These are guards for unquote
+                       (listp (car str)) (equal (caar str) 'quote)
+                       (consp (cdar str))))
           (prog2$
-           (er hard? 'SMT-run=>SMT-interpret "We can never prove anything about the thing returned by read-string. So we add a check for it. It's surprising that the check for true-listp failed: ~q0" str)
+           (er hard? 'SMT-run=>SMT-interpret "We can't prove anything about the ~
+thing returned by read-string. So we add a check for it. It's surprising that ~
+the check for (true-listp str) and (consp (car str)) failed: ~q0" str)
            (mv nil state)))
-         (- (cw "read-string str:~q0" str))
-         (- (cw "read-string err:~q0" err))
+         (- (cw "Possible counter-example found: ~p0~%One can access it ~
+                 through global variable SMT-cex by doing (@ SMT-cex).~%"
+                (unquote (car str))))
          (state (f-put-global 'SMT-cex nil state))
          (state (f-put-global 'SMT-cex (car str) state)))
       (mv nil state)))

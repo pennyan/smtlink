@@ -57,9 +57,10 @@
                              "mktemp " dir "/smtlink.XXXXX")))
         (mv-let (exit-status lines)
           (time$ (tshell-call cmd
-                              :print t
+                              :print nil
                               :save t)
-                 :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
+                 ;; :msg "; mktemp: `~s0`: ~st sec, ~sa bytes~%"
+                 :msg ""
                  :args (list cmd))
           (if (and (equal exit-status 0) (not (equal lines nil)))
               (car lines)

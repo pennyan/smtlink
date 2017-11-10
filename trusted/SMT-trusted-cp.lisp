@@ -43,10 +43,10 @@
            ((mv res state) (SMT-prove-stub (disjoin cl) smtlink-hint state)))
         (if res
             (prog2$ (cw "Proved!~%") (mv nil nil state))
-          (prog2$ (cw "~|~%NOTE: Unable to prove goal with ~
-                      SMT-trusted-cp and indicated hint.~|")
-                  (mv t (list cl) state)))))
-
+          (mv (cons "NOTE: Unable to prove goal with ~
+                      SMT-trusted-cp and indicated hint." nil)
+              (list cl) state))))
+    
     (push-untouchable SMT-prove-stub t)
     )
 
