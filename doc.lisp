@@ -59,8 +59,8 @@ section in the \"z3 bindings\" section in <a
 href='https://github.com/Z3Prover/z3/'>README</a> of Z3.</p>
 <p>I've also wrote a small piece of @(see z3-installation) document about how
 to install Z3 and its Python API.</p>
-<p>To check if Z3 is installed properly, one can check it by running below
-program:</p>
+<p>To check if Z3 is properly installed, run Python, which will put you in an
+interactive loop. Then run:</p>
 @({
   from z3 import *
   x = Real('x')
@@ -69,6 +69,7 @@ program:</p>
   s.add(x + y > 5, x > 1, y > 1)
   print(s.check())
   print(s.model())
+  quit()
   })
 <p>One should expect some results like:</p>
 @({

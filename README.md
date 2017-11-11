@@ -16,8 +16,8 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
   Since we are using the Python interface, please follow the "python"
   section in the "z3 bindings" section in [README of Z3][Z3-README].
 
-  To check if Z3 is installed properly, one can check it by running below
-  program:
+  To check if Z3 is properly installed, run Python, which will put you in an
+  interactive loop. Then run:
   ```
   from z3 import *
   x = Real('x')
@@ -26,6 +26,7 @@ It supports both ACL2 and *ACL2(r)*. The current default SMT solver integrated i
   s.add(x + y > 5, x > 1, y > 1)
   print(s.check())
   print(s.model())
+  quit()
   ```
   One should expect some results like:
   ```
