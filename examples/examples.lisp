@@ -139,8 +139,7 @@ Smtlink).</p>
 (def-saved-event smtconf-expt-tutorial
   (defun my-smtlink-expt-config ()
     (declare (xargs :guard t))
-    (change-smtlink-config *default-smtlink-config*
-                           :interface-dir "../z3_interface"
+    (change-smtlink-config (default-smt-cnf)
                            :smt-module    "RewriteExpt"
                            :smt-class     "to_smt_w_expt"
                            :smt-cmd       "python"
@@ -163,14 +162,33 @@ Smtlink).</p>
                (<= (* 2 (expt z n) x y)
                    (* (expt z m) (x^2+y^2 x y))))
       :hints (("Goal"
-               :smtlink-custom (:functions ((expt :formals ((r rationalp)
-                                                            (i rationalp))
-                                                  :returns ((ex rationalp))
+               ;; :smtlink-custom (:functions ((expt :formals ((r #-:non-standard-analysis
+               ;;                                                 rationalp
+               ;;                                                 #+:non-standard-analysis
+               ;;                                                 realp)
+               ;;                                              (i #-:non-standard-analysis
+               ;;                                                 rationalp
+               ;;                                                 #+:non-standard-analysis
+               ;;                                                 realp))
+               ;;                                    :returns ((ex #-:non-standard-analysis
+               ;;                                                  rationalp
+               ;;                                                  #+:non-standard-analysis
+               ;;                                                  realp))
+               ;;                                    :level 0))
+               ;;                  :hypotheses (((< (expt z n) (expt z m)))
+               ;;                               ((< 0 (expt z m)))
+               ;;                               ((< 0 (expt z n))))
+               ;;                  :int-to-rat t)
+               :smtlink-custom (:functions ((expt :formals ((r real/rationalp)
+                                                            (i real/rationalp))
+                                                  :returns ((ex real/rationalp))
                                                   :level 0))
                                 :hypotheses (((< (expt z n) (expt z m)))
                                              ((< 0 (expt z m)))
                                              ((< 0 (expt z n))))
-                                :int-to-rat t))))))
+                                :int-to-rat t)
+      )))))
+
 (deftutorial Example-2
   :parents (Tutorial)
   :short "Example 2: something wild"

@@ -1534,21 +1534,67 @@
          (new-first (trans-hypothesis first state)))
       (cons new-first (trans-more-returns rest state))))
 
+  (define trans-argument ((val t) (state))
+    :mode :program
+    (b* (((unless (and (true-listp val)
+                       (car val) (cadr val)))
+          val)
+         ((list name type) val)
+         (to-be-trans `(,type ,name))
+         ((mv err term)
+          (acl2::translate-cmp to-be-trans t t nil 'Smtlink-process-user-hint->trans-hypothesis
+                               (w state) (acl2::default-state-vars t)))
+         ((when err)
+          (er hard? 'Smtlink-process-user-hint->trans-argument "Error ~
+    translating form: ~@0" to-be-trans))
+         (- (cw "~q0" `(,name ,(car term)))))
+      `(,name ,(car term))))
+
+  (define trans-formals ((val t) (state))
+    :mode :program
+    (b* ((- (cw "trans formals: ~q0" val))
+         ((unless (true-listp val)) val)
+         ((unless (consp val)) val)
+         ((cons first rest) val)
+         (new-first (trans-argument first state)))
+      (cons new-first (trans-formals rest state))))
+
+  (define trans-returns ((val t) (state))
+    :mode :program
+    (b* (((unless (true-listp val)) val)
+         ((unless (consp val)) val)
+         ((cons first rest) val)
+         (new-first (trans-argument first state)))
+      (cons new-first (trans-formals rest state))))
+
   (define trans-func-option ((opt t) (val t) (state))
     :mode :program
-    (cond ((equal opt ':guard) (trans-guard val state))
+    (cond ((equal opt ':formals) (trans-formals val state))
+          ((equal opt ':returns) (trans-returns val state))
+          ((equal opt ':guard) (trans-guard val state))
           ((equal opt ':more-returns) (trans-more-returns val state))
           (t val)))
 
+  (define trans-function ((val t) (state))
+    :mode :program
+    (b* ((- (cw "val: ~q0" val))
+         ((unless (and (true-listp val) (consp val)))
+          val)
+         ((list* first second rest) val)
+         (- (cw "first: ~q0, second: ~q1, rest: ~q2" first second rest))
+         (new-second (trans-func-option first second state))
+         (new-functions `(,first ,new-second ,@(trans-function rest state))))
+      new-functions))
+
   (define trans-functions ((val t) (state))
     :mode :program
-    (b* (((unless (true-listp val)) val)
-         ((unless val) val)
-         ((unless (cdr val)) val)
-         ((list* first second rest) val)
-         (new-second (trans-func-option first second state))
-         (new-functions `(,first ,new-second ,@(trans-functions rest state))))
-      new-functions))
+    (b* ((- (cw "val: ~q0" val))
+         ((unless (true-listp val)) val)
+         ((unless (consp val)) val)
+         ((cons first rest) val)
+         ((cons fname options) first)
+         (new-first `(,fname ,@(trans-function options state))))
+      (cons new-first (trans-functions rest state))))
 
   (define trans-hypotheses ((val t) (state))
     :mode :program
@@ -1571,13 +1617,15 @@
 
   (define trans-hint ((hint t) (state))
     :mode :program
-    (b* (((unless (true-listp hint)) hint)
+    (b* ((- (cw "I'm here:~p0~%" hint))
+         ((unless (true-listp hint)) hint)
          (wrld-len (wrld-fn-len state))
          ((if (atom hint)) `(:wrld-len ,wrld-len))
          ((unless (cdr hint)) hint)
          ((list* first second rest) hint)
          (new-second (trans-hint-option first second state))
-         (new-hint `(,first ,new-second ,@(trans-hint rest state))))
+         (new-hint `(,first ,new-second ,@(trans-hint rest state)))
+         (- (cw "I'm finished~%")))
       new-hint))
 
   ;; ------------------------------------------------------------
