@@ -8,6 +8,9 @@
 (in-package "SMT")
 (include-book "../top")
 (include-book "centaur/sv/tutorial/support" :dir :system)
+;; def-saved-event is a wrapper that is used by the documentation system,
+;; and can be ignored by the reader.
+;; Check the book centaur/sv/tutorial/support.lisp for detailed explanation.
 
 (value-triple (tshell-ensure))
 (add-default-hints '((SMT::SMT-process-hint clause)))
