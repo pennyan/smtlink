@@ -187,11 +187,13 @@
   ;;        (smt-hint (smtlink-hint->smt-hint smtlink-hint)))
   ;;     (construct-smtlink-subgoals hinted-As hinted-G-prim smt-hint (disjoin cl))))
 
-(local (in-theory (enable smtlink-hint-p smtlink-hint->aux-hint-list
-                          smtlink-hint->expanded-clause-w/-hint)))
+  (local (in-theory (enable smtlink-hint-p smtlink-hint->aux-hint-list
+                            smtlink-hint->expanded-clause-w/-hint)))
   (define Smtlink-subgoals ((cl pseudo-term-listp) (smtlink-hint t))
-    :returns (subgoal-lst pseudo-term-list-listp)
-    :guard-debug t
+    :returns (subgoal-lst
+              pseudo-term-list-listp
+              :hints (("Goal"
+                       :in-theory (disable smtlink-hint-p))))
     (b* (((unless (pseudo-term-listp cl)) nil)
          ((unless (smtlink-hint-p smtlink-hint))
           (list (remove-hint-please cl)))
@@ -225,18 +227,20 @@
                    b))
              (ev-Smtlink-subgoals (disjoin (remove-hint-please cl)) b))
     :hints (("Goal"
+             :in-theory (e/d () (preprocess-auxes-corollary))
              :use ((:instance preprocess-auxes-corollary
                               (hinted-As (smtlink-hint->aux-hint-list
                                           smtlink-hint))
-                              (cl (remove-hint-please cl)))))))
+                              (cl (remove-hint-please cl))))
+             )))
 
-(defthm correctness-of-remove-hint-please-with-ev-Smtlink-subgoals
-  (implies (and (pseudo-term-listp cl)
-                (alistp b))
-           (iff (ev-Smtlink-subgoals (disjoin (remove-hint-please cl)) b)
-                (ev-Smtlink-subgoals (disjoin cl) b)))
-  :hints (("Goal"
-           :in-theory (enable hint-please remove-hint-please) )))
+  (defthm correctness-of-remove-hint-please-with-ev-Smtlink-subgoals
+    (implies (and (pseudo-term-listp cl)
+                  (alistp b))
+             (iff (ev-Smtlink-subgoals (disjoin (remove-hint-please cl)) b)
+                  (ev-Smtlink-subgoals (disjoin cl) b)))
+    :hints (("Goal"
+             :in-theory (enable hint-please remove-hint-please) )))
 
   (defthm correctness-of-Smtlink-subgoals
     (implies (and (pseudo-term-listp cl)
@@ -255,4 +259,4 @@
     `(Smtlink-subgoals clause
                        ;; A and G-prim and hints
                        (Smt-goal-generator (remove-hint-please ,clause) ,hint state)))
-)
+  )
