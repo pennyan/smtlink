@@ -129,7 +129,7 @@ using the Python interface. The Z3 library is imported into Python in the
 scripts written out by Smtlink like is shown in \"Requirements\".</p>
 <li>Certify the book top.lisp in the Smtlink directory, to bake setup into
 certified books.
-<p>This took about 2.5mins on my 4-core mac with hyperthreading @('-j 2').</p>
+<p>This took about 8 mins on my 4-core mac with hyperthreading @('-j 2').</p>
 <box>
 <p>
 <b><color rgb='#FF0000'>NOTE:</color></b>
